@@ -1,0 +1,389 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 42;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		9730C2E71AB7C0230039899F /* moc_MainWindow.cpp in Build Sources */ = {isa = PBXBuildFile; fileRef = 9730C2E51AB7C0230039899F /* moc_MainWindow.cpp */; };
+		9730C2EC1AB7C1CE0039899F /* eos.icns in Bundle Resources */ = {isa = PBXBuildFile; fileRef = 9730C2EB1AB7C1CE0039899F /* eos.icns */; };
+		979091D91B1912D400E4291B /* EosUdp_Mac.cpp in Build Sources */ = {isa = PBXBuildFile; fileRef = 979091D51B1912D400E4291B /* EosUdp_Mac.cpp */; };
+		979091DA1B1912D400E4291B /* EosUdp.cpp in Build Sources */ = {isa = PBXBuildFile; fileRef = 979091D71B1912D400E4291B /* EosUdp.cpp */; };
+		97965F681B6C1311006C8852 /* ItemState.cpp in Build Sources */ = {isa = PBXBuildFile; fileRef = 97965F621B6C1311006C8852 /* ItemState.cpp */; };
+		97965F691B6C1311006C8852 /* NetworkUtils.cpp in Build Sources */ = {isa = PBXBuildFile; fileRef = 97965F641B6C1311006C8852 /* NetworkUtils.cpp */; };
+		97965F6A1B6C1311006C8852 /* Router.cpp in Build Sources */ = {isa = PBXBuildFile; fileRef = 97965F661B6C1311006C8852 /* Router.cpp */; };
+		97E137371AB28C3A0056BE05 /* main.cpp in Build Sources */ = {isa = PBXBuildFile; fileRef = 97E137331AB28C3A0056BE05 /* main.cpp */; };
+		97E137381AB28C3A0056BE05 /* MainWindow.cpp in Build Sources */ = {isa = PBXBuildFile; fileRef = 97E137341AB28C3A0056BE05 /* MainWindow.cpp */; };
+		97E137481AB28C720056BE05 /* EosLog.cpp in Build Sources */ = {isa = PBXBuildFile; fileRef = 97E1373A1AB28C720056BE05 /* EosLog.cpp */; };
+		97E137491AB28C720056BE05 /* EosOsc.cpp in Build Sources */ = {isa = PBXBuildFile; fileRef = 97E1373C1AB28C720056BE05 /* EosOsc.cpp */; };
+		97E1374A1AB28C720056BE05 /* EosSyncLib.cpp in Build Sources */ = {isa = PBXBuildFile; fileRef = 97E1373E1AB28C720056BE05 /* EosSyncLib.cpp */; };
+		97E1374B1AB28C720056BE05 /* EosTcp_Mac.cpp in Build Sources */ = {isa = PBXBuildFile; fileRef = 97E137401AB28C720056BE05 /* EosTcp_Mac.cpp */; };
+		97E1374C1AB28C720056BE05 /* EosTcp.cpp in Build Sources */ = {isa = PBXBuildFile; fileRef = 97E137421AB28C720056BE05 /* EosTcp.cpp */; };
+		97E1374D1AB28C720056BE05 /* EosTimer.cpp in Build Sources */ = {isa = PBXBuildFile; fileRef = 97E137441AB28C720056BE05 /* EosTimer.cpp */; };
+		97E1374E1AB28C720056BE05 /* OSCParser.cpp in Build Sources */ = {isa = PBXBuildFile; fileRef = 97E137461AB28C720056BE05 /* OSCParser.cpp */; };
+		97E137521AB28E0C0056BE05 /* QtCore.framework in Frameworks & Libraries */ = {isa = PBXBuildFile; fileRef = 97E1374F1AB28E0C0056BE05 /* QtCore.framework */; };
+		97E137531AB28E0C0056BE05 /* QtGui.framework in Frameworks & Libraries */ = {isa = PBXBuildFile; fileRef = 97E137501AB28E0C0056BE05 /* QtGui.framework */; };
+		97E137541AB28E0C0056BE05 /* QtNetwork.framework in Frameworks & Libraries */ = {isa = PBXBuildFile; fileRef = 97E137511AB28E0C0056BE05 /* QtNetwork.framework */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		9730C2E51AB7C0230039899F /* moc_MainWindow.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = moc_MainWindow.cpp; path = OSCRouter/moc_MainWindow.cpp; sourceTree = SOURCE_ROOT; };
+		9730C2EB1AB7C1CE0039899F /* eos.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = eos.icns; sourceTree = SOURCE_ROOT; };
+		979091D51B1912D400E4291B /* EosUdp_Mac.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EosUdp_Mac.cpp; path = ../EosSyncLib/EosSyncLib/EosUdp_Mac.cpp; sourceTree = SOURCE_ROOT; };
+		979091D61B1912D400E4291B /* EosUdp_Mac.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EosUdp_Mac.h; path = ../EosSyncLib/EosSyncLib/EosUdp_Mac.h; sourceTree = SOURCE_ROOT; };
+		979091D71B1912D400E4291B /* EosUdp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EosUdp.cpp; path = ../EosSyncLib/EosSyncLib/EosUdp.cpp; sourceTree = "<group>"; };
+		979091D81B1912D400E4291B /* EosUdp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EosUdp.h; path = ../EosSyncLib/EosSyncLib/EosUdp.h; sourceTree = "<group>"; };
+		97965F621B6C1311006C8852 /* ItemState.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ItemState.cpp; path = OSCRouter/ItemState.cpp; sourceTree = SOURCE_ROOT; };
+		97965F631B6C1311006C8852 /* ItemState.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ItemState.h; path = OSCRouter/ItemState.h; sourceTree = SOURCE_ROOT; };
+		97965F641B6C1311006C8852 /* NetworkUtils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = NetworkUtils.cpp; path = OSCRouter/NetworkUtils.cpp; sourceTree = SOURCE_ROOT; };
+		97965F651B6C1311006C8852 /* NetworkUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = NetworkUtils.h; path = OSCRouter/NetworkUtils.h; sourceTree = SOURCE_ROOT; };
+		97965F661B6C1311006C8852 /* Router.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Router.cpp; path = OSCRouter/Router.cpp; sourceTree = SOURCE_ROOT; };
+		97965F671B6C1311006C8852 /* Router.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Router.h; path = OSCRouter/Router.h; sourceTree = SOURCE_ROOT; };
+		97E1372C1AB289DC0056BE05 /* OSCRouter.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OSCRouter.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		97E137331AB28C3A0056BE05 /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = main.cpp; path = OSCRouter/main.cpp; sourceTree = SOURCE_ROOT; };
+		97E137341AB28C3A0056BE05 /* MainWindow.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MainWindow.cpp; path = OSCRouter/MainWindow.cpp; sourceTree = SOURCE_ROOT; };
+		97E137351AB28C3A0056BE05 /* MainWindow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MainWindow.h; path = OSCRouter/MainWindow.h; sourceTree = SOURCE_ROOT; };
+		97E137361AB28C3A0056BE05 /* QtInclude.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = QtInclude.h; path = OSCRouter/QtInclude.h; sourceTree = SOURCE_ROOT; };
+		97E1373A1AB28C720056BE05 /* EosLog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EosLog.cpp; path = ../EosSyncLib/EosSyncLib/EosLog.cpp; sourceTree = SOURCE_ROOT; };
+		97E1373B1AB28C720056BE05 /* EosLog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EosLog.h; path = ../EosSyncLib/EosSyncLib/EosLog.h; sourceTree = SOURCE_ROOT; };
+		97E1373C1AB28C720056BE05 /* EosOsc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EosOsc.cpp; path = ../EosSyncLib/EosSyncLib/EosOsc.cpp; sourceTree = SOURCE_ROOT; };
+		97E1373D1AB28C720056BE05 /* EosOsc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EosOsc.h; path = ../EosSyncLib/EosSyncLib/EosOsc.h; sourceTree = SOURCE_ROOT; };
+		97E1373E1AB28C720056BE05 /* EosSyncLib.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EosSyncLib.cpp; path = ../EosSyncLib/EosSyncLib/EosSyncLib.cpp; sourceTree = SOURCE_ROOT; };
+		97E1373F1AB28C720056BE05 /* EosSyncLib.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EosSyncLib.h; path = ../EosSyncLib/EosSyncLib/EosSyncLib.h; sourceTree = SOURCE_ROOT; };
+		97E137401AB28C720056BE05 /* EosTcp_Mac.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EosTcp_Mac.cpp; path = ../EosSyncLib/EosSyncLib/EosTcp_Mac.cpp; sourceTree = SOURCE_ROOT; };
+		97E137411AB28C720056BE05 /* EosTcp_Mac.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EosTcp_Mac.h; path = ../EosSyncLib/EosSyncLib/EosTcp_Mac.h; sourceTree = SOURCE_ROOT; };
+		97E137421AB28C720056BE05 /* EosTcp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EosTcp.cpp; path = ../EosSyncLib/EosSyncLib/EosTcp.cpp; sourceTree = SOURCE_ROOT; };
+		97E137431AB28C720056BE05 /* EosTcp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EosTcp.h; path = ../EosSyncLib/EosSyncLib/EosTcp.h; sourceTree = SOURCE_ROOT; };
+		97E137441AB28C720056BE05 /* EosTimer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EosTimer.cpp; path = ../EosSyncLib/EosSyncLib/EosTimer.cpp; sourceTree = SOURCE_ROOT; };
+		97E137451AB28C720056BE05 /* EosTimer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EosTimer.h; path = ../EosSyncLib/EosSyncLib/EosTimer.h; sourceTree = SOURCE_ROOT; };
+		97E137461AB28C720056BE05 /* OSCParser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = OSCParser.cpp; path = ../EosSyncLib/EosSyncLib/OSCParser.cpp; sourceTree = SOURCE_ROOT; };
+		97E137471AB28C720056BE05 /* OSCParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OSCParser.h; path = ../EosSyncLib/EosSyncLib/OSCParser.h; sourceTree = SOURCE_ROOT; };
+		97E1374F1AB28E0C0056BE05 /* QtCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QtCore.framework; path = /Library/Frameworks/QtCore.framework; sourceTree = "<absolute>"; };
+		97E137501AB28E0C0056BE05 /* QtGui.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QtGui.framework; path = /Library/Frameworks/QtGui.framework; sourceTree = "<absolute>"; };
+		97E137511AB28E0C0056BE05 /* QtNetwork.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QtNetwork.framework; path = /Library/Frameworks/QtNetwork.framework; sourceTree = "<absolute>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		2A1043669E6E5A7426EA502A /* Frameworks & Libraries */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				97E137521AB28E0C0056BE05 /* QtCore.framework in Frameworks & Libraries */,
+				97E137531AB28E0C0056BE05 /* QtGui.framework in Frameworks & Libraries */,
+				97E137541AB28E0C0056BE05 /* QtNetwork.framework in Frameworks & Libraries */,
+			);
+			name = "Frameworks & Libraries";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		05596AB53D8D521C69802C27 /* OSCRouter */ = {
+			isa = PBXGroup;
+			children = (
+				97E137301AB28C0D0056BE05 /* EosSyncLib */,
+				97E137311AB28C1A0056BE05 /* OSCRouter */,
+			);
+			name = OSCRouter;
+			sourceTree = "<unknown>";
+		};
+		9730C2EA1AB7C1C00039899F /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				9730C2EB1AB7C1CE0039899F /* eos.icns */,
+			);
+			name = Resources;
+			sourceTree = "<group>";
+		};
+		97E1372D1AB289DC0056BE05 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				97E1372C1AB289DC0056BE05 /* OSCRouter.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		97E137301AB28C0D0056BE05 /* EosSyncLib */ = {
+			isa = PBXGroup;
+			children = (
+				97E137391AB28C400056BE05 /* Sources */,
+			);
+			name = EosSyncLib;
+			sourceTree = "<group>";
+		};
+		97E137311AB28C1A0056BE05 /* OSCRouter */ = {
+			isa = PBXGroup;
+			children = (
+				97E137581AB291620056BE05 /* Frameworks */,
+				97E1372D1AB289DC0056BE05 /* Products */,
+				9730C2EA1AB7C1C00039899F /* Resources */,
+				97E137321AB28C2A0056BE05 /* Sources */,
+			);
+			name = OSCRouter;
+			sourceTree = "<group>";
+		};
+		97E137321AB28C2A0056BE05 /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				97965F621B6C1311006C8852 /* ItemState.cpp */,
+				97965F631B6C1311006C8852 /* ItemState.h */,
+				97E137331AB28C3A0056BE05 /* main.cpp */,
+				97E137341AB28C3A0056BE05 /* MainWindow.cpp */,
+				97E137351AB28C3A0056BE05 /* MainWindow.h */,
+				9730C2E51AB7C0230039899F /* moc_MainWindow.cpp */,
+				97965F641B6C1311006C8852 /* NetworkUtils.cpp */,
+				97965F651B6C1311006C8852 /* NetworkUtils.h */,
+				97E137361AB28C3A0056BE05 /* QtInclude.h */,
+				97965F661B6C1311006C8852 /* Router.cpp */,
+				97965F671B6C1311006C8852 /* Router.h */,
+			);
+			name = Sources;
+			sourceTree = "<group>";
+		};
+		97E137391AB28C400056BE05 /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				979091D51B1912D400E4291B /* EosUdp_Mac.cpp */,
+				979091D61B1912D400E4291B /* EosUdp_Mac.h */,
+				979091D71B1912D400E4291B /* EosUdp.cpp */,
+				979091D81B1912D400E4291B /* EosUdp.h */,
+				97E1373A1AB28C720056BE05 /* EosLog.cpp */,
+				97E1373B1AB28C720056BE05 /* EosLog.h */,
+				97E1373C1AB28C720056BE05 /* EosOsc.cpp */,
+				97E1373D1AB28C720056BE05 /* EosOsc.h */,
+				97E1373E1AB28C720056BE05 /* EosSyncLib.cpp */,
+				97E1373F1AB28C720056BE05 /* EosSyncLib.h */,
+				97E137401AB28C720056BE05 /* EosTcp_Mac.cpp */,
+				97E137411AB28C720056BE05 /* EosTcp_Mac.h */,
+				97E137421AB28C720056BE05 /* EosTcp.cpp */,
+				97E137431AB28C720056BE05 /* EosTcp.h */,
+				97E137441AB28C720056BE05 /* EosTimer.cpp */,
+				97E137451AB28C720056BE05 /* EosTimer.h */,
+				97E137461AB28C720056BE05 /* OSCParser.cpp */,
+				97E137471AB28C720056BE05 /* OSCParser.h */,
+			);
+			name = Sources;
+			sourceTree = "<group>";
+		};
+		97E137581AB291620056BE05 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				97E1374F1AB28E0C0056BE05 /* QtCore.framework */,
+				97E137501AB28E0C0056BE05 /* QtGui.framework */,
+				97E137511AB28E0C0056BE05 /* QtNetwork.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		2A117425011F346368EBD065 /* OSCRouter */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 17B3380A4D6A7D415E7F2E1E /* Build configuration list for PBXNativeTarget "OSCRouter" */;
+			buildPhases = (
+				97E137551AB28E930056BE05 /* moc MainWindow */,
+				C29B8785722055ED95EF7B57 /* Build Sources */,
+				2A1043669E6E5A7426EA502A /* Frameworks & Libraries */,
+				3787F99312C85FF0073FD7BA /* Bundle Resources */,
+				9730C2E91AB7C0BB0039899F /* Bundle Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = OSCRouter;
+			productName = OSCRouter;
+			productReference = 97E1372C1AB289DC0056BE05 /* OSCRouter.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		91B15E841AA80083484172DE /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0610;
+			};
+			buildConfigurationList = CC82A9286117DFED018F418F /* Build configuration list for PBXProject "OSCRouter" */;
+			compatibilityVersion = "Xcode 2.4";
+			developmentRegion = English;
+			hasScannedForEncodings = 1;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 05596AB53D8D521C69802C27 /* OSCRouter */;
+			productRefGroup = 97E1372D1AB289DC0056BE05 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				2A117425011F346368EBD065 /* OSCRouter */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		3787F99312C85FF0073FD7BA /* Bundle Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9730C2EC1AB7C1CE0039899F /* eos.icns in Bundle Resources */,
+			);
+			name = "Bundle Resources";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		9730C2E91AB7C0BB0039899F /* Bundle Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Bundle Frameworks";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "##### copy QtCore ####\nmkdir -p \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtCore.framework/Versions/4\"\ncp -R \"/Library/Frameworks/QtCore.framework/Versions/4/QtCore\" \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtCore.framework/Versions/4\"\n\n##### copy QtGui ####\nmkdir -p \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtGui.framework/Versions/4\"\ncp -R \"/Library/Frameworks/QtGui.framework/Versions/4/QtGui\" \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtGui.framework/Versions/4\"\ncp -R \"/Library/Frameworks/QtGui.framework/Versions/4/Resources\" \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtGui.framework\"\n\n##### copy QtNetwork ####\nmkdir -p \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtNetwork.framework/Versions/4\"\ncp -R \"/Library/Frameworks/QtNetwork.framework/Versions/4/QtNetwork\" \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtNetwork.framework/Versions/4\"\n\n##### identify bundled Qt frameworks ####\ninstall_name_tool -id @executable_path/../Frameworks/QtCore.framework/Versions/4/QtCore \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtCore.framework/Versions/4/QtCore\"\ninstall_name_tool -id @executable_path/../Frameworks/QtGui.framework/Versions/4/QtGui \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtGui.framework/Versions/4/QtGui\"\ninstall_name_tool -id @executable_path/../Frameworks/QtNetwork.framework/Versions/4/QtNetwork \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtNetwork.framework/Versions/4/QtNetwork\"\n\n##### redirect executable to use bundled Qt frameworks ####\ninstall_name_tool -change QtCore.framework/Versions/4/QtCore @executable_path/../Frameworks/QtCore.framework/Versions/4/QtCore \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/MacOs/${PRODUCT_NAME}\"\ninstall_name_tool -change QtGui.framework/Versions/4/QtGui @executable_path/../Frameworks/QtGui.framework/Versions/4/QtGui \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/MacOs/${PRODUCT_NAME}\"\ninstall_name_tool -change QtNetwork.framework/Versions/4/QtNetwork @executable_path/../Frameworks/QtNetwork.framework/Versions/4/QtNetwork \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/MacOs/${PRODUCT_NAME}\"\n\n##### redirect bundled frameworks/libraries to use bundled dependecies ####\ninstall_name_tool -change QtCore.framework/Versions/4/QtCore @executable_path/../Frameworks/QtCore.framework/Versions/4/QtCore \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtGui.framework/Versions/4/QtGui\"\ninstall_name_tool -change QtCore.framework/Versions/4/QtCore @executable_path/../Frameworks/QtCore.framework/Versions/4/QtCore \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtNetwork.framework/Versions/4/QtNetwork\"";
+		};
+		97E137551AB28E930056BE05 /* moc MainWindow */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/MainWindow.h",
+			);
+			name = "moc MainWindow";
+			outputPaths = (
+				"$(SRCROOT)/moc_MainWindow.cpp",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "/Developer/Tools/Qt/moc OSCRouter/MainWindow.h -o OSCRouter/moc_MainWindow.cpp";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		C29B8785722055ED95EF7B57 /* Build Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				97E137381AB28C3A0056BE05 /* MainWindow.cpp in Build Sources */,
+				97E137481AB28C720056BE05 /* EosLog.cpp in Build Sources */,
+				97965F691B6C1311006C8852 /* NetworkUtils.cpp in Build Sources */,
+				979091DA1B1912D400E4291B /* EosUdp.cpp in Build Sources */,
+				97E1374E1AB28C720056BE05 /* OSCParser.cpp in Build Sources */,
+				97E137371AB28C3A0056BE05 /* main.cpp in Build Sources */,
+				9730C2E71AB7C0230039899F /* moc_MainWindow.cpp in Build Sources */,
+				97E1374B1AB28C720056BE05 /* EosTcp_Mac.cpp in Build Sources */,
+				97E1374C1AB28C720056BE05 /* EosTcp.cpp in Build Sources */,
+				97E1374D1AB28C720056BE05 /* EosTimer.cpp in Build Sources */,
+				979091D91B1912D400E4291B /* EosUdp_Mac.cpp in Build Sources */,
+				97965F681B6C1311006C8852 /* ItemState.cpp in Build Sources */,
+				97E137491AB28C720056BE05 /* EosOsc.cpp in Build Sources */,
+				97965F6A1B6C1311006C8852 /* Router.cpp in Build Sources */,
+				97E1374A1AB28C720056BE05 /* EosSyncLib.cpp in Build Sources */,
+			);
+			name = "Build Sources";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		4B72B24813252891014BCF61 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				COPY_PHASE_STRIP = NO;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
+					"/Library/Qt/qt-everywhere-commercial-src-4.8.1/include",
+				);
+				INFOPLIST_FILE = Info.plist;
+				MACOSX_DEPLOYMENT_TARGET = 10.4;
+				OTHER_LDFLAGS = "-headerpad_max_install_names";
+				PRODUCT_NAME = OSCRouter;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		8C7174830A1E4DCBA0332EC1 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(LOCAL_LIBRARY_DIR)/Frameworks",
+				);
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				PRODUCT_NAME = OSCRouter;
+			};
+			name = Release;
+		};
+		BEC09A62E69C3553534FF35E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(LOCAL_LIBRARY_DIR)/Frameworks",
+				);
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				PRODUCT_NAME = OSCRouter;
+			};
+			name = Debug;
+		};
+		D70590BEB531B51029F711BB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				COPY_PHASE_STRIP = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
+					"/Library/Qt/qt-everywhere-commercial-src-4.8.1/include",
+				);
+				INFOPLIST_FILE = Info.plist;
+				MACOSX_DEPLOYMENT_TARGET = 10.4;
+				OTHER_LDFLAGS = "-headerpad_max_install_names";
+				PRODUCT_NAME = OSCRouter;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		17B3380A4D6A7D415E7F2E1E /* Build configuration list for PBXNativeTarget "OSCRouter" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BEC09A62E69C3553534FF35E /* Debug */,
+				8C7174830A1E4DCBA0332EC1 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CC82A9286117DFED018F418F /* Build configuration list for PBXProject "OSCRouter" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4B72B24813252891014BCF61 /* Debug */,
+				D70590BEB531B51029F711BB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 91B15E841AA80083484172DE /* Project object */;
+}

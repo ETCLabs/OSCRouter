@@ -1,0 +1,138 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="EosSyncLib">
+      <UniqueIdentifier>{cef2cfcb-204f-485e-8d6c-250f86c6afc3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="EosSyncLib\Header Files">
+      <UniqueIdentifier>{0da39691-5166-4628-84be-159703543643}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="EosSyncLib\Source Files">
+      <UniqueIdentifier>{a2e45461-023f-43ba-a322-34ec48590300}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="OSCRouter">
+      <UniqueIdentifier>{43eada99-99df-4464-92cc-d47b276bd0a5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="OSCRouter\Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="OSCRouter\Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp">
+      <Filter>OSCRouter\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MainWindow.cpp">
+      <Filter>OSCRouter\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="moc\moc_MainWindow.cpp">
+      <Filter>OSCRouter\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\EosSyncLib\EosSyncLib\EosLog.cpp">
+      <Filter>EosSyncLib\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\EosSyncLib\EosSyncLib\EosOsc.cpp">
+      <Filter>EosSyncLib\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\EosSyncLib\EosSyncLib\EosSyncLib.cpp">
+      <Filter>EosSyncLib\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\EosSyncLib\EosSyncLib\EosTcp.cpp">
+      <Filter>EosSyncLib\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\EosSyncLib\EosSyncLib\EosTcp_Win.cpp">
+      <Filter>EosSyncLib\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\EosSyncLib\EosSyncLib\EosTimer.cpp">
+      <Filter>EosSyncLib\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\EosSyncLib\EosSyncLib\OSCParser.cpp">
+      <Filter>EosSyncLib\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\EosSyncLib\EosSyncLib\EosUdp.cpp">
+      <Filter>EosSyncLib\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\EosSyncLib\EosSyncLib\EosUdp_Win.cpp">
+      <Filter>EosSyncLib\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ItemState.cpp">
+      <Filter>OSCRouter\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="NetworkUtils.cpp">
+      <Filter>OSCRouter\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Router.cpp">
+      <Filter>OSCRouter\Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="QtInclude.h">
+      <Filter>OSCRouter\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\EosSyncLib\EosSyncLib\EosLog.h">
+      <Filter>EosSyncLib\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\EosSyncLib\EosSyncLib\EosTimer.h">
+      <Filter>EosSyncLib\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\EosSyncLib\EosSyncLib\EosOsc.h">
+      <Filter>EosSyncLib\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\EosSyncLib\EosSyncLib\EosSyncLib.h">
+      <Filter>EosSyncLib\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\EosSyncLib\EosSyncLib\EosTcp.h">
+      <Filter>EosSyncLib\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\EosSyncLib\EosSyncLib\EosTcp_Win.h">
+      <Filter>EosSyncLib\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\EosSyncLib\EosSyncLib\OSCParser.h">
+      <Filter>EosSyncLib\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>OSCRouter\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\EosSyncLib\EosSyncLib\EosUdp.h">
+      <Filter>EosSyncLib\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\EosSyncLib\EosSyncLib\EosUdp_Win.h">
+      <Filter>EosSyncLib\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LeakWatcher.h">
+      <Filter>OSCRouter\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ItemState.h">
+      <Filter>OSCRouter\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NetworkUtils.h">
+      <Filter>OSCRouter\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Router.h">
+      <Filter>OSCRouter\Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="MainWindow.h">
+      <Filter>OSCRouter\Header Files</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="OSCRouter.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="icon1.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+  </ItemGroup>
+</Project>
