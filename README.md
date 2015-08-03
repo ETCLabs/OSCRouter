@@ -1,5 +1,5 @@
 # OSCRouter
-Simple router for UDP/TCP packets for Mac and Windows, with optional OSC specific options
+Simple UDP/TCP packet router for Mac and Windows, with optional OSC specific options
 
 ![screenshot](https://raw.githubusercontent.com/ElectronicTheatreControlsLabs/Downloads/master/Images/OSCRouter_Screenshot.png)
 
