@@ -13,7 +13,7 @@ Simple router for UDP/TCP packets for Mac and Windows, with optional OSC specifi
 
 # Dependencies
 
-- Requires EosSyncLib
+- Requires [EosSyncLib](https://github.com/ElectronicTheatreControlsLabs/EosSyncLib)
 - Requires [Qt 4.8.1](https://download.qt.io/archive/qt/4.8/4.8.1/)
 
 
