@@ -32,7 +32,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 
-#define APP_VERSION				"0.1"
+#define APP_VERSION				"0.2"
 #define SETTING_LOG_DEPTH		"LogDepth"
 #define SETTING_FILE_DEPTH		"FileDepth"
 #define SETTING_LAST_FILE		"LastFile"
