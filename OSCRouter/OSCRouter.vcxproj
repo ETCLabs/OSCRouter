@@ -81,6 +81,7 @@
     <ClCompile Include="..\..\EosSyncLib\EosSyncLib\EosUdp.cpp" />
     <ClCompile Include="..\..\EosSyncLib\EosSyncLib\EosUdp_Win.cpp" />
     <ClCompile Include="..\..\EosSyncLib\EosSyncLib\OSCParser.cpp" />
+    <ClCompile Include="EosPlatform.cpp" />
     <ClCompile Include="ItemState.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MainWindow.cpp" />
@@ -91,6 +92,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\EosSyncLib\EosSyncLib\EosUdp.h" />
     <ClInclude Include="..\..\EosSyncLib\EosSyncLib\EosUdp_Win.h" />
+    <ClInclude Include="EosPlatform.h" />
     <ClInclude Include="ItemState.h" />
     <ClInclude Include="LeakWatcher.h" />
     <ClInclude Include="NetworkUtils.h" />

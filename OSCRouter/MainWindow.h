@@ -46,6 +46,8 @@
 #include "Router.h"
 #endif
 
+class EosPlatform;
+
 ////////////////////////////////////////////////////////////////////////////////
 
 class TableScrollArea
@@ -388,6 +390,7 @@ private:
 	ItemStateTable	m_ItemStateTable;
 	QListWidget		*m_LogWidget;
 	QSettings		m_Settings;
+	EosPlatform		*m_Platform;
 	int				m_LogDepth;
 	int				m_FileDepth;
 	int				m_FileLineCount;
@@ -398,6 +401,7 @@ private:
 	RouterThread	*m_RouterThread;
 	QString			m_FilePath;
 	bool			m_Unsaved;
+	bool			m_DisableSystemIdle;
 
 	virtual void Shutdown();
 	virtual void GetPersistentSavePath(QString &path) const;

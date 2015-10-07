@@ -72,6 +72,9 @@
     <ClCompile Include="Router.cpp">
       <Filter>OSCRouter\Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="EosPlatform.cpp">
+      <Filter>OSCRouter\Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="QtInclude.h">
@@ -117,6 +120,9 @@
       <Filter>OSCRouter\Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Router.h">
+      <Filter>OSCRouter\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="EosPlatform.h">
       <Filter>OSCRouter\Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -20,6 +20,7 @@
 
 #include "MainWindow.h"
 #include "NetworkUtils.h"
+#include "EosPlatform.h"
 #include <time.h>
 
 #ifdef WIN32
@@ -32,12 +33,13 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 
-#define APP_VERSION				"0.2"
-#define SETTING_LOG_DEPTH		"LogDepth"
-#define SETTING_FILE_DEPTH		"FileDepth"
-#define SETTING_LAST_FILE		"LastFile"
-#define SETTING_RECONNECT_DELAY	"ReconnectDelay"
-#define ACTIVITY_TIMEOUT_MS		300
+#define APP_VERSION					"0.3"
+#define SETTING_LOG_DEPTH			"LogDepth"
+#define SETTING_FILE_DEPTH			"FileDepth"
+#define SETTING_LAST_FILE			"LastFile"
+#define SETTING_RECONNECT_DELAY		"ReconnectDelay"
+#define SETTING_DISABLE_SYSTEM_IDLE	"DisableSystemIdle"
+#define ACTIVITY_TIMEOUT_MS			300
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -1513,11 +1515,29 @@ MainWindow::MainWindow(QWidget* parent/*=0*/, Qt::WindowFlags f/*=0*/)
 	m_Settings.setValue(SETTING_LOG_DEPTH, m_LogDepth);
 
 	m_FileDepth = m_Settings.value(SETTING_FILE_DEPTH, m_FileDepth).toInt();
+	m_Settings.setValue(SETTING_FILE_DEPTH, m_FileDepth);
 
 	int n = m_Settings.value(SETTING_RECONNECT_DELAY, static_cast<int>(m_ReconnectDelay)).toInt();
 	m_ReconnectDelay = ((n>0) ? static_cast<unsigned int>(n) : 0);
+	m_Settings.setValue(SETTING_RECONNECT_DELAY, m_ReconnectDelay);
+	
+	n = m_Settings.value(SETTING_DISABLE_SYSTEM_IDLE, 1).toInt();
+	m_DisableSystemIdle = (n != 0);
+	m_Settings.setValue(SETTING_DISABLE_SYSTEM_IDLE, static_cast<int>(m_DisableSystemIdle?1:0));
 
 	InitLogFile();
+	
+	m_Platform = EosPlatform::Create();
+	if( m_Platform )
+	{
+		std::string error;
+		if( !m_Platform->Initialize(error) )
+		{
+			m_Log.AddError("platform initialization failed");
+			m_Platform->Shutdown();
+			m_Platform = 0;
+		}
+	}
 
 	QGridLayout *layout = new QGridLayout(this);
 
@@ -1585,6 +1605,13 @@ MainWindow::MainWindow(QWidget* parent/*=0*/, Qt::WindowFlags f/*=0*/)
 
 MainWindow::~MainWindow()
 {
+	if( m_Platform )
+	{
+		m_Platform->Shutdown();
+		delete m_Platform;
+		m_Platform = 0;
+	}
+
 	Shutdown();
 	ShutdownLogFile();
 }
@@ -1710,6 +1737,20 @@ void MainWindow::Shutdown()
 		FlushRouterThread(/*logsOnly*/true);
 		delete m_RouterThread;
 		m_RouterThread = 0;
+		
+		if(m_Platform && m_DisableSystemIdle)
+		{
+			std::string error;
+			if( m_Platform->SetSystemIdleAllowed(true,"routing stopped",error) )
+			{
+				m_Log.AddInfo("routing stopped, system idle allowed");
+			}
+			else
+			{
+				error.insert(0, "failed to allow system idle, ");
+				m_Log.AddDebug(error);
+			}
+		}
 	}
 }
 
@@ -1729,6 +1770,20 @@ bool MainWindow::BuildRoutes()
 
 	if( !routes.empty() )
 	{
+		if(m_Platform && m_DisableSystemIdle)
+		{
+			std::string error;
+			if( m_Platform->SetSystemIdleAllowed(false,"routing started",error) )
+			{
+				m_Log.AddInfo("routing started, system idle disabled");
+			}
+			else
+			{
+				error.insert(0, "failed to disable system idle, ");
+				m_Log.AddDebug(error);
+			}
+		}
+	
 		m_RouterThread = new RouterThread(routes, tcpConnections, m_ItemStateTable, m_ReconnectDelay);
 		m_RouterThread->start();
 		return true;
