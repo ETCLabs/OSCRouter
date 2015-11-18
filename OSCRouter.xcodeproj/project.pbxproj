@@ -50,6 +50,7 @@
 		97965F651B6C1311006C8852 /* NetworkUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = NetworkUtils.h; path = OSCRouter/NetworkUtils.h; sourceTree = SOURCE_ROOT; };
 		97965F661B6C1311006C8852 /* Router.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Router.cpp; path = OSCRouter/Router.cpp; sourceTree = SOURCE_ROOT; };
 		97965F671B6C1311006C8852 /* Router.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Router.h; path = OSCRouter/Router.h; sourceTree = SOURCE_ROOT; };
+		97B5A2201BFCF8CE001B1AC7 /* EosPlatform_Mac_Native.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = EosPlatform_Mac_Native.h; path = OSCRouter/EosPlatform_Mac_Native.h; sourceTree = SOURCE_ROOT; };
 		97E1372C1AB289DC0056BE05 /* OSCRouter.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OSCRouter.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		97E137331AB28C3A0056BE05 /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = main.cpp; path = OSCRouter/main.cpp; sourceTree = SOURCE_ROOT; };
 		97E137341AB28C3A0056BE05 /* MainWindow.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MainWindow.cpp; path = OSCRouter/MainWindow.cpp; sourceTree = SOURCE_ROOT; };
@@ -137,6 +138,7 @@
 			isa = PBXGroup;
 			children = (
 				977D1FB61BC4D6E800CDAFB4 /* EosPlatform_Mac_Bridge.h */,
+				97B5A2201BFCF8CE001B1AC7 /* EosPlatform_Mac_Native.h */,
 				977D1FB81BC4D8B600CDAFB4 /* EosPlatform_Mac_Native.mm */,
 				977D1FB21BC4CF0100CDAFB4 /* EosPlatform_Mac.cpp */,
 				977D1FB31BC4CF0100CDAFB4 /* EosPlatform_Mac.h */,
