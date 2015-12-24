@@ -529,18 +529,19 @@ void EosTcpClientThread::run()
 			// send/recv while connected
 			EosPacket::Q sendQ;
 			unsigned int ip = m_Addr.toUInt();
-			OSCStream oscStream(m_FrameMode);
+			OSCStream recvStream(m_FrameMode);
+			OSCStream sendStream(m_FrameMode);
 			while(m_Run && tcp->GetConnectState()==EosTcp::CONNECT_CONNECTED)
 			{
 				size_t len = 0;
 				const char *data = tcp->Recv(m_PrivateLog, 100, len);
 				
-				oscStream.Add(data, len);
+				recvStream.Add(data, len);
 				
 				while( m_Run )
 				{
 					size_t frameSize = 0;
-					char *frame = oscStream.GetNextFrame(frameSize);
+					char *frame = recvStream.GetNextFrame(frameSize);
 					if( frame )
 					{
 						if(frameSize != 0)
@@ -568,7 +569,23 @@ void EosTcpClientThread::run()
 					data = i->GetData();
 					len = static_cast<size_t>( i->GetSize() );
 					if( tcp->Send(m_PrivateLog,data,len) )
-						logParser.PrintPacket(outPacketLogger,data,len);
+					{
+						sendStream.Reset();
+						sendStream.Add(data, len);
+						for(;;)
+						{
+							size_t frameSize = 0;
+							char *frame = recvStream.GetNextFrame(frameSize);
+							if( frame )
+							{
+								if(frameSize != 0)
+									logParser.PrintPacket(outPacketLogger, frame, frameSize);
+								delete[] frame;
+							}
+							else
+								break;
+						}
+					}
 				}
 				sendQ.clear();
 			
