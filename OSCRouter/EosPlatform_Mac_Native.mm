@@ -67,14 +67,17 @@ void* Bridge_BeginActivity(const std::string &reason, std::string &error)
 	NSProcessInfo *processInfo = [NSProcessInfo processInfo];
 	if(processInfo != nil)
 	{
-		const char *reasonStr = ((reason.empty() || reason.c_str()==0)
-			? "routing started"
-			: reason.c_str());
-		activity = [processInfo beginActivityWithOptions:NSActivityUserInitiated|NSActivityLatencyCritical reason:[NSString stringWithUTF8String:reasonStr]];
-		if(activity == nil)
-			error = "beginActivityWithOptions failed";
-		else
-			[activity retain];
+		if([processInfo respondsToSelector:@selector(beginActivityWithOptions:reason:)] == YES)
+		{
+			const char *reasonStr = ((reason.empty() || reason.c_str()==0)
+				? "routing started"
+				: reason.c_str());
+			activity = [processInfo beginActivityWithOptions:NSActivityUserInitiated|NSActivityLatencyCritical reason:[NSString stringWithUTF8String:reasonStr]];
+			if(activity == nil)
+				error = "beginActivityWithOptions failed";
+			else
+				[activity retain];
+		}
 	}
 	else
 		error = "could not get current process";
@@ -95,7 +98,10 @@ void Bridge_EndActivity(void *activity)
 	{
 		NSProcessInfo *processInfo = [NSProcessInfo processInfo];
 		if(processInfo != nil)
-			[processInfo endActivity:activity];
+		{
+			if([processInfo respondsToSelector:@selector(endActivity:)] == YES)
+				[processInfo endActivity:activity];
+		}
 		
 		[activity release];
 	}
