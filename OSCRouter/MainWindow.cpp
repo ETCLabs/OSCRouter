@@ -1501,12 +1501,21 @@ MainWindow::MainWindow(QWidget* parent/*=0*/, Qt::WindowFlags f/*=0*/)
 	, m_ReconnectDelay(5000)
 {
 #ifdef WIN32
-	HICON hIcon = static_cast<HICON>( LoadImage(GetModuleHandle(0),MAKEINTRESOURCE(IDI_ICON1),IMAGE_ICON,128,128,LR_LOADTRANSPARENT) );
-	if( hIcon )
+	QIcon icon;
+
+	const int iconSizes[] = {512, 256, 128, 64, 32, 16};
+	const size_t numIcons = sizeof(iconSizes)/sizeof(iconSizes[0]);
+	for(size_t i=0; i<numIcons; i++)
 	{
-		setWindowIcon( QIcon(QPixmap::fromWinHICON(hIcon)) );
-		DestroyIcon(hIcon);
+		HICON hIcon = static_cast<HICON>( LoadImage(GetModuleHandle(0),MAKEINTRESOURCE(IDI_ICON1),IMAGE_ICON,iconSizes[i],iconSizes[i],LR_LOADTRANSPARENT) );
+		if( hIcon )
+		{
+			icon.addPixmap( QtWin::fromHICON(hIcon) );
+			DestroyIcon(hIcon);
+		}
 	}
+
+	setWindowIcon(icon);
 #endif
 
 	m_LogDepth = m_Settings.value(SETTING_LOG_DEPTH, m_LogDepth).toInt();
@@ -1714,9 +1723,9 @@ void MainWindow::FlushLogQ(EosLog::LOG_Q &logQ)
 
 			while(m_LogWidget->count() > m_LogDepth)
 			{
-				QListWidgetItem *item = m_LogWidget->takeItem(0);
-				if( item )
-					delete item;
+				QListWidgetItem *itemToRemove = m_LogWidget->takeItem(0);
+				if( itemToRemove )
+					delete itemToRemove;
 			}
 		}		
 
@@ -1828,7 +1837,7 @@ void MainWindow::GetDefaultIP(QString &ip)
 
 void MainWindow::GetPersistentSavePath(QString &path) const
 {
-	path = QDir(QDesktopServices::storageLocation(QDesktopServices::DataLocation)).absoluteFilePath("save.osc.txt");
+	path = QDir(QStandardPaths::writableLocation(QStandardPaths::DataLocation)).absoluteFilePath("save.osc.txt");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1985,7 +1994,7 @@ void MainWindow::onOpenFileClicked(bool /*checked*/)
 	if( !lastFile.isEmpty() )
 		dir = QFileInfo(lastFile).absolutePath();
 	if(dir.isEmpty() || !QFileInfo(dir).exists())
-		dir = QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation);
+		dir = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
 	QString path = QFileDialog::getOpenFileName(this, tr("Open"), dir, tr("OSCRouter File (*.osc.txt)"));
 	if( !path.isEmpty() )
 	{
@@ -2013,7 +2022,7 @@ void MainWindow::onSaveAsFileClicked(bool /*checked*/)
 	if( !lastFile.isEmpty() )
 		dir = QFileInfo(lastFile).absolutePath();
 	if(dir.isEmpty() || !QFileInfo(dir).exists())
-		dir = QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation);
+		dir = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
 	QString path = QFileDialog::getSaveFileName(this, tr("Save"), dir, tr("OSCRouter File (*.osc.txt)"));
 	if( !path.isEmpty() )
 		SaveFile(path);

@@ -44,30 +44,37 @@
 #include <QtCore/QDir>
 #include <QtCore/QTextStream>
 #include <QtCore/QUrl>
+#include <QtCore/QStandardPaths>
 
-#include <QtGui/QApplication>
-#include <QtGui/QWidget>
-#include <QtGui/QListWidget>
-#include <QtGui/QGridLayout>
-#include <QtGui/QPushButton>
-#include <QtGui/QPlastiqueStyle>
-#include <QtGui/QScrollBar>
-#include <QtGui/QLineEdit>
-#include <QtGui/QSpinBox>
-#include <QtGui/QLabel>
-#include <QtGui/QSplitter>
-#include <QtGui/QScrollArea>
-#include <QtGui/QProgressBar>
-#include <QtGui/QTextEdit>
-#include <QtGui/QSpacerItem>
 #include <QtGui/QDesktopServices>
-#include <QtGui/QFileDialog>
-#include <QtGui/QMessageBox>
 #include <QtGui/QCloseEvent>
-#include <QtGui/QComboBox>
 #include <QtGui/QPainter>
 
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QWidget>
+#include <QtWidgets/QListWidget>
+#include <QtWidgets/QGridLayout>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QStyleFactory>
+#include <QtWidgets/QScrollBar>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QSpinBox>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QSplitter>
+#include <QtWidgets/QScrollArea>
+#include <QtWidgets/QProgressBar>
+#include <QtWidgets/QTextEdit>
+#include <QtWidgets/QSpacerItem>
+#include <QtWidgets/QFileDialog>
+#include <QtWidgets/QMessageBox>
+#include <QtWidgets/QComboBox>
+
 #include <QtNetwork/QNetworkInterface>
+
+#ifdef WIN32
+	#include <Winsock2.h>
+	#include <QtWinExtras/QtWin>
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 

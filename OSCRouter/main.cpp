@@ -51,7 +51,7 @@ int main(int argc, char* argv[])
 #endif
 
 	app.setDesktopSettingsAware(false);
-	app.setStyle(new QPlastiqueStyle());
+	app.setStyle( QStyleFactory::create("Fusion") );
 
 	QPalette pal;
 	pal.setColor(QPalette::Window, QColor(40,40,40));
