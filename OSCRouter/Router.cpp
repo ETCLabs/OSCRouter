@@ -1157,14 +1157,18 @@ void RouterThread::ProcessTcpConnectionQ(TCP_CLIENT_THREADS &tcpClientThreads, O
 	{
 		const EosTcpServerThread::sConnection &tcpConnection = *i;
 
-		if(tcpClientThreads.find(tcpConnection.addr) == tcpClientThreads.end())
+		// check if an existing connection has been replaced
+		TCP_CLIENT_THREADS::iterator clientIter = tcpClientThreads.find(tcpConnection.addr);
+		if(clientIter != tcpClientThreads.end())
 		{
-			EosTcpClientThread *thread = new EosTcpClientThread();
-			tcpClientThreads[tcpConnection.addr] = thread;
-			thread->Start(tcpConnection.addr, ItemStateTable::sm_Invalid_Id, frameMode, m_ReconnectDelay);
+			EosTcpClientThread *thread = clientIter->second;
+			delete thread;
+			tcpClientThreads.erase(clientIter);
 		}
-		else
-			delete i->tcp;
+
+		EosTcpClientThread *thread = new EosTcpClientThread();
+		tcpClientThreads[tcpConnection.addr] = thread;
+		thread->Start(tcpConnection.tcp, tcpConnection.addr, ItemStateTable::sm_Invalid_Id, frameMode, m_ReconnectDelay);
 	}
 }
 
