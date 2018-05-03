@@ -1995,7 +1995,7 @@ void MainWindow::onOpenFileClicked(bool /*checked*/)
 		dir = QFileInfo(lastFile).absolutePath();
 	if(dir.isEmpty() || !QFileInfo(dir).exists())
 		dir = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
-	QString path = QFileDialog::getOpenFileName(this, tr("Open"), dir, tr("OSCRouter File (*.osc.txt)"));
+	QString path = QFileDialog::getOpenFileName(this, tr("Open"), dir, tr("OSCRouter File (*.txt *.osc.txt)"));
 	if( !path.isEmpty() )
 	{
 		if( !LoadFile(path) )
