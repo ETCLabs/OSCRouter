@@ -3,14 +3,14 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 42;
+	objectVersion = 46;
 	objects = {
 
 /* Begin PBXBuildFile section */
-		692D5B5D1FD5D415003CBAA4 /* QtGui.framework in Frameworks & Libraries */ = {isa = PBXBuildFile; fileRef = 692D5B591FD5D415003CBAA4 /* QtGui.framework */; };
-		692D5B5E1FD5D415003CBAA4 /* QtWidgets.framework in Frameworks & Libraries */ = {isa = PBXBuildFile; fileRef = 692D5B5A1FD5D415003CBAA4 /* QtWidgets.framework */; };
-		692D5B5F1FD5D415003CBAA4 /* QtCore.framework in Frameworks & Libraries */ = {isa = PBXBuildFile; fileRef = 692D5B5B1FD5D415003CBAA4 /* QtCore.framework */; };
-		692D5B601FD5D415003CBAA4 /* QtNetwork.framework in Frameworks & Libraries */ = {isa = PBXBuildFile; fileRef = 692D5B5C1FD5D415003CBAA4 /* QtNetwork.framework */; };
+		72C19E3C209D1B0400113A34 /* QtCore.framework in Frameworks & Libraries */ = {isa = PBXBuildFile; fileRef = 692D5B5B1FD5D415003CBAA4 /* QtCore.framework */; };
+		72C19E3D209D1B0400113A34 /* QtGui.framework in Frameworks & Libraries */ = {isa = PBXBuildFile; fileRef = 692D5B591FD5D415003CBAA4 /* QtGui.framework */; };
+		72C19E3E209D1B0400113A34 /* QtNetwork.framework in Frameworks & Libraries */ = {isa = PBXBuildFile; fileRef = 692D5B5C1FD5D415003CBAA4 /* QtNetwork.framework */; };
+		72C19E3F209D1B0400113A34 /* QtWidgets.framework in Frameworks & Libraries */ = {isa = PBXBuildFile; fileRef = 692D5B5A1FD5D415003CBAA4 /* QtWidgets.framework */; };
 		9730C2E71AB7C0230039899F /* moc_MainWindow.cpp in Build Sources */ = {isa = PBXBuildFile; fileRef = 9730C2E51AB7C0230039899F /* moc_MainWindow.cpp */; };
 		9730C2EC1AB7C1CE0039899F /* eos.icns in Bundle Resources */ = {isa = PBXBuildFile; fileRef = 9730C2EB1AB7C1CE0039899F /* eos.icns */; };
 		977D1FB11BC4CE6200CDAFB4 /* EosPlatform.cpp in Build Sources */ = {isa = PBXBuildFile; fileRef = 977D1FB01BC4CE6200CDAFB4 /* EosPlatform.cpp */; };
@@ -33,10 +33,10 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		692D5B591FD5D415003CBAA4 /* QtGui.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QtGui.framework; path = "/usr/local/Qt-5.6.3/lib/QtGui.framework"; sourceTree = "<absolute>"; };
-		692D5B5A1FD5D415003CBAA4 /* QtWidgets.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QtWidgets.framework; path = "/usr/local/Qt-5.6.3/lib/QtWidgets.framework"; sourceTree = "<absolute>"; };
-		692D5B5B1FD5D415003CBAA4 /* QtCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QtCore.framework; path = "/usr/local/Qt-5.6.3/lib/QtCore.framework"; sourceTree = "<absolute>"; };
-		692D5B5C1FD5D415003CBAA4 /* QtNetwork.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QtNetwork.framework; path = "/usr/local/Qt-5.6.3/lib/QtNetwork.framework"; sourceTree = "<absolute>"; };
+		692D5B591FD5D415003CBAA4 /* QtGui.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QtGui.framework; path = "~/Qt5.6.3/5.6.3/clang_64/lib/QtGui.framework"; sourceTree = "<absolute>"; };
+		692D5B5A1FD5D415003CBAA4 /* QtWidgets.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QtWidgets.framework; path = "~/Qt5.6.3/5.6.3/clang_64/lib/QtWidgets.framework"; sourceTree = "<absolute>"; };
+		692D5B5B1FD5D415003CBAA4 /* QtCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QtCore.framework; path = "~/Qt5.6.3/5.6.3/clang_64/lib/QtCore.framework"; sourceTree = "<absolute>"; };
+		692D5B5C1FD5D415003CBAA4 /* QtNetwork.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QtNetwork.framework; path = "~/Qt5.6.3/5.6.3/clang_64/lib/QtNetwork.framework"; sourceTree = "<absolute>"; };
 		9730C2E51AB7C0230039899F /* moc_MainWindow.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = moc_MainWindow.cpp; path = OSCRouter/moc_MainWindow.cpp; sourceTree = SOURCE_ROOT; };
 		9730C2EB1AB7C1CE0039899F /* eos.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = eos.icns; sourceTree = SOURCE_ROOT; };
 		977D1FAF1BC4CD2E00CDAFB4 /* EosPlatform.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = EosPlatform.h; path = OSCRouter/EosPlatform.h; sourceTree = SOURCE_ROOT; };
@@ -82,10 +82,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				692D5B5D1FD5D415003CBAA4 /* QtGui.framework in Frameworks & Libraries */,
-				692D5B5E1FD5D415003CBAA4 /* QtWidgets.framework in Frameworks & Libraries */,
-				692D5B5F1FD5D415003CBAA4 /* QtCore.framework in Frameworks & Libraries */,
-				692D5B601FD5D415003CBAA4 /* QtNetwork.framework in Frameworks & Libraries */,
+				72C19E3C209D1B0400113A34 /* QtCore.framework in Frameworks & Libraries */,
+				72C19E3D209D1B0400113A34 /* QtGui.framework in Frameworks & Libraries */,
+				72C19E3E209D1B0400113A34 /* QtNetwork.framework in Frameworks & Libraries */,
+				72C19E3F209D1B0400113A34 /* QtWidgets.framework in Frameworks & Libraries */,
 			);
 			name = "Frameworks & Libraries";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -226,10 +226,10 @@
 		91B15E841AA80083484172DE /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0610;
+				LastUpgradeCheck = 0830;
 			};
 			buildConfigurationList = CC82A9286117DFED018F418F /* Build configuration list for PBXProject "OSCRouter" */;
-			compatibilityVersion = "Xcode 2.4";
+			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
 			hasScannedForEncodings = 1;
 			knownRegions = (
@@ -270,7 +270,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "##### copy Qt platform plugins #####\nmkdir -p \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Plugins/platforms\"\ncp \"/usr/local/Qt-5.6.3/plugins/platforms/libqcocoa.dylib\" \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Plugins/platforms\"\n\n##### copy QtCore #####\nmkdir -p \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtCore.framework/Versions/5\"\nmkdir -p \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtCore.framework/Versions/5/Resources\"\ncp -R \"/usr/local/Qt-5.6.3/lib/QtCore.framework/Versions/5/QtCore\" \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtCore.framework/Versions/5\"\ncp \"/usr/local/Qt-5.6.3/lib/QtCore.framework/Resources/Info.plist\" \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtCore.framework/Versions/5/Resources\"\ncd \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtCore.framework/Versions\"\nif [ ! -L Current ]; then\nln -s 5 Current\nfi\n\n##### copy QtWidgets #####\nmkdir -p \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtWidgets.framework/Versions/5\"\nmkdir -p \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtWidgets.framework/Versions/5/Resources\"\ncp -R \"/usr/local/Qt-5.6.3/lib/QtWidgets.framework/Versions/5/QtWidgets\" \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtWidgets.framework/Versions/5\"\ncp \"/usr/local/Qt-5.6.3/lib/QtWidgets.framework/Resources/Info.plist\" \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtWidgets.framework/Versions/5/Resources\"\ncd \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtWidgets.framework/Versions\"\nif [ ! -L Current ]; then\nln -s 5 Current\nfi\n\n##### copy QtGui #####\nmkdir -p \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtGui.framework/Versions/5\"\nmkdir -p \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtGui.framework/Versions/5/Resources\"\ncp -R \"/usr/local/Qt-5.6.3/lib/QtGui.framework/Versions/5/QtGui\" \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtGui.framework/Versions/5\"\ncp \"/usr/local/Qt-5.6.3/lib/QtGui.framework/Resources/Info.plist\" \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtGui.framework/Versions/5/Resources\"\ncd \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtGui.framework/Versions\"\nif [ ! -L Current ]; then\nln -s 5 Current\nfi\n\n##### copy QtNetwork #####\nmkdir -p \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtNetwork.framework/Versions/5\"\nmkdir -p \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtNetwork.framework/Versions/5/Resources\"\ncp -R \"/usr/local/Qt-5.6.3/lib/QtNetwork.framework/Versions/5/QtNetwork\" \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtNetwork.framework/Versions/5\"\ncp \"/usr/local/Qt-5.6.3/lib/QtNetwork.framework/Resources/Info.plist\" \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtNetwork.framework/Versions/5/Resources\"\ncd \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtNetwork.framework/Versions\"\nif [ ! -L Current ]; then\nln -s 5 Current\nfi\n\n##### copy QtDBus #####\nmkdir -p \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtDBus.framework/Versions/5\"\nmkdir -p \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtDBus.framework/Versions/5/Resources\"\ncp -R \"/usr/local/Qt-5.6.3/lib/QtDBus.framework/Versions/5/QtDBus\" \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtDBus.framework/Versions/5\"\ncp \"/usr/local/Qt-5.6.3/lib/QtDBus.framework/Resources/Info.plist\" \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtDBus.framework/Versions/5/Resources\"\ncd \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtDBus.framework/Versions\"\nif [ ! -L Current ]; then\nln -s 5 Current\nfi\n\n##### copy QtPrintSupport #####\nmkdir -p \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtPrintSupport.framework/Versions/5\"\nmkdir -p \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtPrintSupport.framework/Versions/5/Resources\"\ncp -R \"/usr/local/Qt-5.6.3/lib/QtPrintSupport.framework/Versions/5/QtPrintSupport\" \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtPrintSupport.framework/Versions/5\"\ncp \"/usr/local/Qt-5.6.3/lib/QtPrintSupport.framework/Resources/Info.plist\" \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtPrintSupport.framework/Versions/5/Resources\"\ncd \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtPrintSupport.framework/Versions\"\nif [ ! -L Current ]; then\nln -s 5 Current\nfi\n\n##### identify bundled Qt frameworks #####\ninstall_name_tool -id @executable_path/../Frameworks/QtCore.framework/Versions/5/QtCore \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtCore.framework/Versions/5/QtCore\"\ninstall_name_tool -id @executable_path/../Frameworks/QtGui.framework/Versions/5/QtGui \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtGui.framework/Versions/5/QtGui\"\ninstall_name_tool -id @executable_path/../Frameworks/QtWidgets.framework/Versions/5/QtWidgets \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtWidgets.framework/Versions/5/QtWidgets\"\ninstall_name_tool -id @executable_path/../Frameworks/QtNetwork.framework/Versions/5/QtNetwork \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtNetwork.framework/Versions/5/QtNetwork\"\ninstall_name_tool -id @executable_path/../Frameworks/QtDBus.framework/Versions/5/QtDBus \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtDBus.framework/Versions/5/QtDBus\"\ninstall_name_tool -id @executable_path/../Frameworks/QtPrintSupport.framework/Versions/5/QtPrintSupport \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtPrintSupport.framework/Versions/5/QtPrintSupport\"\n\n##### redirect executable to use bundled Qt frameworks #####\ninstall_name_tool -change QtCore.framework/Versions/5/QtCore @executable_path/../Frameworks/QtCore.framework/Versions/5/QtCore \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/MacOs/${PRODUCT_NAME}\"\ninstall_name_tool -change QtWidgets.framework/Versions/5/QtWidgets @executable_path/../Frameworks/QtWidgets.framework/Versions/5/QtWidgets \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/MacOs/${PRODUCT_NAME}\"\ninstall_name_tool -change QtGui.framework/Versions/5/QtGui @executable_path/../Frameworks/QtGui.framework/Versions/5/QtGui \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/MacOs/${PRODUCT_NAME}\"\ninstall_name_tool -change QtNetwork.framework/Versions/5/QtNetwork @executable_path/../Frameworks/QtNetwork.framework/Versions/5/QtNetwork \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/MacOs/${PRODUCT_NAME}\"\ninstall_name_tool -change QtDBus.framework/Versions/5/QtDBus @executable_path/../Frameworks/QtDBus.framework/Versions/5/QtDBus \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/MacOs/${PRODUCT_NAME}\"\ninstall_name_tool -change QtPrintSupport.framework/Versions/5/QtPrintSupport @executable_path/../Frameworks/QtPrintSupport.framework/Versions/5/QtPrintSupport \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/MacOs/${PRODUCT_NAME}\"\n\n##### redirect bundled frameworks/libraries to use bundled dependecies #####\ninstall_name_tool -change QtCore.framework/Versions/5/QtCore @executable_path/../Frameworks/QtCore.framework/Versions/5/QtCore \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtWidgets.framework/Versions/5/QtWidgets\"\ninstall_name_tool -change QtGui.framework/Versions/5/QtGui @executable_path/../Frameworks/QtGui.framework/Versions/5/QtGui \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtWidgets.framework/Versions/5/QtWidgets\"\ninstall_name_tool -change QtCore.framework/Versions/5/QtCore @executable_path/../Frameworks/QtCore.framework/Versions/5/QtCore \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtGui.framework/Versions/5/QtGui\"\ninstall_name_tool -change QtCore.framework/Versions/5/QtCore @executable_path/../Frameworks/QtCore.framework/Versions/5/QtCore \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtNetwork.framework/Versions/5/QtNetwork\"\ninstall_name_tool -change QtCore.framework/Versions/5/QtCore @executable_path/../Frameworks/QtCore.framework/Versions/5/QtCore \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtDBus.framework/Versions/5/QtDBus\"\ninstall_name_tool -change QtCore.framework/Versions/5/QtCore @executable_path/../Frameworks/QtCore.framework/Versions/5/QtCore \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtPrintSupport.framework/Versions/5/QtPrintSupport\"\ninstall_name_tool -change QtWidgets.framework/Versions/5/QtWidgets @executable_path/../Frameworks/QtWidgets.framework/Versions/5/QtWidgets \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtPrintSupport.framework/Versions/5/QtPrintSupport\"\ninstall_name_tool -change QtGui.framework/Versions/5/QtGui @executable_path/../Frameworks/QtGui.framework/Versions/5/QtGui \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtPrintSupport.framework/Versions/5/QtPrintSupport\"\n\n##### platform plugins #####\ninstall_name_tool -change QtCore.framework/Versions/5/QtCore @executable_path/../Frameworks/QtCore.framework/Versions/5/QtCore \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Plugins/platforms/libqcocoa.dylib\"\ninstall_name_tool -change QtGui.framework/Versions/5/QtGui @executable_path/../Frameworks/QtGui.framework/Versions/5/QtGui \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Plugins/platforms/libqcocoa.dylib\"\ninstall_name_tool -change QtWidgets.framework/Versions/5/QtWidgets @executable_path/../Frameworks/QtWidgets.framework/Versions/5/QtWidgets \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Plugins/platforms/libqcocoa.dylib\"\ninstall_name_tool -change QtDBus.framework/Versions/5/QtDBus @executable_path/../Frameworks/QtDBus.framework/Versions/5/QtDBus \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Plugins/platforms/libqcocoa.dylib\"\ninstall_name_tool -change QtPrintSupport.framework/Versions/5/QtPrintSupport @executable_path/../Frameworks/QtPrintSupport.framework/Versions/5/QtPrintSupport \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Plugins/platforms/libqcocoa.dylib\"\n";
+			shellScript = "##### copy Qt platform plugins #####\nmkdir -p \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Plugins/platforms\"\ncp ~/Qt5.6.3/5.6.3/clang_64/plugins/platforms/libqcocoa.dylib \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Plugins/platforms/libqcocoa.dylib\"\n\n##### copy Qt imageformat plugins #####\nmkdir -p \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Plugins/imageformats\"\ncp ~/Qt5.6.3/5.6.3/clang_64/plugins/imageformats/libqicns.dylib \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Plugins/imageformats\"\ncp ~/Qt5.6.3/5.6.3/clang_64/plugins/imageformats/libqjpeg.dylib \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Plugins/imageformats\"\ncp ~/Qt5.6.3/5.6.3/clang_64/plugins/imageformats/libqtga.dylib \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Plugins/imageformats\"\ncp ~/Qt5.6.3/5.6.3/clang_64/plugins/imageformats/libqwbmp.dylib \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Plugins/imageformats\"\ncp ~/Qt5.6.3/5.6.3/clang_64/plugins/imageformats/libqgif.dylib \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Plugins/imageformats\"\ncp ~/Qt5.6.3/5.6.3/clang_64/plugins/imageformats/libqico.dylib \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Plugins/imageformats\"\ncp ~/Qt5.6.3/5.6.3/clang_64/plugins/imageformats/libqsvg.dylib \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Plugins/imageformats\"\ncp ~/Qt5.6.3/5.6.3/clang_64/plugins/imageformats/libqtiff.dylib \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Plugins/imageformats\"\ncp ~/Qt5.6.3/5.6.3/clang_64/plugins/imageformats/libqwebp.dylib \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Plugins/imageformats\"\n\n##### copy QtCore #####\nmkdir -p \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtCore.framework/Versions/5\"\nmkdir -p \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtCore.framework/Versions/5/Resources\"\ncp -R ~/Qt5.6.3/5.6.3/clang_64/lib/QtCore.framework/Versions/5/QtCore \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtCore.framework/Versions/5\"\ncp ~/Qt5.6.3/5.6.3/clang_64/lib/QtCore.framework/Resources/Info.plist \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtCore.framework/Versions/5/Resources\"\ncd \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtCore.framework/Versions\"\nif [ ! -L Current ]; then\nln -s 5 Current\nfi\n\n##### copy QtWidgets #####\nmkdir -p \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtWidgets.framework/Versions/5\"\nmkdir -p \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtWidgets.framework/Versions/5/Resources\"\ncp -R ~/Qt5.6.3/5.6.3/clang_64/lib/QtWidgets.framework/Versions/5/QtWidgets \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtWidgets.framework/Versions/5\"\ncp ~/Qt5.6.3/5.6.3/clang_64/lib/QtWidgets.framework/Resources/Info.plist \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtWidgets.framework/Versions/5/Resources\"\ncd \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtWidgets.framework/Versions\"\nif [ ! -L Current ]; then\nln -s 5 Current\nfi\n\n##### copy QtGui #####\nmkdir -p \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtGui.framework/Versions/5\"\nmkdir -p \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtGui.framework/Versions/5/Resources\"\ncp -R ~/Qt5.6.3/5.6.3/clang_64/lib/QtGui.framework/Versions/5/QtGui \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtGui.framework/Versions/5\"\ncp ~/Qt5.6.3/5.6.3/clang_64/lib/QtGui.framework/Resources/Info.plist \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtGui.framework/Versions/5/Resources\"\ncd \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtGui.framework/Versions\"\nif [ ! -L Current ]; then\nln -s 5 Current\nfi\n\n##### copy QtNetwork #####\nmkdir -p \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtNetwork.framework/Versions/5\"\nmkdir -p \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtNetwork.framework/Versions/5/Resources\"\ncp -R ~/Qt5.6.3/5.6.3/clang_64/lib/QtNetwork.framework/Versions/5/QtNetwork \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtNetwork.framework/Versions/5\"\ncp ~/Qt5.6.3/5.6.3/clang_64/lib/QtNetwork.framework/Resources/Info.plist \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtNetwork.framework/Versions/5/Resources\"\ncd \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtNetwork.framework/Versions\"\nif [ ! -L Current ]; then\nln -s 5 Current\nfi\n\n##### identify bundled Qt frameworks #####\ninstall_name_tool -id @executable_path/../Frameworks/QtCore.framework/Versions/5/QtCore \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtCore.framework/Versions/5/QtCore\"\ninstall_name_tool -id @executable_path/../Frameworks/QtWidgets.framework/Versions/5/QtWidgets \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtWidgets.framework/Versions/5/QtWidgets\"\ninstall_name_tool -id @executable_path/../Frameworks/QtNetwork.framework/Versions/5/QtNetwork \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtNetwork.framework/Versions/5/QtNetwork\"\n\n##### redirect executable to use bundled Qt frameworks #####\ninstall_name_tool -change QtCore.framework/Versions/5/QtCore @executable_path/../Frameworks/QtCore.framework/Versions/5/QtCore \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/MacOs/${PRODUCT_NAME}\"\ninstall_name_tool -change QtWidgets.framework/Versions/5/QtWidgets @executable_path/../Frameworks/QtWidgets.framework/Versions/5/QtWidgets \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/MacOs/${PRODUCT_NAME}\"\ninstall_name_tool -change QtGui.framework/Versions/5/QtGui @executable_path/../Frameworks/QtGui.framework/Versions/5/QtGui \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/MacOs/${PRODUCT_NAME}\"\ninstall_name_tool -change QtNetwork.framework/Versions/5/QtNetwork @executable_path/../Frameworks/QtNetwork.framework/Versions/5/QtNetwork \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/MacOs/${PRODUCT_NAME}\"\n\n##### redirect bundled frameworks/libraries to use bundled dependecies #####\ninstall_name_tool -change QtCore.framework/Versions/5/QtCore @executable_path/../Frameworks/QtCore.framework/Versions/5/QtCore \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtWidgets.framework/Versions/5/QtWidgets\"\ninstall_name_tool -change QtGui.framework/Versions/5/QtGui @executable_path/../Frameworks/QtGui.framework/Versions/5/QtGui \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtWidgets.framework/Versions/5/QtWidgets\"\ninstall_name_tool -change QtCore.framework/Versions/5/QtCore @executable_path/../Frameworks/QtCore.framework/Versions/5/QtCore \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtGui.framework/Versions/5/QtGui\"\ninstall_name_tool -change QtCore.framework/Versions/5/QtCore @executable_path/../Frameworks/QtCore.framework/Versions/5/QtCore \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Frameworks/QtNetwork.framework/Versions/5/QtNetwork\"\n\n##### platform plugins #####\ninstall_name_tool -change QtCore.framework/Versions/5/QtCore @executable_path/../Frameworks/QtCore.framework/Versions/5/QtCore \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Plugins/platforms/libqcocoa.dylib\"\ninstall_name_tool -change QtGui.framework/Versions/5/QtGui @executable_path/../Frameworks/QtGui.framework/Versions/5/QtGui \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Plugins/platforms/libqcocoa.dylib\"\ninstall_name_tool -change QtWidgets.framework/Versions/5/QtWidgets @executable_path/../Frameworks/QtWidgets.framework/Versions/5/QtWidgets \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Plugins/platforms/libqcocoa.dylib\"\n\n##### imageformat plugins #####\ninstall_name_tool -change QtCore.framework/Versions/5/QtCore @executable_path/../Frameworks/QtCore.framework/Versions/5/QtCore \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Plugins/imageformats/libqicns.dylib\"\ninstall_name_tool -change QtGui.framework/Versions/5/QtGui @executable_path/../Frameworks/QtGui.framework/Versions/5/QtGui \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Plugins/imageformats/libqicns.dylib\"\ninstall_name_tool -change QtCore.framework/Versions/5/QtCore @executable_path/../Frameworks/QtCore.framework/Versions/5/QtCore \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Plugins/imageformats/libqjpeg.dylib\"\ninstall_name_tool -change QtGui.framework/Versions/5/QtGui @executable_path/../Frameworks/QtGui.framework/Versions/5/QtGui \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Plugins/imageformats/libqjpeg.dylib\"\ninstall_name_tool -change QtCore.framework/Versions/5/QtCore @executable_path/../Frameworks/QtCore.framework/Versions/5/QtCore \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Plugins/imageformats/libqtga.dylib\"\ninstall_name_tool -change QtGui.framework/Versions/5/QtGui @executable_path/../Frameworks/QtGui.framework/Versions/5/QtGui \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Plugins/imageformats/libqtga.dylib\"\ninstall_name_tool -change QtCore.framework/Versions/5/QtCore @executable_path/../Frameworks/QtCore.framework/Versions/5/QtCore \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Plugins/imageformats/libqwbmp.dylib\"\ninstall_name_tool -change QtGui.framework/Versions/5/QtGui @executable_path/../Frameworks/QtGui.framework/Versions/5/QtGui \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Plugins/imageformats/libqwbmp.dylib\"\ninstall_name_tool -change QtCore.framework/Versions/5/QtCore @executable_path/../Frameworks/QtCore.framework/Versions/5/QtCore \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Plugins/imageformats/libqgif.dylib\"\ninstall_name_tool -change QtGui.framework/Versions/5/QtGui @executable_path/../Frameworks/QtGui.framework/Versions/5/QtGui \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Plugins/imageformats/libqgif.dylib\"\ninstall_name_tool -change QtCore.framework/Versions/5/QtCore @executable_path/../Frameworks/QtCore.framework/Versions/5/QtCore \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Plugins/imageformats/libqico.dylib\"\ninstall_name_tool -change QtGui.framework/Versions/5/QtGui @executable_path/../Frameworks/QtGui.framework/Versions/5/QtGui \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Plugins/imageformats/libqico.dylib\"\ninstall_name_tool -change QtCore.framework/Versions/5/QtCore @executable_path/../Frameworks/QtCore.framework/Versions/5/QtCore \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Plugins/imageformats/libqsvg.dylib\"\ninstall_name_tool -change QtGui.framework/Versions/5/QtGui @executable_path/../Frameworks/QtGui.framework/Versions/5/QtGui \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Plugins/imageformats/libqsvg.dylib\"\ninstall_name_tool -change QtWidgets.framework/Versions/5/QtWidgets @executable_path/../Frameworks/QtWidgets.framework/Versions/5/QtWidgets \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Plugins/imageformats/libqsvg.dylib\"\ninstall_name_tool -change QtCore.framework/Versions/5/QtCore @executable_path/../Frameworks/QtCore.framework/Versions/5/QtCore \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Plugins/imageformats/libqtiff.dylib\"\ninstall_name_tool -change QtGui.framework/Versions/5/QtGui @executable_path/../Frameworks/QtGui.framework/Versions/5/QtGui \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Plugins/imageformats/libqtiff.dylib\"\ninstall_name_tool -change QtCore.framework/Versions/5/QtCore @executable_path/../Frameworks/QtCore.framework/Versions/5/QtCore \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Plugins/imageformats/libqwebp.dylib\"\ninstall_name_tool -change QtGui.framework/Versions/5/QtGui @executable_path/../Frameworks/QtGui.framework/Versions/5/QtGui \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Contents/Plugins/imageformats/libqwebp.dylib\"";
 		};
 		97E137551AB28E930056BE05 /* moc MainWindow */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -286,7 +286,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "/usr/local/Qt-5.6.3/bin/moc OSCRouter/MainWindow.h -o OSCRouter/moc_MainWindow.cpp";
+			shellScript = "~/Qt5.6.3/5.6.3/clang_64/bin/moc OSCRouter/MainWindow.h -o OSCRouter/moc_MainWindow.cpp";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -323,17 +323,30 @@
 		4B72B24813252891014BCF61 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD)";
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
-				HEADER_SEARCH_PATHS = (
-					"$(inherited)",
-					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
-					"/usr/local/Qt-5.6.3/include",
-				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
 				INFOPLIST_FILE = Info.plist;
-				MACOSX_DEPLOYMENT_TARGET = 10.4;
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
+				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LDFLAGS = "-headerpad_max_install_names";
 				PRODUCT_NAME = OSCRouter;
 				SDKROOT = macosx;
@@ -347,11 +360,12 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(LOCAL_LIBRARY_DIR)/Frameworks",
-					"/usr/local/Qt-5.6.3/lib",
+					"~/Qt5.6.3/5.6.3/clang_64/lib",
 				);
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				PRODUCT_BUNDLE_IDENTIFIER = com.etc.OSCRouter;
 				PRODUCT_NAME = OSCRouter;
 			};
 			name = Release;
@@ -363,12 +377,13 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(LOCAL_LIBRARY_DIR)/Frameworks",
-					"/usr/local/Qt-5.6.3/lib",
+					"~/Qt5.6.3/5.6.3/clang_64/lib",
 				);
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				PRODUCT_BUNDLE_IDENTIFIER = com.etc.OSCRouter;
 				PRODUCT_NAME = OSCRouter;
 			};
 			name = Debug;
@@ -376,16 +391,27 @@
 		D70590BEB531B51029F711BB /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD)";
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
-				HEADER_SEARCH_PATHS = (
-					"$(inherited)",
-					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
-					"/usr/local/Qt-5.6.3/include",
-				);
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
 				INFOPLIST_FILE = Info.plist;
-				MACOSX_DEPLOYMENT_TARGET = 10.4;
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				OTHER_LDFLAGS = "-headerpad_max_install_names";
 				PRODUCT_NAME = OSCRouter;
 				SDKROOT = macosx;

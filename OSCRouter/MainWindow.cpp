@@ -33,7 +33,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 
-#define APP_VERSION					"0.9"
+#define APP_VERSION					"0.10"
 #define SETTING_LOG_DEPTH			"LogDepth"
 #define SETTING_FILE_DEPTH			"FileDepth"
 #define SETTING_LAST_FILE			"LastFile"
@@ -1543,7 +1543,7 @@ MainWindow::MainWindow(QWidget* parent/*=0*/, Qt::WindowFlags f/*=0*/)
 		if( !m_Platform->Initialize(error) )
 		{
 			m_Log.AddError("platform initialization failed");
-			m_Platform->Shutdown();
+            delete m_Platform;
 			m_Platform = 0;
 		}
 	}
@@ -1616,7 +1616,6 @@ MainWindow::~MainWindow()
 {
 	if( m_Platform )
 	{
-		m_Platform->Shutdown();
 		delete m_Platform;
 		m_Platform = 0;
 	}
@@ -1671,9 +1670,8 @@ void MainWindow::FlushLogQ(EosLog::LOG_Q &logQ)
 		{
 			const EosLog::sLogMsg logMsg = *i;
 
-			//tm *t = localtime( &logMsg.timestamp );
-                        QDateTime dt;
-                        dt.setTime_t(logMsg.timestamp);
+            QDateTime dt;
+            dt.setTime_t(static_cast<uint>(logMsg.timestamp));
 			QString msgText;
 			if( logMsg.text.c_str() )
 				msgText = QString::fromUtf8( logMsg.text.c_str() );

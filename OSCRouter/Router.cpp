@@ -445,7 +445,7 @@ bool EosTcpClientThread::SendFramed(const EosPacket &packet)
 		char *frame = OSCStream::CreateFrame(m_FrameMode, packet.GetDataConst(), frameSize);
 		if( frame )
 		{
-			m_SendQ.push_back( EosPacket(frame,frameSize) );
+			m_SendQ.push_back( EosPacket(frame,static_cast<int>(frameSize)) );
 			m_Mutex.unlock();
 			delete[] frame;
 			return true;

@@ -41,18 +41,14 @@ int main(int argc, char* argv[])
 
 	EosTimer::Init();
 	
-#ifndef WIN32
-	if(argc > 0)
-	{
-		QDir dir( argv[0] );
-		dir.cdUp();
-		dir.cdUp();
-		dir.cd("Plugins");
-		QCoreApplication::setLibraryPaths( QStringList(dir.canonicalPath()) );
-	}
-#endif
-	
 	QApplication app(argc, argv);
+    
+#ifndef WIN32
+    QDir dir( app.applicationDirPath() );
+    dir.cdUp();
+    dir.cd("Plugins");
+    app.setLibraryPaths( QStringList(dir.canonicalPath()) );
+#endif
 
 	app.setDesktopSettingsAware(false);
 	app.setStyle( QStyleFactory::create("Fusion") );
