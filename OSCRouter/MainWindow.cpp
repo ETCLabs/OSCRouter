@@ -1671,17 +1671,14 @@ void MainWindow::FlushLogQ(EosLog::LOG_Q &logQ)
 		{
 			const EosLog::sLogMsg logMsg = *i;
 
-			tm *t = localtime( &logMsg.timestamp );
-
+			//tm *t = localtime( &logMsg.timestamp );
+                        QDateTime dt;
+                        dt.setTime_t(logMsg.timestamp);
 			QString msgText;
 			if( logMsg.text.c_str() )
 				msgText = QString::fromUtf8( logMsg.text.c_str() );
-
-			QString itemText = QString("[ %1:%2:%3 ]  %4")
-				.arg(t->tm_hour, 2)
-				.arg(t->tm_min, 2, 10, QChar('0'))
-				.arg(t->tm_sec, 2, 10, QChar('0'))
-				.arg( msgText );
+                        QString dateString = dt.toString("ddd dd MMM yyyy [h:mm:ss]");
+                        QString itemText = QString("%1 %2").arg(dateString, msgText);
 
 			if( m_LogFile.isOpen() )
 			{
