@@ -1,4 +1,4 @@
-// Copyright (c) 2015 Electronic Theatre Controls, Inc., http://www.etcconnect.com
+// Copyright (c) 2018 Electronic Theatre Controls, Inc., http://www.etcconnect.com
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,6 +20,10 @@
 
 #import "EosPlatform_Mac_Native.h"
 #import "EosPlatform_Mac_Bridge.h"
+#import <QtWidgets/QApplication>
+#import <QtCore/QDir>
+#import <QtCore/QUrl>
+
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -110,5 +114,19 @@ void Bridge_EndActivity(void *activity)
 ////////////////////////////////////////////////////////////////////////////////
 
 @end
+
+////////////////////////////////////////////////////////////////////////////////
+
+void Bridge_InitQtPlugins()
+{
+    // only load plugins from our bundle
+    CFURLRef url = (CFURLRef)CFAutorelease((CFURLRef)CFBundleCopyBundleURL(CFBundleGetMainBundle()));
+    if(url != nil)
+    {
+        QDir dir( QUrl::fromCFURL(url).path() );
+        if( dir.cd("Contents/Plugins") )
+            QApplication::setLibraryPaths(QStringList() << dir.canonicalPath());
+    }
+}
 
 ////////////////////////////////////////////////////////////////////////////////

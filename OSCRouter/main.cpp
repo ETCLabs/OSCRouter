@@ -23,6 +23,7 @@
 #include "EosTimer.h"
 #include "QtInclude.h"
 #include "MainWindow.h"
+#include "EosPlatform.h"
 
 // must be last include
 #include "LeakWatcher.h"
@@ -40,15 +41,20 @@ int main(int argc, char* argv[])
 #endif
 
 	EosTimer::Init();
+    
+    EosPlatform *platform = EosPlatform::Create();
+    if( platform )
+    {
+        std::string error;
+        if( !platform->Initialize(error) )
+        {
+            printf("platform initialization failed\n");
+            delete platform;
+            platform = 0;
+        }
+    }
 	
 	QApplication app(argc, argv);
-    
-#ifndef WIN32
-    QDir dir( app.applicationDirPath() );
-    dir.cdUp();
-    dir.cd("Plugins");
-    app.setLibraryPaths( QStringList(dir.canonicalPath()) );
-#endif
 
 	app.setDesktopSettingsAware(false);
 	app.setStyle( QStyleFactory::create("Fusion") );
@@ -71,10 +77,13 @@ int main(int argc, char* argv[])
 	pal.setColor(QPalette::Disabled, QPalette::ButtonText, MUTED_COLOR);
 	app.setPalette(pal);
 
-	MainWindow *mainWindow = new MainWindow();
+	MainWindow *mainWindow = new MainWindow(platform);
 	mainWindow->show();
 	int result = app.exec();
 	delete mainWindow;
+    
+    if(platform)
+        delete platform;
 
 	return result;
 }

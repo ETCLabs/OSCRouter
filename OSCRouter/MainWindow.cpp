@@ -33,7 +33,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 
-#define APP_VERSION					"0.10"
+#define APP_VERSION					"0.11"
 #define SETTING_LOG_DEPTH			"LogDepth"
 #define SETTING_FILE_DEPTH			"FileDepth"
 #define SETTING_LAST_FILE			"LastFile"
@@ -1290,6 +1290,8 @@ void RoutingTable::LoadLineFromFile(const QString &line, Router::ROUTES &routes)
 bool RoutingTable::SaveToFile(const QString &path) const
 {
 	bool success = true;
+    
+    QDir().mkpath( QFileInfo(path).absolutePath() );
 
 	QFile f(path);
 	if( f.open(QIODevice::WriteOnly|QIODevice::Truncate|QIODevice::Text) )
@@ -1490,7 +1492,7 @@ void RoutingTable::resizeEvent(QResizeEvent *event)
 
 ////////////////////////////////////////////////////////////////////////////////
 
-MainWindow::MainWindow(QWidget* parent/*=0*/, Qt::WindowFlags f/*=0*/)
+MainWindow::MainWindow(EosPlatform *platform, QWidget* parent/*=0*/, Qt::WindowFlags f/*=0*/)
 	: QWidget(parent, f)
 	, m_Settings("ETC", "OSCRouter")
 	, m_LogDepth(200)
@@ -1499,6 +1501,7 @@ MainWindow::MainWindow(QWidget* parent/*=0*/, Qt::WindowFlags f/*=0*/)
 	, m_RouterThread(0)
 	, m_FileLineCount(0)
 	, m_ReconnectDelay(5000)
+    , m_pPlatform(platform)
 {
 #ifdef WIN32
 	QIcon icon;
@@ -1535,18 +1538,6 @@ MainWindow::MainWindow(QWidget* parent/*=0*/, Qt::WindowFlags f/*=0*/)
 	m_Settings.setValue(SETTING_DISABLE_SYSTEM_IDLE, static_cast<int>(m_DisableSystemIdle?1:0));
 
 	InitLogFile();
-	
-	m_Platform = EosPlatform::Create();
-	if( m_Platform )
-	{
-		std::string error;
-		if( !m_Platform->Initialize(error) )
-		{
-			m_Log.AddError("platform initialization failed");
-            delete m_Platform;
-			m_Platform = 0;
-		}
-	}
 
 	QGridLayout *layout = new QGridLayout(this);
 
@@ -1614,12 +1605,6 @@ MainWindow::MainWindow(QWidget* parent/*=0*/, Qt::WindowFlags f/*=0*/)
 
 MainWindow::~MainWindow()
 {
-	if( m_Platform )
-	{
-		delete m_Platform;
-		m_Platform = 0;
-	}
-
 	Shutdown();
 	ShutdownLogFile();
 }
@@ -1742,10 +1727,10 @@ void MainWindow::Shutdown()
 		delete m_RouterThread;
 		m_RouterThread = 0;
 		
-		if(m_Platform && m_DisableSystemIdle)
+		if(m_pPlatform && m_DisableSystemIdle)
 		{
 			std::string error;
-			if( m_Platform->SetSystemIdleAllowed(true,"routing stopped",error) )
+			if( m_pPlatform->SetSystemIdleAllowed(true,"routing stopped",error) )
 			{
 				m_Log.AddInfo("routing stopped, system idle allowed");
 			}
@@ -1774,10 +1759,10 @@ bool MainWindow::BuildRoutes()
 
 	if( !routes.empty() )
 	{
-		if(m_Platform && m_DisableSystemIdle)
+		if(m_pPlatform && m_DisableSystemIdle)
 		{
 			std::string error;
-			if( m_Platform->SetSystemIdleAllowed(false,"routing started",error) )
+			if( m_pPlatform->SetSystemIdleAllowed(false,"routing started",error) )
 			{
 				m_Log.AddInfo("routing started, system idle disabled");
 			}
@@ -2074,8 +2059,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 	QString path;
 	GetPersistentSavePath(path);
 	m_RoutingTable->SaveToFile(path);
-
-	QWidget::closeEvent(event);
+    QApplication::exit(0);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

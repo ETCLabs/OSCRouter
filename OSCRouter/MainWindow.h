@@ -363,7 +363,7 @@ class MainWindow
 	Q_OBJECT
 
 public:
-	MainWindow(QWidget *parent=0, Qt::WindowFlags f=0);
+	MainWindow(EosPlatform *platform, QWidget *parent=0, Qt::WindowFlags f=0);
 	virtual ~MainWindow();
 	
 	virtual QSize sizeHint() const {return QSize(900,500);}
@@ -390,7 +390,7 @@ private:
 	ItemStateTable	m_ItemStateTable;
 	QListWidget		*m_LogWidget;
 	QSettings		m_Settings;
-	EosPlatform		*m_Platform;
+	EosPlatform		*m_pPlatform;
 	int				m_LogDepth;
 	int				m_FileDepth;
 	int				m_FileLineCount;

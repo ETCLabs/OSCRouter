@@ -1,4 +1,4 @@
-// Copyright (c) 2015 Electronic Theatre Controls, Inc., http://www.etcconnect.com
+// Copyright (c) 2018 Electronic Theatre Controls, Inc., http://www.etcconnect.com
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -41,7 +41,10 @@ EosPlatform_Mac::~EosPlatform_Mac()
 bool EosPlatform_Mac::Initialize(std::string &error)
 {
 	if(m_Platform == 0)
+    {
 		m_Platform = Bridge_CreatePlatform(error);
+        Bridge_InitQtPlugins();
+    }
 	
 	return (m_Platform != 0);
 }

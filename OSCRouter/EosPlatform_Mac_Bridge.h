@@ -1,4 +1,4 @@
-// Copyright (c) 2015 Electronic Theatre Controls, Inc., http://www.etcconnect.com
+// Copyright (c) 2018 Electronic Theatre Controls, Inc., http://www.etcconnect.com
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -29,6 +29,7 @@ void* Bridge_CreatePlatform(std::string &error);
 void Bridge_DestroyPlatform(void *platform);
 void* Bridge_BeginActivity(const std::string &reason, std::string &error);
 void Bridge_EndActivity(void *activity);
+void Bridge_InitQtPlugins();
 
 ////////////////////////////////////////////////////////////////////////////////
 
