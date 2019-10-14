@@ -18,7 +18,7 @@ We also welcome pull requests for bug fixes and feature additions.
 # Dependencies
 
 - Requires [EosSyncLib](https://github.com/ElectronicTheatreControlsLabs/EosSyncLib)
-- Requires [Qt 4.8.1](https://download.qt.io/archive/qt/4.8/4.8.1/)
+- Requires [Qt](https://www.qt.io/)
 
 
 # Download
