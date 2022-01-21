@@ -35,15 +35,15 @@
 #define ACTIVITY_COLOR	QColor(200,200,200)
 #define BG_COLOR		QColor(40,40,40)
 
-#include <QtCore/QtCore>
-#include <QtGui/QtGui>
-#include <QtWidgets/QtWidgets>
-#include <QtNetwork/QtNetwork>
-
 #ifdef WIN32
 	#include <Winsock2.h>
 	#include <QtWinExtras/QtWin>
 #endif
+
+#include <QtCore/QtCore>
+#include <QtGui/QtGui>
+#include <QtWidgets/QtWidgets>
+#include <QtNetwork/QtNetwork>
 
 ////////////////////////////////////////////////////////////////////////////////
 
