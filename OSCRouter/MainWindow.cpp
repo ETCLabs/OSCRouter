@@ -33,7 +33,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 
-#define APP_VERSION					"0.12"
+#define APP_VERSION					"0.13"
 #define SETTING_LOG_DEPTH			"LogDepth"
 #define SETTING_FILE_DEPTH			"FileDepth"
 #define SETTING_LAST_FILE			"LastFile"
@@ -899,18 +899,20 @@ int RoutingTableRow::GetWidthHintForCol(size_t col) const
 			
 		case COL_IN_IP:
 		case COL_OUT_IP:
-			return 100;
+			return fontMetrics().tightBoundingRect("  000.000.000.000  ").width();
 
 		case COL_IN_PORT:
 		case COL_OUT_PORT:
+			return fontMetrics().tightBoundingRect(QString("  %1  ").arg(std::numeric_limits<uint16_t>::max())).width();
+
 		case COL_IN_MIN:
 		case COL_IN_MAX:
 		case COL_OUT_MIN:
 		case COL_OUT_MAX:
-			return 40;
+			return fontMetrics().tightBoundingRect("  0000  ").width();
 
 		case COL_DIVIDER:
-			return 30;
+			return fontMetrics().tightBoundingRect("  >  ").width();
 
 		case COL_BUTTON:
 			return m_AddRemove->sizeHint().height();
