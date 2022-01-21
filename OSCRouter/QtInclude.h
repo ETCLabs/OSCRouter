@@ -35,41 +35,10 @@
 #define ACTIVITY_COLOR	QColor(200,200,200)
 #define BG_COLOR		QColor(40,40,40)
 
-#include <QtCore/QDateTime>
-#include <QtCore/QMutex>
-#include <QtCore/QTimer>
-#include <QtCore/QThread>
-#include <QtCore/QSettings>
-#include <QtCore/QFile>
-#include <QtCore/QDir>
-#include <QtCore/QTextStream>
-#include <QtCore/QUrl>
-#include <QtCore/QStandardPaths>
-
-#include <QtGui/QDesktopServices>
-#include <QtGui/QCloseEvent>
-#include <QtGui/QPainter>
-
-#include <QtWidgets/QApplication>
-#include <QtWidgets/QWidget>
-#include <QtWidgets/QListWidget>
-#include <QtWidgets/QGridLayout>
-#include <QtWidgets/QPushButton>
-#include <QtWidgets/QStyleFactory>
-#include <QtWidgets/QScrollBar>
-#include <QtWidgets/QLineEdit>
-#include <QtWidgets/QSpinBox>
-#include <QtWidgets/QLabel>
-#include <QtWidgets/QSplitter>
-#include <QtWidgets/QScrollArea>
-#include <QtWidgets/QProgressBar>
-#include <QtWidgets/QTextEdit>
-#include <QtWidgets/QSpacerItem>
-#include <QtWidgets/QFileDialog>
-#include <QtWidgets/QMessageBox>
-#include <QtWidgets/QComboBox>
-
-#include <QtNetwork/QNetworkInterface>
+#include <QtCore/QtCore>
+#include <QtGui/QtGui>
+#include <QtWidgets/QtWidgets>
+#include <QtNetwork/QtNetwork>
 
 #ifdef WIN32
 	#include <Winsock2.h>

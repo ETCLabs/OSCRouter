@@ -1233,7 +1233,7 @@ bool RoutingTable::LoadFromFile(const QString &path)
 	{
 		Router::ROUTES routes;
 
-		QStringList lines = QString( f.readAll() ).split('\n',QString::SkipEmptyParts);
+		QStringList lines = QString( f.readAll() ).split('\n',Qt::SkipEmptyParts);
 		for(QStringList::iterator i=lines.begin(); i!=lines.end(); i++)
 			i->remove('\r');
 
@@ -1494,7 +1494,7 @@ void RoutingTable::resizeEvent(QResizeEvent *event)
 
 ////////////////////////////////////////////////////////////////////////////////
 
-MainWindow::MainWindow(EosPlatform *platform, QWidget* parent/*=0*/, Qt::WindowFlags f/*=0*/)
+MainWindow::MainWindow(EosPlatform *platform, QWidget* parent/*=0*/, Qt::WindowFlags f/*=Qt::WindowFlags()*/)
 	: QWidget(parent, f)
 	, m_Settings("ETC", "OSCRouter")
 	, m_LogDepth(200)
@@ -1564,9 +1564,7 @@ MainWindow::MainWindow(EosPlatform *platform, QWidget* parent/*=0*/, Qt::WindowF
 	m_LogWidget->setPalette(logPal);
 	m_LogWidget->setSelectionMode(QAbstractItemView::NoSelection);
 	m_LogWidget->setMovement(QListView::Static);
-	QFont fnt("Monospace");
-	fnt.setStyleHint(QFont::TypeWriter);
-	m_LogWidget->setFont(fnt);
+	m_LogWidget->setFont(QFontDatabase::systemFont(QFontDatabase::FixedFont));
 	logLayout->addWidget(m_LogWidget, 0, 0, 1, 6);
 
 	QPushButton *button = new QPushButton("New", logBase);

@@ -363,7 +363,7 @@ class MainWindow
 	Q_OBJECT
 
 public:
-	MainWindow(EosPlatform *platform, QWidget *parent=0, Qt::WindowFlags f=0);
+	MainWindow(EosPlatform *platform, QWidget *parent=0, Qt::WindowFlags f=Qt::WindowFlags());
 	virtual ~MainWindow();
 	
 	virtual QSize sizeHint() const {return QSize(900,500);}

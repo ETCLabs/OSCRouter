@@ -1273,7 +1273,7 @@ void RouterThread::MakeSendPath(const QString &srcPath, const QString &dstPath, 
 
 							if( !srcPathPartsInitialized )
 							{
-								srcPathParts = srcPath.split(OSC_ADDR_SEPARATOR, QString::SkipEmptyParts);
+								srcPathParts = srcPath.split(OSC_ADDR_SEPARATOR, Qt::SkipEmptyParts);
 								if( srcPathParts.isEmpty() )
 									srcPathParts << srcPath;
 								srcPathPartsInitialized = true;
