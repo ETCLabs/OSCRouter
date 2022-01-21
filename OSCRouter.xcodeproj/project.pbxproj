@@ -33,10 +33,10 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		692D5B591FD5D415003CBAA4 /* QtGui.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QtGui.framework; path = "~/Qt/5.12.2/clang_64/lib/QtGui.framework"; sourceTree = "<absolute>"; };
-		692D5B5A1FD5D415003CBAA4 /* QtWidgets.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QtWidgets.framework; path = "~/Qt/5.12.2/clang_64/lib/QtWidgets.framework"; sourceTree = "<absolute>"; };
-		692D5B5B1FD5D415003CBAA4 /* QtCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QtCore.framework; path = "~/Qt/5.12.2/clang_64/lib/QtCore.framework"; sourceTree = "<absolute>"; };
-		692D5B5C1FD5D415003CBAA4 /* QtNetwork.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QtNetwork.framework; path = "~/Qt/5.12.2/clang_64/lib/QtNetwork.framework"; sourceTree = "<absolute>"; };
+		692D5B591FD5D415003CBAA4 /* QtGui.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QtGui.framework; path = /usr/local/Qt/5.15.6/clang_64/lib/QtGui.framework; sourceTree = "<absolute>"; };
+		692D5B5A1FD5D415003CBAA4 /* QtWidgets.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QtWidgets.framework; path = /usr/local/Qt/5.15.6/clang_64/lib/QtWidgets.framework; sourceTree = "<absolute>"; };
+		692D5B5B1FD5D415003CBAA4 /* QtCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QtCore.framework; path = /usr/local/Qt/5.15.6/clang_64/lib/QtCore.framework; sourceTree = "<absolute>"; };
+		692D5B5C1FD5D415003CBAA4 /* QtNetwork.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QtNetwork.framework; path = /usr/local/Qt/5.15.6/clang_64/lib/QtNetwork.framework; sourceTree = "<absolute>"; };
 		9730C2E51AB7C0230039899F /* moc_MainWindow.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = moc_MainWindow.cpp; path = OSCRouter/moc_MainWindow.cpp; sourceTree = SOURCE_ROOT; };
 		9730C2EB1AB7C1CE0039899F /* eos.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = eos.icns; sourceTree = SOURCE_ROOT; };
 		977D1FAF1BC4CD2E00CDAFB4 /* EosPlatform.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = EosPlatform.h; path = OSCRouter/EosPlatform.h; sourceTree = SOURCE_ROOT; };
@@ -233,6 +233,7 @@
 			developmentRegion = English;
 			hasScannedForEncodings = 1;
 			knownRegions = (
+				English,
 				en,
 			);
 			mainGroup = 05596AB53D8D521C69802C27 /* OSCRouter */;
@@ -270,7 +271,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "~/Qt/5.12.2/clang_64/bin/macdeployqt \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}\"\n";
+			shellScript = "/usr/local/Qt/5.15.6/clang_64/bin/macdeployqt \"${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}\"\n";
 		};
 		97E137551AB28E930056BE05 /* moc MainWindow */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -278,15 +279,15 @@
 			files = (
 			);
 			inputPaths = (
-				"$(SRCROOT)/MainWindow.h",
+				"$(SRCROOT)/OSCRouter/MainWindow.h",
 			);
 			name = "moc MainWindow";
 			outputPaths = (
-				"$(SRCROOT)/moc_MainWindow.cpp",
+				"$(SRCROOT)/OSCRouter/moc_MainWindow.cpp",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "~/Qt/5.12.2/clang_64/bin/moc OSCRouter/MainWindow.h -o OSCRouter/moc_MainWindow.cpp\n";
+			shellScript = "/usr/local/Qt/5.15.6/clang_64/bin/moc ${SRCROOT}/OSCRouter/MainWindow.h -o ${SRCROOT}/OSCRouter/moc_MainWindow.cpp\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -323,6 +324,8 @@
 		4B72B24813252891014BCF61 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = x86_64;
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
@@ -357,11 +360,12 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
+				CODE_SIGN_IDENTITY = "";
 				COPY_PHASE_STRIP = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(LOCAL_LIBRARY_DIR)/Frameworks",
-					"~/Qt/5.12.2/clang_64/lib",
+					/usr/local/Qt/5.15.6/clang_64/lib,
 				);
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
@@ -375,11 +379,12 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
+				CODE_SIGN_IDENTITY = "";
 				COPY_PHASE_STRIP = NO;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(LOCAL_LIBRARY_DIR)/Frameworks",
-					"~/Qt/5.12.2/clang_64/lib",
+					/usr/local/Qt/5.15.6/clang_64/lib,
 				);
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -393,6 +398,8 @@
 		D70590BEB531B51029F711BB /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = x86_64;
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
 				CLANG_WARN_EMPTY_BODY = YES;

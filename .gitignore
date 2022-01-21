@@ -44,10 +44,16 @@ Temporary Items
 
 # Qt moc files
 OSCRouter/moc
+moc_*.cpp
 
 # Visual Studio
 .vs
 *.vcxproj.user
 
+# XCode
+xcuserdata
+project.xcworkspace
+
 # Build folders
 OSCRouter/x64
+build
