@@ -87,6 +87,7 @@ public:
 	virtual void SetPrefix(const std::string &prefix) {m_Prefix = prefix;}
 	virtual void OSCParserClient_Log(const std::string &message);
 	virtual void OSCParserClient_Send(const char *, size_t) {}
+	virtual void PrintPacket(OSCParser& oscParser, const char* packet, size_t size);
 
 protected:
 	EosLog::EnumLogMsgType	m_LogType;
@@ -164,6 +165,7 @@ protected:
 	EosLog					m_Log;
 	EosLog					m_PrivateLog;
 	EosPacket::Q			m_Q;
+	bool					m_QEnabled;
 	QMutex					m_Mutex;
 
 	virtual void run();

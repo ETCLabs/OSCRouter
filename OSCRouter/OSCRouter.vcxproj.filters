@@ -130,6 +130,9 @@
     <CustomBuild Include="MainWindow.h">
       <Filter>OSCRouter\Header Files</Filter>
     </CustomBuild>
+    <CustomBuild Include="qt.qrc">
+      <Filter>Resource Files</Filter>
+    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="OSCRouter.rc">
@@ -138,6 +141,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="icon1.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="qt.conf">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>

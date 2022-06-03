@@ -32,6 +32,9 @@
 	#include <arpa/inet.h>
 #endif
 
+#include <sstream>
+#include <iomanip>
+
 // must be last include
 #include "LeakWatcher.h"
 
@@ -45,6 +48,36 @@ void PacketLogger::OSCParserClient_Log(const std::string &message)
 {
 	m_LogMsg = (m_Prefix + message);
 	m_pLog->Add(m_LogType, m_LogMsg);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+void PacketLogger::PrintPacket(OSCParser& oscParser, const char* packet, size_t size)
+{
+	if (packet == nullptr || size == 0)
+		return;
+
+	if (OSCParser::IsOSCPacket(packet, size) && oscParser.PrintPacket(*this, packet, size))
+		return;
+
+	// not printed as an OSC packet, so print the raw hex contents
+	const size_t MaxPrintSize = 32;
+	size_t printSize = qMin(size, MaxPrintSize);
+
+	std::stringstream ss;
+	ss << std::setfill('0') << std::setw(2) << std::hex;
+	for (size_t i = 0; i < printSize; ++i)
+	{
+		if (i != 0)
+			ss << ' ';
+		ss << static_cast<int>(packet[i]);
+	}
+
+	if (size > printSize)
+		ss << "...";
+
+	if (!ss.str().empty())
+		OSCParserClient_Log(ss.str());
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -155,7 +188,7 @@ void EosUdpInThread::run()
 					QHostAddress host( reinterpret_cast<const sockaddr*>(&addr) );
 					logPrefix = QString("IN  [%1:%2] ").arg( host.toString() ).arg(m_Addr.port).toUtf8().constData();
 					packetLogger.SetPrefix(logPrefix);
-					logParser.PrintPacket(packetLogger, data, static_cast<size_t>(len));
+					packetLogger.PrintPacket(logParser, data, static_cast<size_t>(len));
 					unsigned int ip = static_cast<unsigned int>( host.toIPv4Address() );
 					m_Mutex.lock();
 					m_Q.push_back( sRecvPacket(data,len,ip) );
@@ -208,6 +241,7 @@ EosUdpOutThread::EosUdpOutThread()
 	, m_ItemStateTableId(ItemStateTable::sm_Invalid_Id)
 	, m_State(ItemState::STATE_UNINITIALIZED)
 	, m_ReconnectDelay(0)
+	, m_QEnabled(false)
 {
 }
 
@@ -228,6 +262,7 @@ void EosUdpOutThread::Start(const EosAddr &addr, ItemStateTable::ID itemStateTab
 	m_ItemStateTableId = itemStateTableId;
 	m_ReconnectDelay = reconnectDelayMS;
 	m_Run = true;
+	m_QEnabled = true;	// q commands while on-demand thread is first starting
 	start();
 }
 
@@ -244,7 +279,7 @@ void EosUdpOutThread::Stop()
 bool EosUdpOutThread::Send(const EosPacket &packet)
 {
 	m_Mutex.lock();
-	if(GetState() == ItemState::STATE_CONNECTED)
+	if(m_QEnabled)
 	{
 		m_Q.push_back(packet);
 		m_Mutex.unlock();
@@ -279,7 +314,16 @@ ItemState::EnumState EosUdpOutThread::GetState()
 void EosUdpOutThread::SetState(ItemState::EnumState state)
 {
 	m_Mutex.lock();
-	m_State = state;
+	if (m_State != state)
+	{
+		m_State = state;
+
+		switch (m_State)
+		{
+			case ItemState::STATE_CONNECTED: m_QEnabled = true; break;
+			case ItemState::STATE_NOT_CONNECTED: m_QEnabled = false; break;
+		}
+	}
 	m_Mutex.unlock();
 }
 
@@ -294,7 +338,7 @@ void EosUdpOutThread::run()
 	EosTimer reconnectTimer;
 
 	// outer loop for auto-reconnect
-	while( m_Run )
+	do
 	{
 		SetState(ItemState::STATE_CONNECTING);
 
@@ -320,8 +364,8 @@ void EosUdpOutThread::run()
 				{
 					const char *buf = i->GetData();
 					int len = i->GetSize();
-					if( udpOut->SendPacket(m_PrivateLog,buf,len) )
-						logParser.PrintPacket(packetLogger,buf,static_cast<size_t>(len));
+					if (udpOut->SendPacket(m_PrivateLog, buf, len))
+						packetLogger.PrintPacket(logParser, buf, static_cast<size_t>(len));
 				}
 				q.clear();
 			
@@ -345,7 +389,7 @@ void EosUdpOutThread::run()
 		reconnectTimer.Start();
 		while(m_Run && !reconnectTimer.GetExpired(m_ReconnectDelay))
 			msleep(10);
-	}
+	} while (m_Run);
 	
 	msg = QString("udp output %1:%2 thread ended").arg(m_Addr.ip).arg(m_Addr.port);
 	m_PrivateLog.AddInfo( msg.toUtf8().constData() );
@@ -546,7 +590,7 @@ void EosTcpClientThread::run()
 					{
 						if(frameSize != 0)
 						{
-							logParser.PrintPacket(inPacketLogger, frame, frameSize);
+							inPacketLogger.PrintPacket(logParser, frame, frameSize);
 							m_Mutex.lock();
 							m_RecvQ.push_back( EosUdpInThread::sRecvPacket(frame,static_cast<int>(frameSize),ip) );
 							m_Mutex.unlock();
@@ -578,8 +622,8 @@ void EosTcpClientThread::run()
 							char *frame = recvStream.GetNextFrame(frameSize);
 							if( frame )
 							{
-								if(frameSize != 0)
-									logParser.PrintPacket(outPacketLogger, frame, frameSize);
+								if (frameSize != 0)
+									outPacketLogger.PrintPacket(logParser, frame, frameSize);
 								delete[] frame;
 							}
 							else
@@ -956,6 +1000,7 @@ EosUdpOutThread* RouterThread::CreateUdpOutThread(const EosAddr &addr, ItemState
 			EosUdpOutThread *thread = new EosUdpOutThread();
 			udpOutThreads[addr] = thread;
 			thread->Start(addr, itemStateTableId, m_ReconnectDelay);
+			return thread;
 		}
 		else
 			return i->second;
