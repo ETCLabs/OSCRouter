@@ -833,6 +833,23 @@ void EosTcpServerThread::UpdateLog()
 
 ////////////////////////////////////////////////////////////////////////////////
 
+bool OSCBundleMethod::ProcessPacket(OSCParserClient& /*client*/, char* buf, size_t size)
+{
+	EosUdpInThread::sRecvPacket packet(buf, static_cast<int>(size), m_IP);
+	m_Q.push_back(packet);
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+void OSCBundleMethod::Flush(EosUdpInThread::RECV_Q &q)
+{
+	q.clear();
+	m_Q.swap(q);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
 RouterThread::RouterThread(const Router::ROUTES &routes, const Router::CONNECTIONS &tcpConnections, const ItemStateTable &itemStateTable, unsigned int reconnectDelayMS)
 	: m_Mutex(QMutex::Recursive)
 	, m_Routes(routes)
@@ -1045,23 +1062,45 @@ void RouterThread::AddRoutingDestinations(bool isOSC, const QString &path, const
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void RouterThread::ProcessRecvQ(ROUTES_BY_PORT &routesByPort, DESTINATIONS_LIST &routingDestinationList, UDP_OUT_THREADS &udpOutThreads, TCP_CLIENT_THREADS &tcpClientThreads, const EosAddr &addr, EosUdpInThread::RECV_Q &recvQ)
+void RouterThread::ProcessRecvQ(OSCParser &oscBundleParser, ROUTES_BY_PORT &routesByPort, DESTINATIONS_LIST &routingDestinationList, UDP_OUT_THREADS &udpOutThreads, TCP_CLIENT_THREADS &tcpClientThreads, const EosAddr &addr, EosUdpInThread::RECV_Q &recvQ)
 {
 	for(EosUdpInThread::RECV_Q::iterator i=recvQ.begin(); i!=recvQ.end(); i++)
-		ProcessRecvPacket(routesByPort, routingDestinationList, udpOutThreads, tcpClientThreads, addr, *i);
+	{
+		EosUdpInThread::sRecvPacket& recvPacket = *i;
+
+		// handle OSC bundles		
+		char *buf = recvPacket.packet.GetData();
+		size_t packetSize = static_cast<size_t>(std::max(0, recvPacket.packet.GetSize()));
+		if (OSCParser::IsOSCPacket(buf, packetSize))
+		{
+			OSCBundleMethod* bundleHandler = static_cast<OSCBundleMethod*>(oscBundleParser.GetRoot());
+			bundleHandler->SetIP(recvPacket.ip);
+			oscBundleParser.ProcessPacket(*this, recvPacket.packet.GetData(), static_cast<size_t>(qMax(0, recvPacket.packet.GetSize())));
+			EosUdpInThread::RECV_Q bundleQ;
+			bundleHandler->Flush(bundleQ);
+			if (!bundleQ.empty())
+			{
+				for(EosUdpInThread::RECV_Q::iterator j=bundleQ.begin(); j!=bundleQ.end(); j++)
+					ProcessRecvPacket(routesByPort, routingDestinationList, udpOutThreads, tcpClientThreads, addr, /*isOSC*/true, *j);
+
+				continue;
+			}
+		}
+
+		ProcessRecvPacket(routesByPort, routingDestinationList, udpOutThreads, tcpClientThreads, addr, /*isOSC*/false, recvPacket);
+	}
 	recvQ.clear();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void RouterThread::ProcessRecvPacket(ROUTES_BY_PORT &routesByPort, DESTINATIONS_LIST &routingDestinationList, UDP_OUT_THREADS &udpOutThreads, TCP_CLIENT_THREADS &tcpClientThreads, const EosAddr &addr, EosUdpInThread::sRecvPacket &recvPacket)
+void RouterThread::ProcessRecvPacket(ROUTES_BY_PORT &routesByPort, DESTINATIONS_LIST &routingDestinationList, UDP_OUT_THREADS &udpOutThreads, TCP_CLIENT_THREADS &tcpClientThreads, const EosAddr &addr, bool isOSC, EosUdpInThread::sRecvPacket &recvPacket)
 {
 	routingDestinationList.clear();
 
 	// find osc path null terminator
 	char *buf = recvPacket.packet.GetData();
 	size_t packetSize = ((recvPacket.packet.GetSize()>0) ? static_cast<size_t>(recvPacket.packet.GetSize()) : 0);
-	bool isOSC = OSCParser::IsOSCPacket(buf, packetSize);
 	QString path;
 
 	if( isOSC )
@@ -1413,6 +1452,9 @@ void RouterThread::run()
 	EosTcpServerThread::CONNECTION_Q	tcpConnectionQ;
 	EosLog::LOG_Q						tempLogQ;
 
+	OSCParser oscBundleParser;
+	oscBundleParser.SetRoot(new OSCBundleMethod());
+
 	BuildRoutes(routesByPort, udpInThreads, udpOutThreads, tcpClientThreads, tcpServerThreads);
 
 	while( m_Run )
@@ -1430,7 +1472,7 @@ void RouterThread::run()
 			if( !recvQ.empty() )
 				SetItemActivity( thread->GetItemStateTableId() );
 
-			ProcessRecvQ(routesByPort, routingDestinationList, udpOutThreads, tcpClientThreads, thread->GetAddr(), recvQ);
+			ProcessRecvQ(oscBundleParser, routesByPort, routingDestinationList, udpOutThreads, tcpClientThreads, thread->GetAddr(), recvQ);
 		
 			if( !running )
 			{
@@ -1480,7 +1522,7 @@ void RouterThread::run()
 			if( !recvQ.empty() )
 				SetItemActivity( thread->GetItemStateTableId() );
 
-			ProcessRecvQ(routesByPort, routingDestinationList, udpOutThreads, tcpClientThreads, thread->GetAddr(), recvQ);
+			ProcessRecvQ(oscBundleParser, routesByPort, routingDestinationList, udpOutThreads, tcpClientThreads, thread->GetAddr(), recvQ);
 
 			if( !running )
 			{
@@ -1563,6 +1605,19 @@ void RouterThread::run()
 	
 	m_PrivateLog.AddInfo("router thread ended");
 	UpdateLog();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+void RouterThread::OSCParserClient_Log(const std::string& message)
+{
+	m_PrivateLog.AddWarning(message);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+void RouterThread::OSCParserClient_Send(const char* /*buf*/, size_t /*size*/)
+{
 }
 
 ////////////////////////////////////////////////////////////////////////////////

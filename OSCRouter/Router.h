@@ -257,8 +257,24 @@ protected:
 
 ////////////////////////////////////////////////////////////////////////////////
 
+class OSCBundleMethod
+	: public OSCMethod
+{
+public:
+	virtual void SetIP(unsigned int ip) { m_IP = ip; }
+	virtual bool ProcessPacket(OSCParserClient& client, char* buf, size_t size);
+	virtual void Flush(EosUdpInThread::RECV_Q &q);
+
+private:
+	unsigned int m_IP = 0u;
+	EosUdpInThread::RECV_Q m_Q;
+};
+
+////////////////////////////////////////////////////////////////////////////////
+
 class RouterThread
 	: public QThread
+	, private OSCParserClient
 {
 public:
 	RouterThread(const Router::ROUTES &routes, const Router::CONNECTIONS &tcpConnections, const ItemStateTable &itemStateTable, unsigned int reconnectDelayMS);
@@ -315,8 +331,8 @@ protected:
 	virtual void BuildRoutes(ROUTES_BY_PORT &routesByPort, UDP_IN_THREADS &udpInThreads, UDP_OUT_THREADS &udpOutThreads, TCP_CLIENT_THREADS &tcpClientThreads, TCP_SERVER_THREADS &tcpServerThreads);
 	virtual EosUdpOutThread* CreateUdpOutThread(const EosAddr &addr, ItemStateTable::ID itemStateTableId, UDP_OUT_THREADS &udpOutThreads);
 	virtual void AddRoutingDestinations(bool isOSC, const QString &path, const sRoutesByIp &routesByIp, DESTINATIONS_LIST &destinations);
-	virtual void ProcessRecvQ(ROUTES_BY_PORT &routesByPort, DESTINATIONS_LIST &routingDestinationList, UDP_OUT_THREADS &udpOutThreads, TCP_CLIENT_THREADS &tcpClientThreads, const EosAddr &addr, EosUdpInThread::RECV_Q &recvQ);
-	virtual void ProcessRecvPacket(ROUTES_BY_PORT &routesByPort, DESTINATIONS_LIST &routingDestinationList, UDP_OUT_THREADS &udpOutThreads, TCP_CLIENT_THREADS &tcpClientThreads, const EosAddr &addr, EosUdpInThread::sRecvPacket &recvPacket);
+	virtual void ProcessRecvQ(OSCParser &oscBundleParser, ROUTES_BY_PORT &routesByPort, DESTINATIONS_LIST &routingDestinationList, UDP_OUT_THREADS &udpOutThreads, TCP_CLIENT_THREADS &tcpClientThreads, const EosAddr &addr, EosUdpInThread::RECV_Q &recvQ);
+	virtual void ProcessRecvPacket(ROUTES_BY_PORT &routesByPort, DESTINATIONS_LIST &routingDestinationList, UDP_OUT_THREADS &udpOutThreads, TCP_CLIENT_THREADS &tcpClientThreads, const EosAddr &addr, bool isOSC, EosUdpInThread::sRecvPacket &recvPacket);
 	virtual bool MakeOSCPacket(const QString &srcPath, const EosRouteDst &dst, OSCArgument *args, size_t argsCount, EosPacket &packet);
 	virtual void ProcessTcpConnectionQ(TCP_CLIENT_THREADS &tcpClientThreads, OSCStream::EnumFrameMode frameMode, EosTcpServerThread::CONNECTION_Q &tcpConnectionQ);
 	virtual bool ApplyTransform(OSCArgument &arg, const EosRouteDst &dst, OSCPacketWriter &packet);
@@ -324,6 +340,8 @@ protected:
 	virtual void UpdateLog();
 	virtual void SetItemState(ItemStateTable::ID id, ItemState::EnumState state);
 	virtual void SetItemActivity(ItemStateTable::ID id);
+	virtual void OSCParserClient_Log(const std::string& message);
+	virtual void OSCParserClient_Send(const char* buf, size_t size);
 };
 
 ////////////////////////////////////////////////////////////////////////////////
