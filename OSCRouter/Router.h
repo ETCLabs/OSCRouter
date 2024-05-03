@@ -287,7 +287,8 @@ protected:
 	struct sRouteDst
 	{
 		EosRouteDst			dst;
-		ItemStateTable::ID	itemStateTableId;
+		ItemStateTable::ID	srcItemStateTableId;
+		ItemStateTable::ID	dstItemStateTableId;
 	};
 
 	typedef std::vector<sRouteDst> ROUTE_DESTINATIONS;
@@ -336,7 +337,7 @@ protected:
 	virtual bool MakeOSCPacket(const QString &srcPath, const EosRouteDst &dst, OSCArgument *args, size_t argsCount, EosPacket &packet);
 	virtual void ProcessTcpConnectionQ(TCP_CLIENT_THREADS &tcpClientThreads, OSCStream::EnumFrameMode frameMode, EosTcpServerThread::CONNECTION_Q &tcpConnectionQ);
 	virtual bool ApplyTransform(OSCArgument &arg, const EosRouteDst &dst, OSCPacketWriter &packet);
-	virtual void MakeSendPath(const QString &srcPath, const QString &dstPath, QString &sendPath);
+	virtual void MakeSendPath(const QString &srcPath, const QString &dstPath, const OSCArgument* args, size_t argsCount, QString &sendPath);
 	virtual void UpdateLog();
 	virtual void SetItemState(ItemStateTable::ID id, ItemState::EnumState state);
 	virtual void SetItemActivity(ItemStateTable::ID id);

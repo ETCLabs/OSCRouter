@@ -999,7 +999,8 @@ void RouterThread::BuildRoutes(ROUTES_BY_PORT &routesByPort, UDP_IN_THREADS &udp
 			ROUTE_DESTINATIONS &destinations = pathIter->second;
 			sRouteDst routeDst;
 			routeDst.dst = route.dst;
-			routeDst.itemStateTableId = route.dstItemStateTableId;
+			routeDst.srcItemStateTableId = route.srcItemStateTableId;
+			routeDst.dstItemStateTableId = route.dstItemStateTableId;
 			destinations.push_back(routeDst);
 		}
 	}
@@ -1166,25 +1167,37 @@ void RouterThread::ProcessRecvPacket(ROUTES_BY_PORT &routesByPort, DESTINATIONS_
 					if( isOSC )
 					{
 						EosPacket packet;
-						if(MakeOSCPacket(path,routeDst.dst,args,argsCount,packet) && thread->SendFramed(packet))
-							SetItemActivity( thread->GetItemStateTableId() );
+						if (MakeOSCPacket(path, routeDst.dst, args, argsCount, packet) && thread->SendFramed(packet))
+						{
+							SetItemActivity(routeDst.srcItemStateTableId);
+							SetItemActivity(thread->GetItemStateTableId());
+						}
 					}
-					else if( thread->Send(recvPacket.packet) )
-						SetItemActivity( thread->GetItemStateTableId() );
+					else if (thread->Send(recvPacket.packet))
+					{
+						SetItemActivity(routeDst.srcItemStateTableId);
+						SetItemActivity(thread->GetItemStateTableId());
+					}
 				}
 				else
 				{
-					EosUdpOutThread *thread = CreateUdpOutThread(dstAddr, routeDst.itemStateTableId, udpOutThreads);
+					EosUdpOutThread *thread = CreateUdpOutThread(dstAddr, routeDst.dstItemStateTableId, udpOutThreads);
 					if( thread )
 					{
 						if( isOSC )
 						{
 							EosPacket packet;
-							if(MakeOSCPacket(path,routeDst.dst,args,argsCount,packet) && thread->Send(packet))
-								SetItemActivity( thread->GetItemStateTableId() );
+							if (MakeOSCPacket(path, routeDst.dst, args, argsCount, packet) && thread->Send(packet))
+							{
+								SetItemActivity(routeDst.srcItemStateTableId);
+								SetItemActivity(thread->GetItemStateTableId());
+							}
 						}
-						else if( thread->Send(recvPacket.packet) )
-							SetItemActivity( thread->GetItemStateTableId() );
+						else if (thread->Send(recvPacket.packet))
+						{
+							SetItemActivity(routeDst.srcItemStateTableId);
+							SetItemActivity(thread->GetItemStateTableId());
+						}
 					}
 				}
 			}
@@ -1202,27 +1215,56 @@ void RouterThread::ProcessRecvPacket(ROUTES_BY_PORT &routesByPort, DESTINATIONS_
 bool RouterThread::MakeOSCPacket(const QString &srcPath, const EosRouteDst &dst, OSCArgument *args, size_t argsCount, EosPacket &packet)
 {
 	QString sendPath;
-	MakeSendPath(srcPath, dst.path, sendPath);
+	MakeSendPath(srcPath, dst.path, args, argsCount, sendPath);
 	if( !sendPath.isEmpty() )
 	{
-		OSCPacketWriter oscPacket( sendPath.toUtf8().constData() );
+		size_t oscPacketSize = 0;
+		char* oscPacketData = nullptr;
 
-		if( dst.hasAnyTransforms() )
+		int index = sendPath.indexOf('=');
+		if (index > 0)
 		{
-			if(args && argsCount!=0)
+			oscPacketData = OSCPacketWriter::CreateForString(sendPath.toUtf8().constData(), oscPacketSize);
+
+			if (oscPacketData && oscPacketSize && dst.hasAnyTransforms())
 			{
-				if( !ApplyTransform(args[0],dst,oscPacket) )
+				argsCount = 1;
+				args = OSCArgument::GetArgs(oscPacketData, oscPacketSize, argsCount);
+				if (args)
+				{
+					OSCPacketWriter oscPacket(sendPath.left(index).toUtf8().constData());
+
+					if (ApplyTransform(args[0], dst, oscPacket))
+					{
+						delete[] oscPacketData;
+						oscPacketData = oscPacket.Create(oscPacketSize);
+					}
+
+					delete[] args;
+				}
+			}
+		}
+		else
+		{
+			OSCPacketWriter oscPacket(sendPath.toUtf8().constData());
+
+			if (dst.hasAnyTransforms())
+			{
+				if (args && argsCount != 0)
+				{
+					if (!ApplyTransform(args[0], dst, oscPacket))
+						return false;
+				}
+				else
 					return false;
 			}
 			else
-				return false;
-		}
-		else
-			oscPacket.AddOSCArgList(args, argsCount);
+				oscPacket.AddOSCArgList(args, argsCount);
 
-		size_t oscPacketSize = 0;
-		char *oscPacketData = oscPacket.Create(oscPacketSize);
-		if(oscPacketData && oscPacketSize)
+			oscPacketData = oscPacket.Create(oscPacketSize);
+		}
+
+		if (oscPacketData && oscPacketSize)
 		{
 			packet = EosPacket(oscPacketData, static_cast<int>(oscPacketSize));
 			delete[] oscPacketData;
@@ -1307,7 +1349,7 @@ bool RouterThread::ApplyTransform(OSCArgument &arg, const EosRouteDst &dst, OSCP
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void RouterThread::MakeSendPath(const QString &srcPath, const QString &dstPath, QString &sendPath)
+void RouterThread::MakeSendPath(const QString &srcPath, const QString &dstPath, const OSCArgument* args, size_t argsCount, QString &sendPath)
 {
 	if( dstPath.isEmpty() )
 	{
@@ -1322,8 +1364,9 @@ void RouterThread::MakeSendPath(const QString &srcPath, const QString &dstPath, 
 			// possible in-line path replacements:
 			// %1  => srcPath[0]
 			// %2  => srcPath[1]
+			// %3  => arg[0]
 			// %%1 => %1
-			// %A  => &A
+			// %A  => %A
 
 			QStringList srcPathParts;
 			bool srcPathPartsInitialized = false;
@@ -1363,27 +1406,45 @@ void RouterThread::MakeSendPath(const QString &srcPath, const QString &dstPath, 
 								srcPathPartsInitialized = true;
 							}
 
-							if(srcPathIndex < srcPathParts.size())
+							QString insertStr;
+							if (srcPathIndex >= 0)
 							{
-								int midIndex = (startIndex + digitCount + 1);
-
-								if(midIndex < sendPath.size())
-									sendPath = sendPath.left(startIndex) + srcPathParts[srcPathIndex] + sendPath.mid(midIndex);
+								if (srcPathIndex >= srcPathParts.size())
+								{
+									if (args)
+									{
+										srcPathIndex -= srcPathParts.size();
+										if (srcPathIndex >= 0 && static_cast<size_t>(srcPathIndex) < argsCount)
+										{
+											std::string argStr;
+											if (args[srcPathIndex].GetString(argStr))
+												insertStr = QString::fromStdString(argStr);
+										}
+									}
+								}
 								else
-									sendPath = sendPath.left(startIndex) + srcPathParts[srcPathIndex];
-
-								i = (midIndex - 1);
+									insertStr = srcPathParts[srcPathIndex];
 							}
-							else
+
+							if (insertStr.isEmpty())
 							{
 								QString msg = QString("Unable to remap %1 => %2, invlaid replacement index %3")
 									.arg(srcPath)
 									.arg(dstPath)
-									.arg(srcPathIndex+1);
-								m_PrivateLog.AddWarning( msg.toUtf8().constData() );
+									.arg(srcPathIndex + 1);
+								m_PrivateLog.AddWarning(msg.toUtf8().constData());
 								sendPath.clear();
 								return;
 							}
+
+							int midIndex = (startIndex + digitCount + 1);
+
+							if (midIndex < sendPath.size())
+								sendPath = sendPath.left(startIndex) + insertStr + sendPath.mid(midIndex);
+							else
+								sendPath = sendPath.left(startIndex) + insertStr;
+
+							i = (midIndex - 1);
 						}
 					}
 

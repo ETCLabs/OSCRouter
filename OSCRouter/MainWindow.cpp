@@ -843,8 +843,27 @@ RoutingTableRow::RoutingTableRow(size_t id, QWidget *parent)
 	m_OutPort = new QLineEdit(this);
 	m_OutPort->setToolTip( tr("Route received packets to this port\n\nLeave blank to route packets to the same port they were received on") );
 
+	QString tip = tr(
+		"Route received OSC commands to this OSC command\n"
+		"\n"
+		"Use %1, %2, %3, etc... to insert specific sections from the received OSC command\n"
+		"\n"
+		"Ex: Remap path\n"
+		"Input:  /eos/out/event/cue/1/25/fire\n"
+		"Path:   /cue/%6/start\n"
+		"Output: /cue/25/start\n"
+		"\n"
+		"Ex: Remap path to argument\n"
+		"Input:  /cue/25/start\n"
+		"Path:   /eos/cue/fire=%2\n"
+		"Output: /eos/cue/fire, 25(i)\n"
+		"\n"
+		"Ex: Remap argument to path\n"
+		"Input:  /eos/cue/fire, 25(i)\n"
+		"Path:   /eos/%4/start=\n"
+		"Output: /cue/25/start");
 	m_OutPath = new QLineEdit(this);
-	m_OutPath->setToolTip( tr("Route received OSC commands to this OSC command path\n\nUse %n to insert specific sections from the received OSC command path\nex:\nOSC Command Path:/eos/out/event/cue/1/25/fire\nIn Path:/eos/out/event/cue/1/*\nOutPath:/cue/%6/start\nResult:/cue/25/start\n\nLeave blank to use the same the OSC command path as it was received with") );
+	m_OutPath->setToolTip(tip);
 
 	m_OutMin = new QLineEdit(this);
 	m_OutMin->setToolTip( tr("Clip first outgoing OSC argument\n\nScale first outgoing OSC argument when all min/max fields populated") );
