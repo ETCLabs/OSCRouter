@@ -33,7 +33,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 
-#define APP_VERSION					"0.15"
+#define APP_VERSION					"0.16"
 #define SETTING_LOG_DEPTH			"LogDepth"
 #define SETTING_FILE_DEPTH			"FileDepth"
 #define SETTING_LAST_FILE			"LastFile"
@@ -56,6 +56,40 @@ QString FileUtils::QuotedString(const QString &str)
 		quoted.append("\"");
 	}
 	return quoted;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+void TableScrollArea::resizeEvent(QResizeEvent* event)
+{
+	QScrollArea::resizeEvent(event);
+	emit resized(viewport()->width(), height());
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+void TableScrollArea::paintEvent(QPaintEvent* /*event*/)
+{
+	if (!m_RoutingTable)
+		return;
+
+	QPainter painter(viewport());
+
+	QLabel* col = m_RoutingTable->GetIncoming();
+	if (col)
+	{
+		int x1 = col->mapTo(this, col->rect().topLeft()).x();
+		int x2 = col->mapTo(this, col->rect().topRight()).x();
+		painter.fillRect(QRect(QPoint(x1, 0), QPoint(x2, height() - 1)), QColor(45, 45, 45));
+	}
+
+	col = m_RoutingTable->GetOutgoing();
+	if (col)
+	{
+		int x1 = col->mapTo(this, col->rect().topLeft()).x();
+		int x2 = col->mapTo(this, col->rect().topRight()).x();
+		painter.fillRect(QRect(QPoint(x1, 0), QPoint(x2, height() - 1)), QColor(45, 45, 45));
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -804,14 +838,14 @@ RoutingTableRow::RoutingTableRow(size_t id, QWidget *parent)
 	, m_InItemStateTableId(ItemStateTable::sm_Invalid_Id)
 	, m_OutItemStateTableId(ItemStateTable::sm_Invalid_Id)
 {
+	m_Label = new QLineEdit(this);
+	m_Label->setToolTip(tr("Just a text label for this route"));
+
 	m_InState = new Indicator(this);
 	m_InState->setToolTip( tr("Status") );
 	
 	m_InActivity = new Indicator(this);
-	m_InActivity->setToolTip( tr("Activity") );
-	
-	m_Label = new QLineEdit(this);
-	m_Label->setToolTip( tr("Just a text label for this route") );
+	m_InActivity->setToolTip( tr("Activity") );	
 
 	m_InIP = new QLineEdit(this);
 	m_InIP->setToolTip( tr("Only route packets received from this specific IP address\n\nLeave blank to route packets received from any IP address") );
@@ -828,7 +862,13 @@ RoutingTableRow::RoutingTableRow(size_t id, QWidget *parent)
 	m_InMax = new QLineEdit(this);
 	m_InMax->setToolTip( tr("Clip first outgoing OSC argument\n\nScale first outgoing OSC argument when all min/max fields populated") );
 
-	m_Divider = new QLabel(">", this);
+	m_Divider = new QLabel(QString("%1").arg(QChar(0x25B6)), this);
+	QPalette p = m_Divider->palette();
+	p.setColor(QPalette::WindowText, QColor(200, 200, 200));
+	m_Divider->setPalette(p);
+	QFont fnt = m_Divider->font();
+	fnt.setPointSize(16);
+	m_Divider->setFont(fnt);
 	m_Divider->setAlignment(Qt::AlignCenter);
 
 	m_OutState = new Indicator(this);
@@ -1111,6 +1151,21 @@ RoutingTable::RoutingTable(QWidget *parent)
 	: QWidget(parent)
 	, m_UpdatingLayout(0)
 {
+	m_Incoming = new QLabel(this);
+	QPalette pal = m_Incoming->palette();
+	pal.setColor(QPalette::Window, QColor(50, 50, 50));
+	pal.setColor(QPalette::WindowText, QColor(200, 200, 200));
+	m_Incoming->setPalette(pal);
+	m_Incoming->setAutoFillBackground(true);
+	m_Incoming->setAlignment(Qt::AlignCenter);
+	m_Incoming->setText( tr("Incoming") );
+
+	m_Outgoing = new QLabel(this);
+	m_Outgoing->setPalette(pal);
+	m_Outgoing->setAutoFillBackground(true);
+	m_Outgoing->setAlignment(Qt::AlignCenter);
+	m_Outgoing->setText(tr("Outgoing"));
+
 	for(size_t i=0; i<RoutingTableRow::NUM_COLS; i++)
 	{
 		m_Header[i] = new QLabel(this);
@@ -1118,13 +1173,13 @@ RoutingTable::RoutingTable(QWidget *parent)
 
 		switch( i )
 		{
-			case RoutingTableRow::COL_LABEL:	m_Header[i]->setText( tr("Label") ); break;
-			case RoutingTableRow::COL_IN_IP:	m_Header[i]->setText( tr("Incoming IP") ); break;
+			case RoutingTableRow::COL_LABEL:	m_Header[i]->setText( tr("Name") ); break;
+			case RoutingTableRow::COL_IN_IP:	m_Header[i]->setText( tr("IP") ); break;
 			case RoutingTableRow::COL_IN_PORT:	m_Header[i]->setText( tr("Port") ); break;
 			case RoutingTableRow::COL_IN_PATH:	m_Header[i]->setText( tr("Path") ); break;
 			case RoutingTableRow::COL_IN_MIN:	m_Header[i]->setText( tr("Min") ); break;
 			case RoutingTableRow::COL_IN_MAX:	m_Header[i]->setText( tr("Max") ); break;
-			case RoutingTableRow::COL_OUT_IP:	m_Header[i]->setText( tr("Outgoing IP") ); break;
+			case RoutingTableRow::COL_OUT_IP:	m_Header[i]->setText( tr("IP") ); break;
 			case RoutingTableRow::COL_OUT_PORT:	m_Header[i]->setText( tr("Port") ); break;
 			case RoutingTableRow::COL_OUT_PATH:	m_Header[i]->setText( tr("Path") ); break;
 			case RoutingTableRow::COL_OUT_MIN:	m_Header[i]->setText( tr("Min") ); break;
@@ -1416,11 +1471,11 @@ void RoutingTable::UpdateLayout(int w, bool forResize)
 			else
 				colSizes[i] = flexWidth;
 		}
-	
-		int y = margin;
-		int rowHeight = firstRow->sizeHint().height();
-	
+			
+		int rowHeight = firstRow->sizeHint().height();	
 		int x = margin;
+		int y = margin + rowHeight + margin;
+
 		for(size_t i=0; i<RoutingTableRow::NUM_COLS; i++)
 		{
 			m_Header[i]->setGeometry(x, y, colSizes[i], rowHeight);
@@ -1436,11 +1491,19 @@ void RoutingTable::UpdateLayout(int w, bool forResize)
 			y += (row->height() + margin);
 		}
 
-		m_Tcp->move(w-m_Tcp->width()-margin, y);
+		int x1 = m_Header[RoutingTableRow::COL_IN_STATE]->geometry().topLeft().x();
+		int x2 = m_Header[RoutingTableRow::COL_IN_MAX]->geometry().topRight().x();
+		m_Incoming->setGeometry(x1, margin, x2 - x1, rowHeight);
+
+		x1 = m_Header[RoutingTableRow::COL_OUT_STATE]->geometry().topLeft().x();
+		x2 = m_Header[RoutingTableRow::COL_OUT_MAX]->geometry().topRight().x();
+		m_Outgoing->setGeometry(x1, margin, x2 - x1, rowHeight);
+
+		m_Tcp->move(m_Outgoing->geometry().right() - m_Tcp->width(), y);
 		y += (m_Tcp->height() + margin);
 
-		m_Apply->move(w-m_Apply->width()-margin, y);
-		y += (m_Apply->height() + margin);		
+		m_Apply->move(m_Outgoing->geometry().right() - m_Apply->width(), y);
+		y += (m_Apply->height() + margin);
 		
 		if( !forResize )
 			resize(x, y);
@@ -1566,10 +1629,14 @@ MainWindow::MainWindow(EosPlatform *platform, QWidget* parent/*=0*/, Qt::WindowF
 	layout->addWidget(splitter, 0, 0);
 
 	TableScrollArea *tableScrollArea = new TableScrollArea(splitter);
+	tableScrollArea->viewport()->setAutoFillBackground(false);
 	splitter->addWidget(tableScrollArea);
 	
 	m_RoutingTable = new RoutingTable(0);
+	m_RoutingTable->setObjectName("RoutingTable");
+	m_RoutingTable->setStyleSheet("QWidget#RoutingTable {background: transparent;}");
 	connect(m_RoutingTable, SIGNAL(changed()), this, SLOT(onRoutingTableChanged()));
+	tableScrollArea->SetRoutingTable(m_RoutingTable);
 	tableScrollArea->setWidget(m_RoutingTable);
 	connect(tableScrollArea, SIGNAL(resized(int,int)), m_RoutingTable, SLOT(autoSize(int,int)));
 	

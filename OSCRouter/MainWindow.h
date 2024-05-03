@@ -47,6 +47,7 @@
 #endif
 
 class EosPlatform;
+class RoutingTable;
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -61,16 +62,16 @@ public:
 	{}
 	
 	virtual QSize sizeHint() const {return QSize(1000,1000);}
+	void SetRoutingTable(RoutingTable* routingTable) { m_RoutingTable = routingTable; }
 	
 signals:
 	void resized(int w, int h);
 	
 protected:
-	virtual void resizeEvent(QResizeEvent *event)
-	{
-		QScrollArea::resizeEvent(event);
-		emit resized(viewport()->width(), height());
-	}
+	QPointer<RoutingTable> m_RoutingTable;
+
+	virtual void resizeEvent(QResizeEvent* event);
+	virtual void paintEvent(QPaintEvent* event);
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -198,7 +199,7 @@ public slots:
 	
 protected:
 	typedef std::vector<TcpTableRow*> ROWS;
-	
+		
 	QLabel			*m_Header[TcpTableRow::NUM_COLS];
 	ROWS			m_Rows;
 	unsigned int	m_UpdatingLayout;
@@ -237,9 +238,9 @@ class RoutingTableRow
 public:
 	enum EnumConstants
 	{
-		COL_IN_STATE = 0,
+		COL_LABEL = 0,
+		COL_IN_STATE,
 		COL_IN_ACTIVITY,
-		COL_LABEL,
 		COL_IN_IP,
 		COL_IN_PORT,
 		COL_IN_PATH,
@@ -261,7 +262,6 @@ public:
 	RoutingTableRow(size_t id, QWidget *parent);
 	
 	virtual QSize sizeHint() const;
-	virtual int GetDividerSize() const {return m_Divider->sizeHint().width();}
 	virtual void SetAddRemoveText(const QString &text);
 	virtual void UpdateLayout(const int *colSizes, size_t count, int margin);
 	virtual void Load(const QString &label, const EosRouteSrc &src, const EosRouteDst &dst);
@@ -325,6 +325,8 @@ public:
 	virtual bool LoadFromFile(const QString &path);
 	virtual bool SaveToFile(const QString &path) const;
 	virtual void UpdateItemState(const ItemStateTable &itemStateTable);
+	QLabel* GetIncoming() const { return m_Incoming; }
+	QLabel* GetOutgoing() const { return m_Outgoing; }
 	
 	static bool HasRoute(const Router::ROUTES &routes, const EosRouteSrc &src, const EosRouteDst &dst);
 	static bool HasTcpConnection(const Router::CONNECTIONS &tcpConnections, const EosAddr &addr);
@@ -342,6 +344,8 @@ protected:
 	typedef std::vector<RoutingTableRow*> ROWS;
 	typedef std::map<EosAddr,ItemStateTable::ID> ADDR_STATES;
 	
+	QLabel			*m_Incoming;
+	QLabel			*m_Outgoing;
 	QLabel			*m_Header[RoutingTableRow::NUM_COLS];
 	ROWS			m_Rows;
 	QPushButton		*m_Tcp;
@@ -366,7 +370,7 @@ public:
 	MainWindow(EosPlatform *platform, QWidget *parent=0, Qt::WindowFlags f=Qt::WindowFlags());
 	virtual ~MainWindow();
 	
-	virtual QSize sizeHint() const {return QSize(900,500);}
+	virtual QSize sizeHint() const {return QSize(1280,640);}
 	virtual void FlushLogQ(EosLog::LOG_Q &logQ);
 	virtual bool BuildRoutes();
 
