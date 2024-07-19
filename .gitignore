@@ -51,5 +51,6 @@ xcuserdata
 project.xcworkspace
 
 # Build folders
+moc_*.cpp
 OSCRouter/x64
 build
