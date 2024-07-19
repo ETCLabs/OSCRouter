@@ -42,23 +42,9 @@ Network Trash Folder
 Temporary Items
 .apdisk
 
-# Qt moc files
-OSCRouter/moc
-moc_*.cpp
-qt.qrc.cpp
-
 # Visual Studio
 .vs
 *.vcxproj.user
-*.obj
-*.log
-*.recipe
-*.ilk
-*.pdb
-*.tlog
-*.res
-*.idb
-*.vcxproj.FileListAbsolute.txt
 
 # XCode
 xcuserdata

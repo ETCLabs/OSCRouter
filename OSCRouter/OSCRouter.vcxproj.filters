@@ -33,9 +33,6 @@
     <ClCompile Include="MainWindow.cpp">
       <Filter>OSCRouter\Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="moc\moc_MainWindow.cpp">
-      <Filter>OSCRouter\Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\EosSyncLib\EosSyncLib\EosLog.cpp">
       <Filter>EosSyncLib\Source Files</Filter>
     </ClCompile>

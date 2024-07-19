@@ -42,9 +42,11 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\build\</OutDir>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\build\</OutDir>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -104,7 +106,6 @@
     <ClCompile Include="ItemState.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MainWindow.cpp" />
-    <ClCompile Include="moc\moc_MainWindow.cpp" />
     <ClCompile Include="NetworkUtils.cpp" />
     <ClCompile Include="Router.cpp" />
   </ItemGroup>
@@ -117,16 +118,7 @@
     <ClInclude Include="NetworkUtils.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Router.h" />
-    <CustomBuild Include="MainWindow.h">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTOSCROUTER)\bin\moc.exe MainWindow.h -o moc\moc_MainWindow.cpp</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">moc MainWindow.h</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">moc\moc_MainWindow.cpp</Outputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTOSCROUTER)\bin\moc.exe</AdditionalInputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTOSCROUTER)\bin\moc.exe MainWindow.h -o moc\moc_MainWindow.cpp</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">moc MainWindow.h</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">moc\moc_MainWindow.cpp</Outputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTOSCROUTER)\bin\moc.exe</AdditionalInputs>
-    </CustomBuild>
+    <CustomBuild Include="MainWindow.h" />
     <ClInclude Include="..\..\EosSyncLib\EosSyncLib\EosLog.h" />
     <ClInclude Include="..\..\EosSyncLib\EosSyncLib\EosOsc.h" />
     <ClInclude Include="..\..\EosSyncLib\EosSyncLib\EosSyncLib.h" />
@@ -144,13 +136,13 @@
     <None Include="qt.conf" />
     <CustomBuild Include="qt.qrc">
       <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTOSCROUTER)\bin\rcc.exe -no-compress %(Filename)%(Extension) -o %(Filename)%(Extension).cpp</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTOSCROUTER)\bin\rcc.exe -no-compress %(Filename)%(Extension) -o %(Filename)%(Extension).cpp</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">rcc'ing %(Filename)%(Extension)</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename)%(Extension).cpp</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(QTOSCROUTER)\bin\rcc.exe" -no-compress "%(FullPath)" -o "$(IntermediateOutputPath)%(Filename)%(Extension).cpp"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(QTOSCROUTER)\bin\rcc.exe" -no-compress "%(FullPath)" -o "$(IntermediateOutputPath)%(Filename)%(Extension).cpp"</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">rcc %(FullPath)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntermediateOutputPath)%(Filename)%(Extension).cpp</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTOSCROUTER)\bin\rcc.exe</AdditionalInputs>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">rcc'ing %(Filename)%(Extension)</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename)%(Extension).cpp</Outputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">rcc %(FullPath)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntermediateOutputPath)%(Filename)%(Extension).cpp</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTOSCROUTER)\bin\rcc.exe</AdditionalInputs>
       <OutputItemType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ClCompile</OutputItemType>
       <OutputItemType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ClCompile</OutputItemType>
