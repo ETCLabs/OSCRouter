@@ -24,20 +24,20 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 
-#define TEXT_COLOR		QColor(119,167,255)
-#define MUTED_COLOR		QColor(100,100,100)
-#define SUCCESS_COLOR	QColor(16,183,87)
-#define ERROR_COLOR		QColor(164,66,66)
-#define WARNING_COLOR	QColor(172,122,57)
-#define RECV_COLOR		QColor(255,187,255)
-#define SEND_COLOR		QColor(0,181,149)
-#define CONNECT_COLOR	QColor(105,92,152)
-#define ACTIVITY_COLOR	QColor(200,200,200)
-#define BG_COLOR		QColor(40,40,40)
+#define TEXT_COLOR QColor(119, 167, 255)
+#define MUTED_COLOR QColor(100, 100, 100)
+#define SUCCESS_COLOR QColor(16, 183, 87)
+#define ERROR_COLOR QColor(164, 66, 66)
+#define WARNING_COLOR QColor(172, 122, 57)
+#define RECV_COLOR QColor(255, 187, 255)
+#define SEND_COLOR QColor(0, 181, 149)
+#define CONNECT_COLOR QColor(105, 92, 152)
+#define ACTIVITY_COLOR QColor(200, 200, 200)
+#define BG_COLOR QColor(40, 40, 40)
 
 #ifdef WIN32
-	#include <Winsock2.h>
-	#include <QtWinExtras/QtWin>
+#include <Winsock2.h>
+#include <QtWinExtras/QtWin>
 #endif
 
 #include <QtCore/QtCore>

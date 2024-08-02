@@ -29,13 +29,13 @@
 class EosPlatform
 {
 public:
-	EosPlatform() {}
-	virtual ~EosPlatform() {}
-	virtual bool Initialize(std::string &error);
-	virtual void Shutdown() {}
-	virtual bool SetSystemIdleAllowed(bool b, const std::string &reason, std::string &error);
-	
-	static EosPlatform* Create();
+  EosPlatform() {}
+  virtual ~EosPlatform() {}
+  virtual bool Initialize(std::string &error);
+  virtual void Shutdown() {}
+  virtual bool SetSystemIdleAllowed(bool b, const std::string &reason, std::string &error);
+
+  static EosPlatform *Create();
 };
 
 ////////////////////////////////////////////////////////////////////////////////

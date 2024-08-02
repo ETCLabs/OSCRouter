@@ -49,300 +49,297 @@ class EosTcp;
 class Router
 {
 public:
-	struct sConnection
-	{
-		QString						label;
-		bool						server;
-		OSCStream::EnumFrameMode	frameMode;
-		EosAddr						addr;
-		ItemStateTable::ID			itemStateTableId;
-	};
+  struct sConnection
+  {
+    QString label;
+    bool server;
+    OSCStream::EnumFrameMode frameMode;
+    EosAddr addr;
+    ItemStateTable::ID itemStateTableId;
+  };
 
-	typedef std::vector<sConnection> CONNECTIONS;
+  typedef std::vector<sConnection> CONNECTIONS;
 
-	struct sRoute
-	{
-		sRoute() {}
-		QString				label;
-		EosRouteSrc			src;
-		ItemStateTable::ID	srcItemStateTableId;
-		EosRouteDst			dst;
-		ItemStateTable::ID	dstItemStateTableId;
-	};
+  struct sRoute
+  {
+    sRoute() {}
+    QString label;
+    EosRouteSrc src;
+    ItemStateTable::ID srcItemStateTableId;
+    EosRouteDst dst;
+    ItemStateTable::ID dstItemStateTableId;
+  };
 
-	typedef std::vector<sRoute> ROUTES;
+  typedef std::vector<sRoute> ROUTES;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
 
-class PacketLogger
-	: public OSCParserClient
+class PacketLogger : public OSCParserClient
 {
 public:
-	PacketLogger(EosLog::EnumLogMsgType logType, EosLog &log)
-		: m_LogType(logType)
-		, m_pLog(&log)
-	{}
+  PacketLogger(EosLog::EnumLogMsgType logType, EosLog &log)
+    : m_LogType(logType)
+    , m_pLog(&log)
+  {
+  }
 
-	virtual void SetPrefix(const std::string &prefix) {m_Prefix = prefix;}
-	virtual void OSCParserClient_Log(const std::string &message);
-	virtual void OSCParserClient_Send(const char *, size_t) {}
-	virtual void PrintPacket(OSCParser& oscParser, const char* packet, size_t size);
+  virtual void SetPrefix(const std::string &prefix) { m_Prefix = prefix; }
+  virtual void OSCParserClient_Log(const std::string &message);
+  virtual void OSCParserClient_Send(const char *, size_t) {}
+  virtual void PrintPacket(OSCParser &oscParser, const char *packet, size_t size);
 
 protected:
-	EosLog::EnumLogMsgType	m_LogType;
-	EosLog					*m_pLog;
-	std::string				m_Prefix;
-	std::string				m_LogMsg;
+  EosLog::EnumLogMsgType m_LogType;
+  EosLog *m_pLog;
+  std::string m_Prefix;
+  std::string m_LogMsg;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
 
-class EosUdpInThread
-	: public QThread
+class EosUdpInThread : public QThread
 {
 public:
-	struct sRecvPacket
-	{
-		sRecvPacket(const char *data, int size, unsigned int Ip)
-			: packet(data, size)
-			, ip(Ip)
-		{}
-		EosPacket		packet;
-		unsigned int	ip;
-	};
-	typedef std::vector<sRecvPacket> RECV_Q;
+  struct sRecvPacket
+  {
+    sRecvPacket(const char *data, int size, unsigned int Ip)
+      : packet(data, size)
+      , ip(Ip)
+    {
+    }
+    EosPacket packet;
+    unsigned int ip;
+  };
+  typedef std::vector<sRecvPacket> RECV_Q;
 
-	EosUdpInThread();
-	virtual ~EosUdpInThread();
+  EosUdpInThread();
+  virtual ~EosUdpInThread();
 
-	virtual void Start(const EosAddr &addr, ItemStateTable::ID itemStateTableId, unsigned int reconnectDelayMS);
-	virtual void Stop();
-	const EosAddr& GetAddr() const {return m_Addr;}
-	ItemStateTable::ID GetItemStateTableId() const {return m_ItemStateTableId;}
-	ItemState::EnumState GetState();
-	virtual void Flush(EosLog::LOG_Q &logQ, RECV_Q &recvQ);
+  virtual void Start(const EosAddr &addr, ItemStateTable::ID itemStateTableId, unsigned int reconnectDelayMS);
+  virtual void Stop();
+  const EosAddr &GetAddr() const { return m_Addr; }
+  ItemStateTable::ID GetItemStateTableId() const { return m_ItemStateTableId; }
+  ItemState::EnumState GetState();
+  virtual void Flush(EosLog::LOG_Q &logQ, RECV_Q &recvQ);
 
 protected:
-	EosAddr					m_Addr;
-	ItemStateTable::ID		m_ItemStateTableId;
-	ItemState::EnumState	m_State;
-	unsigned int			m_ReconnectDelay;
-	bool					m_Run;
-	EosLog					m_Log;
-	EosLog					m_PrivateLog;
-	RECV_Q					m_Q;
-	QMutex					m_Mutex;
+  EosAddr m_Addr;
+  ItemStateTable::ID m_ItemStateTableId;
+  ItemState::EnumState m_State;
+  unsigned int m_ReconnectDelay;
+  bool m_Run;
+  EosLog m_Log;
+  EosLog m_PrivateLog;
+  RECV_Q m_Q;
+  QMutex m_Mutex;
 
-	virtual void run();
-	virtual void UpdateLog();
-	virtual void SetState(ItemState::EnumState state);
+  virtual void run();
+  virtual void UpdateLog();
+  virtual void SetState(ItemState::EnumState state);
 };
 
 ////////////////////////////////////////////////////////////////////////////////
 
-class EosUdpOutThread
-	: public QThread
+class EosUdpOutThread : public QThread
 {
 public:
-	EosUdpOutThread();
-	virtual ~EosUdpOutThread();
+  EosUdpOutThread();
+  virtual ~EosUdpOutThread();
 
-	virtual void Start(const EosAddr &addr, ItemStateTable::ID itemStateTableId, unsigned int reconnectDelayMS);
-	virtual void Stop();
-	const EosAddr& GetAddr() const {return m_Addr;}
-	ItemStateTable::ID GetItemStateTableId() const {return m_ItemStateTableId;}
-	ItemState::EnumState GetState();
-	virtual bool Send(const EosPacket &packet);
-	virtual void Flush(EosLog::LOG_Q &logQ);
+  virtual void Start(const EosAddr &addr, ItemStateTable::ID itemStateTableId, unsigned int reconnectDelayMS);
+  virtual void Stop();
+  const EosAddr &GetAddr() const { return m_Addr; }
+  ItemStateTable::ID GetItemStateTableId() const { return m_ItemStateTableId; }
+  ItemState::EnumState GetState();
+  virtual bool Send(const EosPacket &packet);
+  virtual void Flush(EosLog::LOG_Q &logQ);
 
 protected:
-	EosAddr					m_Addr;
-	ItemStateTable::ID		m_ItemStateTableId;
-	ItemState::EnumState	m_State;
-	unsigned int			m_ReconnectDelay;
-	bool					m_Run;
-	EosLog					m_Log;
-	EosLog					m_PrivateLog;
-	EosPacket::Q			m_Q;
-	bool					m_QEnabled;
-	QMutex					m_Mutex;
+  EosAddr m_Addr;
+  ItemStateTable::ID m_ItemStateTableId;
+  ItemState::EnumState m_State;
+  unsigned int m_ReconnectDelay;
+  bool m_Run;
+  EosLog m_Log;
+  EosLog m_PrivateLog;
+  EosPacket::Q m_Q;
+  bool m_QEnabled;
+  QMutex m_Mutex;
 
-	virtual void run();
-	virtual void UpdateLog();
-	virtual void SetState(ItemState::EnumState state);
+  virtual void run();
+  virtual void UpdateLog();
+  virtual void SetState(ItemState::EnumState state);
 };
 
 ////////////////////////////////////////////////////////////////////////////////
 
-class EosTcpClientThread
-	: public QThread
+class EosTcpClientThread : public QThread
 {
 public:
-	EosTcpClientThread();
-	virtual ~EosTcpClientThread();
+  EosTcpClientThread();
+  virtual ~EosTcpClientThread();
 
-	virtual void Start(const EosAddr &addr, ItemStateTable::ID itemStateTableId, OSCStream::EnumFrameMode frameMode, unsigned int reconnectDelayMS);
-	virtual void Start(EosTcp *tcp, const EosAddr &addr, ItemStateTable::ID itemStateTableId, OSCStream::EnumFrameMode frameMode, unsigned int reconnectDelayMS);
-	virtual void Stop();
-	const EosAddr& GetAddr() const {return m_Addr;}
-	ItemStateTable::ID GetItemStateTableId() const {return m_ItemStateTableId;}
-	ItemState::EnumState GetState();
-	virtual bool Send(const EosPacket &packet);
-	virtual bool SendFramed(const EosPacket &packet);
-	virtual void Flush(EosLog::LOG_Q &logQ, EosUdpInThread::RECV_Q &recvQ);
+  virtual void Start(const EosAddr &addr, ItemStateTable::ID itemStateTableId, OSCStream::EnumFrameMode frameMode, unsigned int reconnectDelayMS);
+  virtual void Start(EosTcp *tcp, const EosAddr &addr, ItemStateTable::ID itemStateTableId, OSCStream::EnumFrameMode frameMode, unsigned int reconnectDelayMS);
+  virtual void Stop();
+  const EosAddr &GetAddr() const { return m_Addr; }
+  ItemStateTable::ID GetItemStateTableId() const { return m_ItemStateTableId; }
+  ItemState::EnumState GetState();
+  virtual bool Send(const EosPacket &packet);
+  virtual bool SendFramed(const EosPacket &packet);
+  virtual void Flush(EosLog::LOG_Q &logQ, EosUdpInThread::RECV_Q &recvQ);
 
 protected:
-	EosTcp						*m_AcceptedTcp;
-	EosAddr						m_Addr;
-	ItemStateTable::ID			m_ItemStateTableId;
-	ItemState::EnumState		m_State;
-	OSCStream::EnumFrameMode	m_FrameMode;
-	unsigned int				m_ReconnectDelay;
-	bool						m_Run;
-	EosLog						m_Log;
-	EosLog						m_PrivateLog;
-	EosUdpInThread::RECV_Q		m_RecvQ;
-	EosPacket::Q				m_SendQ;
-	QMutex						m_Mutex;
+  EosTcp *m_AcceptedTcp;
+  EosAddr m_Addr;
+  ItemStateTable::ID m_ItemStateTableId;
+  ItemState::EnumState m_State;
+  OSCStream::EnumFrameMode m_FrameMode;
+  unsigned int m_ReconnectDelay;
+  bool m_Run;
+  EosLog m_Log;
+  EosLog m_PrivateLog;
+  EosUdpInThread::RECV_Q m_RecvQ;
+  EosPacket::Q m_SendQ;
+  QMutex m_Mutex;
 
-	virtual void run();
-	virtual void UpdateLog();
-	virtual void SetState(ItemState::EnumState state);
+  virtual void run();
+  virtual void UpdateLog();
+  virtual void SetState(ItemState::EnumState state);
 };
 
 ////////////////////////////////////////////////////////////////////////////////
 
-class EosTcpServerThread
-	: public QThread
+class EosTcpServerThread : public QThread
 {
 public:
-	struct sConnection
-	{
-		sConnection()
-			: tcp(0)
-		{}
-		EosTcp	*tcp;
-		EosAddr	addr;
-	};
-	typedef std::vector<sConnection> CONNECTION_Q;
+  struct sConnection
+  {
+    sConnection()
+      : tcp(0)
+    {
+    }
+    EosTcp *tcp;
+    EosAddr addr;
+  };
+  typedef std::vector<sConnection> CONNECTION_Q;
 
-	EosTcpServerThread();
-	virtual ~EosTcpServerThread();
+  EosTcpServerThread();
+  virtual ~EosTcpServerThread();
 
-	virtual void Start(const EosAddr &addr, ItemStateTable::ID itemStateTableId, OSCStream::EnumFrameMode frameMode, unsigned int reconnectDelayMS);
-	virtual void Stop();
-	const EosAddr& GetAddr() const {return m_Addr;}
-	ItemStateTable::ID GetItemStateTableId() const {return m_ItemStateTableId;}
-	ItemState::EnumState GetState();
-	OSCStream::EnumFrameMode GetFrameMode() const {return m_FrameMode;}
-	virtual void Flush(EosLog::LOG_Q &logQ, CONNECTION_Q &connectionQ);
+  virtual void Start(const EosAddr &addr, ItemStateTable::ID itemStateTableId, OSCStream::EnumFrameMode frameMode, unsigned int reconnectDelayMS);
+  virtual void Stop();
+  const EosAddr &GetAddr() const { return m_Addr; }
+  ItemStateTable::ID GetItemStateTableId() const { return m_ItemStateTableId; }
+  ItemState::EnumState GetState();
+  OSCStream::EnumFrameMode GetFrameMode() const { return m_FrameMode; }
+  virtual void Flush(EosLog::LOG_Q &logQ, CONNECTION_Q &connectionQ);
 
 protected:
-	EosAddr						m_Addr;
-	ItemStateTable::ID			m_ItemStateTableId;
-	ItemState::EnumState		m_State;
-	OSCStream::EnumFrameMode	m_FrameMode;
-	unsigned int				m_ReconnectDelay;
-	bool						m_Run;
-	EosLog						m_Log;
-	EosLog						m_PrivateLog;
-	CONNECTION_Q				m_Q;
-	QMutex						m_Mutex;
+  EosAddr m_Addr;
+  ItemStateTable::ID m_ItemStateTableId;
+  ItemState::EnumState m_State;
+  OSCStream::EnumFrameMode m_FrameMode;
+  unsigned int m_ReconnectDelay;
+  bool m_Run;
+  EosLog m_Log;
+  EosLog m_PrivateLog;
+  CONNECTION_Q m_Q;
+  QMutex m_Mutex;
 
-	virtual void run();
-	virtual void UpdateLog();
-	virtual void SetState(ItemState::EnumState state);
+  virtual void run();
+  virtual void UpdateLog();
+  virtual void SetState(ItemState::EnumState state);
 };
 
 ////////////////////////////////////////////////////////////////////////////////
 
-class OSCBundleMethod
-	: public OSCMethod
+class OSCBundleMethod : public OSCMethod
 {
 public:
-	virtual void SetIP(unsigned int ip) { m_IP = ip; }
-	virtual bool ProcessPacket(OSCParserClient& client, char* buf, size_t size);
-	virtual void Flush(EosUdpInThread::RECV_Q &q);
+  virtual void SetIP(unsigned int ip) { m_IP = ip; }
+  virtual bool ProcessPacket(OSCParserClient &client, char *buf, size_t size);
+  virtual void Flush(EosUdpInThread::RECV_Q &q);
 
 private:
-	unsigned int m_IP = 0u;
-	EosUdpInThread::RECV_Q m_Q;
+  unsigned int m_IP = 0u;
+  EosUdpInThread::RECV_Q m_Q;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
 
-class RouterThread
-	: public QThread
-	, private OSCParserClient
+class RouterThread : public QThread, private OSCParserClient
 {
 public:
-	RouterThread(const Router::ROUTES &routes, const Router::CONNECTIONS &tcpConnections, const ItemStateTable &itemStateTable, unsigned int reconnectDelayMS);
-	virtual ~RouterThread();
+  RouterThread(const Router::ROUTES &routes, const Router::CONNECTIONS &tcpConnections, const ItemStateTable &itemStateTable, unsigned int reconnectDelayMS);
+  virtual ~RouterThread();
 
-	virtual void Stop();
-	virtual void Flush(EosLog::LOG_Q &logQ, ItemStateTable &itemStateTable);
+  virtual void Stop();
+  virtual void Flush(EosLog::LOG_Q &logQ, ItemStateTable &itemStateTable);
 
 protected:
-	struct sRouteDst
-	{
-		EosRouteDst			dst;
-		ItemStateTable::ID	srcItemStateTableId;
-		ItemStateTable::ID	dstItemStateTableId;
-	};
+  struct sRouteDst
+  {
+    EosRouteDst dst;
+    ItemStateTable::ID srcItemStateTableId;
+    ItemStateTable::ID dstItemStateTableId;
+  };
 
-	typedef std::vector<sRouteDst> ROUTE_DESTINATIONS;
+  typedef std::vector<sRouteDst> ROUTE_DESTINATIONS;
 
-	typedef std::map<QString,ROUTE_DESTINATIONS> ROUTES_BY_PATH;
-	typedef std::pair<QString,ROUTE_DESTINATIONS> ROUTES_BY_PATH_PAIR;
-	typedef std::pair<ROUTES_BY_PATH::const_iterator, ROUTES_BY_PATH::const_iterator> ROUTES_BY_PATH_RANGE;
+  typedef std::map<QString, ROUTE_DESTINATIONS> ROUTES_BY_PATH;
+  typedef std::pair<QString, ROUTE_DESTINATIONS> ROUTES_BY_PATH_PAIR;
+  typedef std::pair<ROUTES_BY_PATH::const_iterator, ROUTES_BY_PATH::const_iterator> ROUTES_BY_PATH_RANGE;
 
-	struct sRoutesByIp
-	{
-		ROUTES_BY_PATH	routesByPath;
-		ROUTES_BY_PATH	routesByWildcardPath;
-	};
+  struct sRoutesByIp
+  {
+    ROUTES_BY_PATH routesByPath;
+    ROUTES_BY_PATH routesByWildcardPath;
+  };
 
-	typedef std::map<unsigned int,sRoutesByIp> ROUTES_BY_IP;
-	typedef std::pair<unsigned int,sRoutesByIp> ROUTES_BY_IP_PAIR;
-	typedef std::pair<ROUTES_BY_IP::const_iterator, ROUTES_BY_IP::const_iterator> ROUTES_BY_IP_RANGE;
+  typedef std::map<unsigned int, sRoutesByIp> ROUTES_BY_IP;
+  typedef std::pair<unsigned int, sRoutesByIp> ROUTES_BY_IP_PAIR;
+  typedef std::pair<ROUTES_BY_IP::const_iterator, ROUTES_BY_IP::const_iterator> ROUTES_BY_IP_RANGE;
 
-	typedef std::map<unsigned short,ROUTES_BY_IP> ROUTES_BY_PORT;
-	typedef std::pair<unsigned short,ROUTES_BY_IP> ROUTES_BY_PORT_PAIR;
-	typedef std::pair<ROUTES_BY_PORT::const_iterator, ROUTES_BY_PORT::const_iterator> ROUTES_BY_PORT_RANGE;
+  typedef std::map<unsigned short, ROUTES_BY_IP> ROUTES_BY_PORT;
+  typedef std::pair<unsigned short, ROUTES_BY_IP> ROUTES_BY_PORT_PAIR;
+  typedef std::pair<ROUTES_BY_PORT::const_iterator, ROUTES_BY_PORT::const_iterator> ROUTES_BY_PORT_RANGE;
 
-	typedef std::map<EosAddr,EosUdpInThread*> UDP_IN_THREADS;
-	typedef std::map<EosAddr,EosUdpOutThread*> UDP_OUT_THREADS;
+  typedef std::map<EosAddr, EosUdpInThread *> UDP_IN_THREADS;
+  typedef std::map<EosAddr, EosUdpOutThread *> UDP_OUT_THREADS;
 
-	typedef std::map<EosAddr,EosTcpClientThread*> TCP_CLIENT_THREADS;
-	typedef std::map<EosAddr,EosTcpServerThread*> TCP_SERVER_THREADS;
+  typedef std::map<EosAddr, EosTcpClientThread *> TCP_CLIENT_THREADS;
+  typedef std::map<EosAddr, EosTcpServerThread *> TCP_SERVER_THREADS;
 
-	typedef std::vector<const ROUTE_DESTINATIONS*> DESTINATIONS_LIST;
+  typedef std::vector<const ROUTE_DESTINATIONS *> DESTINATIONS_LIST;
 
-	bool				m_Run;
-	unsigned int		m_ReconnectDelay;
-	Router::ROUTES		m_Routes;
-	Router::CONNECTIONS	m_TcpConnections;
-	EosLog				m_Log;
-	EosLog				m_PrivateLog;
-	ItemStateTable		m_ItemStateTable;
-	QMutex				m_Mutex;
+  bool m_Run;
+  unsigned int m_ReconnectDelay;
+  Router::ROUTES m_Routes;
+  Router::CONNECTIONS m_TcpConnections;
+  EosLog m_Log;
+  EosLog m_PrivateLog;
+  ItemStateTable m_ItemStateTable;
+  QMutex m_Mutex;
 
-	virtual void run();
-	virtual void BuildRoutes(ROUTES_BY_PORT &routesByPort, UDP_IN_THREADS &udpInThreads, UDP_OUT_THREADS &udpOutThreads, TCP_CLIENT_THREADS &tcpClientThreads, TCP_SERVER_THREADS &tcpServerThreads);
-	virtual EosUdpOutThread* CreateUdpOutThread(const EosAddr &addr, ItemStateTable::ID itemStateTableId, UDP_OUT_THREADS &udpOutThreads);
-	virtual void AddRoutingDestinations(bool isOSC, const QString &path, const sRoutesByIp &routesByIp, DESTINATIONS_LIST &destinations);
-	virtual void ProcessRecvQ(OSCParser &oscBundleParser, ROUTES_BY_PORT &routesByPort, DESTINATIONS_LIST &routingDestinationList, UDP_OUT_THREADS &udpOutThreads, TCP_CLIENT_THREADS &tcpClientThreads, const EosAddr &addr, EosUdpInThread::RECV_Q &recvQ);
-	virtual void ProcessRecvPacket(ROUTES_BY_PORT &routesByPort, DESTINATIONS_LIST &routingDestinationList, UDP_OUT_THREADS &udpOutThreads, TCP_CLIENT_THREADS &tcpClientThreads, const EosAddr &addr, bool isOSC, EosUdpInThread::sRecvPacket &recvPacket);
-	virtual bool MakeOSCPacket(const QString &srcPath, const EosRouteDst &dst, OSCArgument *args, size_t argsCount, EosPacket &packet);
-	virtual void ProcessTcpConnectionQ(TCP_CLIENT_THREADS &tcpClientThreads, OSCStream::EnumFrameMode frameMode, EosTcpServerThread::CONNECTION_Q &tcpConnectionQ);
-	virtual bool ApplyTransform(OSCArgument &arg, const EosRouteDst &dst, OSCPacketWriter &packet);
-	virtual void MakeSendPath(const QString &srcPath, const QString &dstPath, const OSCArgument* args, size_t argsCount, QString &sendPath);
-	virtual void UpdateLog();
-	virtual void SetItemState(ItemStateTable::ID id, ItemState::EnumState state);
-	virtual void SetItemActivity(ItemStateTable::ID id);
-	virtual void OSCParserClient_Log(const std::string& message);
-	virtual void OSCParserClient_Send(const char* buf, size_t size);
+  virtual void run();
+  virtual void BuildRoutes(ROUTES_BY_PORT &routesByPort, UDP_IN_THREADS &udpInThreads, UDP_OUT_THREADS &udpOutThreads, TCP_CLIENT_THREADS &tcpClientThreads, TCP_SERVER_THREADS &tcpServerThreads);
+  virtual EosUdpOutThread *CreateUdpOutThread(const EosAddr &addr, ItemStateTable::ID itemStateTableId, UDP_OUT_THREADS &udpOutThreads);
+  virtual void AddRoutingDestinations(bool isOSC, const QString &path, const sRoutesByIp &routesByIp, DESTINATIONS_LIST &destinations);
+  virtual void ProcessRecvQ(OSCParser &oscBundleParser, ROUTES_BY_PORT &routesByPort, DESTINATIONS_LIST &routingDestinationList, UDP_OUT_THREADS &udpOutThreads, TCP_CLIENT_THREADS &tcpClientThreads,
+                            const EosAddr &addr, EosUdpInThread::RECV_Q &recvQ);
+  virtual void ProcessRecvPacket(ROUTES_BY_PORT &routesByPort, DESTINATIONS_LIST &routingDestinationList, UDP_OUT_THREADS &udpOutThreads, TCP_CLIENT_THREADS &tcpClientThreads, const EosAddr &addr,
+                                 bool isOSC, EosUdpInThread::sRecvPacket &recvPacket);
+  virtual bool MakeOSCPacket(const QString &srcPath, const EosRouteDst &dst, OSCArgument *args, size_t argsCount, EosPacket &packet);
+  virtual void ProcessTcpConnectionQ(TCP_CLIENT_THREADS &tcpClientThreads, OSCStream::EnumFrameMode frameMode, EosTcpServerThread::CONNECTION_Q &tcpConnectionQ);
+  virtual bool ApplyTransform(OSCArgument &arg, const EosRouteDst &dst, OSCPacketWriter &packet);
+  virtual void MakeSendPath(const QString &srcPath, const QString &dstPath, const OSCArgument *args, size_t argsCount, QString &sendPath);
+  virtual void UpdateLog();
+  virtual void SetItemState(ItemStateTable::ID id, ItemState::EnumState state);
+  virtual void SetItemActivity(ItemStateTable::ID id);
+  virtual void OSCParserClient_Log(const std::string &message);
+  virtual void OSCParserClient_Send(const char *buf, size_t size);
 };
 
 ////////////////////////////////////////////////////////////////////////////////

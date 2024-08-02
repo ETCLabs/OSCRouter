@@ -32,49 +32,49 @@ const ItemStateTable::ID ItemStateTable::sm_Invalid_Id = static_cast<ItemStateTa
 
 bool ItemState::operator==(const ItemState &other) const
 {
-	return (state==other.state && activity==other.activity);
+  return (state == other.state && activity == other.activity);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
 bool ItemState::operator!=(const ItemState &other) const
 {
-	return (state!=other.state || activity!=other.activity);
+  return (state != other.state || activity != other.activity);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
 void ItemState::GetStateName(EnumState state, QString &name)
 {
-	switch( state )
-	{
-		case STATE_UNINITIALIZED:	name=qApp->tr("..."); return;
-		case STATE_CONNECTING:		name=qApp->tr("Connecting..."); return;
-		case STATE_CONNECTED:		name=qApp->tr("Running"); return;
-		case STATE_NOT_CONNECTED:	name=qApp->tr("Not Running"); return;
-	}
+  switch (state)
+  {
+    case STATE_UNINITIALIZED: name = qApp->tr("..."); return;
+    case STATE_CONNECTING: name = qApp->tr("Connecting..."); return;
+    case STATE_CONNECTED: name = qApp->tr("Running"); return;
+    case STATE_NOT_CONNECTED: name = qApp->tr("Not Running"); return;
+  }
 
-	name = QString();
+  name = QString();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
 void ItemState::GetStateColor(EnumState state, QColor &color)
 {
-	switch( state )
-	{
-		case STATE_CONNECTING:		color=WARNING_COLOR; return;
-		case STATE_CONNECTED:		color=SUCCESS_COLOR; return;
-		case STATE_NOT_CONNECTED:	color=ERROR_COLOR; return;
-	}
+  switch (state)
+  {
+    case STATE_CONNECTING: color = WARNING_COLOR; return;
+    case STATE_CONNECTED: color = SUCCESS_COLOR; return;
+    case STATE_NOT_CONNECTED: color = ERROR_COLOR; return;
+  }
 
-	color = MUTED_COLOR;
+  color = MUTED_COLOR;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
 ItemStateTable::ItemStateTable()
-	: m_Dirty(false)
+  : m_Dirty(false)
 {
 }
 
@@ -82,77 +82,75 @@ ItemStateTable::ItemStateTable()
 
 void ItemStateTable::Clear()
 {
-	m_List.clear();
-	m_Dirty = false;
+  m_List.clear();
+  m_Dirty = false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
 void ItemStateTable::Reset()
 {
-	for(LIST::iterator i=m_List.begin(); i!=m_List.end(); i++)
-		i->activity = i->dirty = false;
-	m_Dirty = false;
+  for (LIST::iterator i = m_List.begin(); i != m_List.end(); i++)
+    i->activity = i->dirty = false;
+  m_Dirty = false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
 void ItemStateTable::Deactivate()
 {
-	ItemState deactivated;
-	for(ID i=0; i<m_List.size(); i++)
-		Update(i, deactivated);
+  ItemState deactivated;
+  for (ID i = 0; i < m_List.size(); i++)
+    Update(i, deactivated);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
 void ItemStateTable::Flush(ItemStateTable &other)
 {
-	if( other.m_Dirty )
-	{
-		for(ID i=0; i<other.m_List.size(); i++)
-		{
-			ItemState &otherItemState = other.m_List[i];
-			Update(i, otherItemState);
-			otherItemState.dirty = false;
-			otherItemState.activity = false;
-		}
+  if (other.m_Dirty)
+  {
+    for (ID i = 0; i < other.m_List.size(); i++)
+    {
+      ItemState &otherItemState = other.m_List[i];
+      Update(i, otherItemState);
+      otherItemState.dirty = false;
+      otherItemState.activity = false;
+    }
 
-		other.m_Dirty = false;
-	}
+    other.m_Dirty = false;
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
 ItemStateTable::ID ItemStateTable::Register()
 {
-	m_List.push_back( ItemState() );
-	return (m_List.size() - 1);
+  m_List.push_back(ItemState());
+  return (m_List.size() - 1);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
 void ItemStateTable::Update(ID id, const ItemState &state)
 {
-	if(id < m_List.size())
-	{
-		ItemState &itemState = m_List[id];
-		if(itemState != state)
-		{
-			itemState = state;
-			itemState.dirty = true;
-			m_Dirty = true;
-		}
-	}
+  if (id < m_List.size())
+  {
+    ItemState &itemState = m_List[id];
+    if (itemState != state)
+    {
+      itemState = state;
+      itemState.dirty = true;
+      m_Dirty = true;
+    }
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
-const ItemState* ItemStateTable::GetItemState(ID id) const
+const ItemState *ItemStateTable::GetItemState(ID id) const
 {
-	return ((id<m_List.size())
-		? (&(m_List[id]))
-		: 0);
+  return ((id < m_List.size()) ? (&(m_List[id])) : 0);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

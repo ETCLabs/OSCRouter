@@ -21,22 +21,22 @@
 #include "EosPlatform.h"
 
 #ifndef WIN32
-	#include "EosPlatform_Mac.h"
+#include "EosPlatform_Mac.h"
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////
 
 bool EosPlatform::Initialize(std::string& /*error*/)
 {
-	return true;
+  return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
-bool EosPlatform::SetSystemIdleAllowed(bool /*b*/, const std::string& /*reason*/, std::string &error)
+bool EosPlatform::SetSystemIdleAllowed(bool /*b*/, const std::string& /*reason*/, std::string& error)
 {
-	error = "not required for this platform";
-	return false;
+  error = "not required for this platform";
+  return false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -44,9 +44,9 @@ bool EosPlatform::SetSystemIdleAllowed(bool /*b*/, const std::string& /*reason*/
 EosPlatform* EosPlatform::Create()
 {
 #ifdef WIN32
-	return (new EosPlatform());
+  return (new EosPlatform());
 #else
-	return (new EosPlatform_Mac());
+  return (new EosPlatform_Mac());
 #endif
 }
 

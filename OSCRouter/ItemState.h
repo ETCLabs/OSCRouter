@@ -32,31 +32,32 @@ class QString;
 class ItemState
 {
 public:
-	enum EnumState
-	{
-		STATE_UNINITIALIZED	= 0,
-		STATE_CONNECTING,
-		STATE_CONNECTED,
-		STATE_NOT_CONNECTED,
+  enum EnumState
+  {
+    STATE_UNINITIALIZED = 0,
+    STATE_CONNECTING,
+    STATE_CONNECTED,
+    STATE_NOT_CONNECTED,
 
-		STATE_COUNT
-	};
+    STATE_COUNT
+  };
 
-	ItemState()
-		: state(STATE_UNINITIALIZED)
-		, activity(false)
-		, dirty(false)
-	{}
+  ItemState()
+    : state(STATE_UNINITIALIZED)
+    , activity(false)
+    , dirty(false)
+  {
+  }
 
-	bool operator==(const ItemState &other) const;
-	bool operator!=(const ItemState &other) const;
+  bool operator==(const ItemState &other) const;
+  bool operator!=(const ItemState &other) const;
 
-	EnumState	state;
-	bool		activity;
-	bool		dirty;
+  EnumState state;
+  bool activity;
+  bool dirty;
 
-	static void GetStateName(EnumState state, QString &name);
-	static void GetStateColor(EnumState state, QColor &color);
+  static void GetStateName(EnumState state, QString &name);
+  static void GetStateColor(EnumState state, QColor &color);
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -64,26 +65,26 @@ public:
 class ItemStateTable
 {
 public:
-	typedef size_t ID;
-	typedef std::vector<ItemState> LIST;
+  typedef size_t ID;
+  typedef std::vector<ItemState> LIST;
 
-	ItemStateTable();
+  ItemStateTable();
 
-	virtual void Clear();
-	virtual void Reset();
-	virtual void Deactivate();
-	virtual void Flush(ItemStateTable &other);
-	virtual bool GetDirty() const {return m_Dirty;}
-	virtual ID Register();
-	virtual void Update(ID id, const ItemState &state);
-	virtual const ItemState* GetItemState(ID id) const;
-	virtual const LIST& GetList() const {return m_List;}
+  virtual void Clear();
+  virtual void Reset();
+  virtual void Deactivate();
+  virtual void Flush(ItemStateTable &other);
+  virtual bool GetDirty() const { return m_Dirty; }
+  virtual ID Register();
+  virtual void Update(ID id, const ItemState &state);
+  virtual const ItemState *GetItemState(ID id) const;
+  virtual const LIST &GetList() const { return m_List; }
 
-	static const ID sm_Invalid_Id;
+  static const ID sm_Invalid_Id;
 
 private:
-	bool	m_Dirty;
-	LIST	m_List;
+  bool m_Dirty;
+  LIST m_List;
 };
 
 ////////////////////////////////////////////////////////////////////////////////

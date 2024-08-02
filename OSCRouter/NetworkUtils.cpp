@@ -26,80 +26,80 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 EosPacket::EosPacket()
-	: m_Data(0)
-	, m_Size(0)
+  : m_Data(0)
+  , m_Size(0)
 {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
 EosPacket::EosPacket(const EosPacket &other)
-	: m_Data(0)
-	, m_Size(0)
+  : m_Data(0)
+  , m_Size(0)
 {
-	if(other.m_Data && other.m_Size>0)
-	{
-		m_Size = other.m_Size;
-		m_Data = new char[m_Size];
-		memcpy(m_Data, other.m_Data, m_Size);	// TODO: optmize, too many needless copies of packet data in queues
-	}
+  if (other.m_Data && other.m_Size > 0)
+  {
+    m_Size = other.m_Size;
+    m_Data = new char[m_Size];
+    memcpy(m_Data, other.m_Data, m_Size);  // TODO: optmize, too many needless copies of packet data in queues
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
 EosPacket::EosPacket(const char *data, int size)
-	: m_Data(0)
-	, m_Size(0)
+  : m_Data(0)
+  , m_Size(0)
 {
-	if(data && size>0)
-	{
-		m_Size = size;
-		m_Data = new char[m_Size];
-		memcpy(m_Data, data, m_Size);
-	}
+  if (data && size > 0)
+  {
+    m_Size = size;
+    m_Data = new char[m_Size];
+    memcpy(m_Data, data, m_Size);
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
-EosPacket& EosPacket::operator=(const EosPacket &other)
+EosPacket &EosPacket::operator=(const EosPacket &other)
 {
-	if(&other != this)
-	{
-		if( m_Data )
-		{
-			delete[] m_Data;
-			m_Data = 0;
-		}
+  if (&other != this)
+  {
+    if (m_Data)
+    {
+      delete[] m_Data;
+      m_Data = 0;
+    }
 
-		m_Size = 0;
+    m_Size = 0;
 
-		if(other.m_Data && other.m_Size>0)
-		{
-			m_Size = other.m_Size;
-			m_Data = new char[m_Size];
-			memcpy(m_Data, other.m_Data, m_Size);
-		}
-	}
+    if (other.m_Data && other.m_Size > 0)
+    {
+      m_Size = other.m_Size;
+      m_Data = new char[m_Size];
+      memcpy(m_Data, other.m_Data, m_Size);
+    }
+  }
 
-	return (*this);
+  return (*this);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
 EosPacket::~EosPacket()
 {
-	if( m_Data )
-	{
-		delete[] m_Data;
-		m_Data = 0;
-	}
+  if (m_Data)
+  {
+    delete[] m_Data;
+    m_Data = 0;
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
 EosAddr::EosAddr(const QString &Ip, unsigned short Port)
-	: ip( Ip.toLower().trimmed() )
-	, port(Port)
+  : ip(Ip.toLower().trimmed())
+  , port(Port)
 {
 }
 
@@ -107,58 +107,58 @@ EosAddr::EosAddr(const QString &Ip, unsigned short Port)
 
 bool EosAddr::operator==(const EosAddr &other) const
 {
-	return (ip==other.ip && port==other.port);
+  return (ip == other.ip && port == other.port);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
 bool EosAddr::operator!=(const EosAddr &other) const
 {
-	return (ip!=other.ip || port!=other.port);
+  return (ip != other.ip || port != other.port);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
 bool EosAddr::operator<(const EosAddr &other) const
 {
-	if(ip == other.ip)
-		return (port < other.port);
-	return (ip < other.ip);
+  if (ip == other.ip)
+    return (port < other.port);
+  return (ip < other.ip);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
 unsigned int EosAddr::toUInt() const
 {
-	return IPToUInt(ip);
+  return IPToUInt(ip);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
 void EosAddr::fromUInt(unsigned int n)
 {
-	UIntToIP(n, ip);
+  UIntToIP(n, ip);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
 unsigned int EosAddr::IPToUInt(const QString &ip)
 {
-	return static_cast<unsigned int>( QHostAddress(ip).toIPv4Address() );
+  return static_cast<unsigned int>(QHostAddress(ip).toIPv4Address());
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
 void EosAddr::UIntToIP(unsigned int n, QString &ip)
 {
-	ip = QHostAddress( static_cast<quint32>(n) ).toString();
+  ip = QHostAddress(static_cast<quint32>(n)).toString();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
 EosRouteSrc::EosRouteSrc(const EosAddr &Addr, const QString &Path)
-	: addr(Addr)
-	, path(Path)
+  : addr(Addr)
+  , path(Path)
 {
 }
 
@@ -166,52 +166,47 @@ EosRouteSrc::EosRouteSrc(const EosAddr &Addr, const QString &Path)
 
 bool EosRouteSrc::operator==(const EosRouteSrc &other) const
 {
-	return (addr==other.addr && path==other.path);
+  return (addr == other.addr && path == other.path);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
 bool EosRouteSrc::operator!=(const EosRouteSrc &other) const
 {
-	return (addr!=other.addr || path!=other.path);
+  return (addr != other.addr || path != other.path);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
 bool EosRouteSrc::operator<(const EosRouteSrc &other) const
 {
-	if(addr == other.addr)
-		return (addr < other.addr);
-	return (path < other.path);
+  if (addr == other.addr)
+    return (addr < other.addr);
+  return (path < other.path);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
 bool EosRouteDst::operator==(const EosRouteDst &other) const
 {
-	return (	addr==other.addr &&
-				path==other.path &&
-				inMin==other.inMin &&
-				inMax==other.inMax &&
-				outMin==other.outMin &&
-				outMax==other.outMax );
+  return (addr == other.addr && path == other.path && inMin == other.inMin && inMax == other.inMax && outMin == other.outMin && outMax == other.outMax);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
 bool EosRouteDst::operator<(const EosRouteDst &other) const
 {
-	if(addr != other.addr)
-		return (addr < other.addr);
-	if(path != other.path)
-		return (path < other.path);
-	if(inMin != other.inMin)
-		return (inMin < other.inMin);
-	if(inMax != other.inMax)
-		return (inMax < other.inMax);
-	if(outMin != other.outMin)
-		return (outMin < other.outMin);
-	return (outMax < other.outMax);
+  if (addr != other.addr)
+    return (addr < other.addr);
+  if (path != other.path)
+    return (path < other.path);
+  if (inMin != other.inMin)
+    return (inMin < other.inMin);
+  if (inMax != other.inMax)
+    return (inMax < other.inMax);
+  if (outMin != other.outMin)
+    return (outMin < other.outMin);
+  return (outMax < other.outMax);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

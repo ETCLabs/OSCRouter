@@ -30,64 +30,64 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
 #ifdef WIN32
-	#ifdef _DEBUG
-		int flags = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
-		flags = (flags & 0x0000ffff) | _CRTDBG_LEAK_CHECK_DF;
-		_CrtSetDbgFlag(flags);
-	#endif
+#ifdef _DEBUG
+  int flags = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
+  flags = (flags & 0x0000ffff) | _CRTDBG_LEAK_CHECK_DF;
+  _CrtSetDbgFlag(flags);
+#endif
 #endif
 
-	EosTimer::Init();
-    
-    EosPlatform *platform = EosPlatform::Create();
-    if( platform )
+  EosTimer::Init();
+
+  EosPlatform *platform = EosPlatform::Create();
+  if (platform)
+  {
+    std::string error;
+    if (!platform->Initialize(error))
     {
-        std::string error;
-        if( !platform->Initialize(error) )
-        {
-            printf("platform initialization failed\n");
-            delete platform;
-            platform = 0;
-        }
+      printf("platform initialization failed\n");
+      delete platform;
+      platform = 0;
     }
-	
-	QApplication app(argc, argv);
+  }
 
-	QString fixedFont = QFontDatabase::systemFont(QFontDatabase::FixedFont).family();
-	app.setDesktopSettingsAware(false);
-	app.setStyleSheet(QString("QToolTip {border: 0.9px solid #3e3e42; padding: 6px; background-color: #2d2d2d; border-radius: 3px; color: #dcdcdc; font-family: %1;}").arg(fixedFont));
-	app.setStyle( QStyleFactory::create("Fusion") );
+  QApplication app(argc, argv);
 
-	QPalette pal;
-	pal.setColor(QPalette::Window, QColor(40,40,40));
-	pal.setColor(QPalette::WindowText, TEXT_COLOR);
-	pal.setColor(QPalette::Disabled, QPalette::WindowText, MUTED_COLOR);
-	pal.setColor(QPalette::Base, QColor(60,60,60));
-	pal.setColor(QPalette::Button, QColor(60,60,60));
-	pal.setColor(QPalette::Light, pal.color(QPalette::Button).lighter(20));
-	pal.setColor(QPalette::Midlight, pal.color(QPalette::Button).lighter(10));
-	pal.setColor(QPalette::Dark, pal.color(QPalette::Button).darker(20));
-	pal.setColor(QPalette::Mid, pal.color(QPalette::Button).darker(10));
-	pal.setColor(QPalette::Text, TEXT_COLOR);
-	pal.setColor(QPalette::Disabled, QPalette::Text, MUTED_COLOR);
-	pal.setColor(QPalette::Highlight, QColor(80,80,80));
-	pal.setColor(QPalette::HighlightedText, QColor(255,142,51));
-	pal.setColor(QPalette::ButtonText, TEXT_COLOR);
-	pal.setColor(QPalette::Disabled, QPalette::ButtonText, MUTED_COLOR);
-	app.setPalette(pal);
+  QString fixedFont = QFontDatabase::systemFont(QFontDatabase::FixedFont).family();
+  app.setDesktopSettingsAware(false);
+  app.setStyleSheet(QString("QToolTip {border: 0.9px solid #3e3e42; padding: 6px; background-color: #2d2d2d; border-radius: 3px; color: #dcdcdc; font-family: %1;}").arg(fixedFont));
+  app.setStyle(QStyleFactory::create("Fusion"));
 
-	MainWindow *mainWindow = new MainWindow(platform);
-	mainWindow->show();
-	int result = app.exec();
-	delete mainWindow;
-    
-    if(platform)
-        delete platform;
+  QPalette pal;
+  pal.setColor(QPalette::Window, QColor(40, 40, 40));
+  pal.setColor(QPalette::WindowText, TEXT_COLOR);
+  pal.setColor(QPalette::Disabled, QPalette::WindowText, MUTED_COLOR);
+  pal.setColor(QPalette::Base, QColor(60, 60, 60));
+  pal.setColor(QPalette::Button, QColor(60, 60, 60));
+  pal.setColor(QPalette::Light, pal.color(QPalette::Button).lighter(20));
+  pal.setColor(QPalette::Midlight, pal.color(QPalette::Button).lighter(10));
+  pal.setColor(QPalette::Dark, pal.color(QPalette::Button).darker(20));
+  pal.setColor(QPalette::Mid, pal.color(QPalette::Button).darker(10));
+  pal.setColor(QPalette::Text, TEXT_COLOR);
+  pal.setColor(QPalette::Disabled, QPalette::Text, MUTED_COLOR);
+  pal.setColor(QPalette::Highlight, QColor(80, 80, 80));
+  pal.setColor(QPalette::HighlightedText, QColor(255, 142, 51));
+  pal.setColor(QPalette::ButtonText, TEXT_COLOR);
+  pal.setColor(QPalette::Disabled, QPalette::ButtonText, MUTED_COLOR);
+  app.setPalette(pal);
 
-	return result;
+  MainWindow *mainWindow = new MainWindow(platform);
+  mainWindow->show();
+  int result = app.exec();
+  delete mainWindow;
+
+  if (platform)
+    delete platform;
+
+  return result;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -33,83 +33,91 @@
 class EosPacket
 {
 public:
-	typedef std::vector<EosPacket> Q;
-	
-	EosPacket();
-	EosPacket(const EosPacket &other);
-	EosPacket(const char *data, int size);
-	EosPacket& operator=(const EosPacket &other);
-	virtual ~EosPacket();
-	char* GetData() {return m_Data;}
-	const char* GetDataConst() const {return m_Data;}
-	int GetSize() const {return m_Size;}
-	void Release() {m_Data=0; m_Size=0;}
-	
+  typedef std::vector<EosPacket> Q;
+
+  EosPacket();
+  EosPacket(const EosPacket &other);
+  EosPacket(const char *data, int size);
+  EosPacket &operator=(const EosPacket &other);
+  virtual ~EosPacket();
+  char *GetData() { return m_Data; }
+  const char *GetDataConst() const { return m_Data; }
+  int GetSize() const { return m_Size; }
+  void Release()
+  {
+    m_Data = 0;
+    m_Size = 0;
+  }
+
 private:
-	char	*m_Data;
-	int		m_Size;
+  char *m_Data;
+  int m_Size;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
 
 struct EosAddr
 {
-	EosAddr() : port(0) {}
-	EosAddr(const QString &Ip, unsigned short Port);
-	bool operator==(const EosAddr &other) const;
-	bool operator!=(const EosAddr &other) const;
-	bool operator<(const EosAddr &other) const;
-	unsigned int toUInt() const;
-	void fromUInt(unsigned int n);
+  EosAddr()
+    : port(0)
+  {
+  }
+  EosAddr(const QString &Ip, unsigned short Port);
+  bool operator==(const EosAddr &other) const;
+  bool operator!=(const EosAddr &other) const;
+  bool operator<(const EosAddr &other) const;
+  unsigned int toUInt() const;
+  void fromUInt(unsigned int n);
 
-	static unsigned int IPToUInt(const QString &ip);
-	static void UIntToIP(unsigned int n, QString &ip);
-	
-	QString	ip;
-	unsigned short port;
+  static unsigned int IPToUInt(const QString &ip);
+  static void UIntToIP(unsigned int n, QString &ip);
+
+  QString ip;
+  unsigned short port;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
 
 struct EosRouteSrc
 {
-	EosRouteSrc() {}
-	EosRouteSrc(const EosAddr &Addr, const QString &Path);
-	bool operator==(const EosRouteSrc &other) const;
-	bool operator!=(const EosRouteSrc &other) const;
-	bool operator<(const EosRouteSrc &other) const;
-	EosAddr	addr;
-	QString	path;
+  EosRouteSrc() {}
+  EosRouteSrc(const EosAddr &Addr, const QString &Path);
+  bool operator==(const EosRouteSrc &other) const;
+  bool operator!=(const EosRouteSrc &other) const;
+  bool operator<(const EosRouteSrc &other) const;
+  EosAddr addr;
+  QString path;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
 
 struct EosRouteDst
 {
-	struct sTransform
-	{
-		sTransform()
-			: enabled(false)
-			, value(0)
-		{}
-		bool operator==(const sTransform &other) const {return (enabled==other.enabled && value==other.value);}
-		bool operator!=(const sTransform &other) const {return (enabled!=other.enabled || value!=other.value);}
-		bool operator<(const sTransform &other) const {return ((enabled==other.enabled) ? (value<other.value) : (enabled<other.enabled));}
-		bool	enabled;
-		float	value;
-	};
+  struct sTransform
+  {
+    sTransform()
+      : enabled(false)
+      , value(0)
+    {
+    }
+    bool operator==(const sTransform &other) const { return (enabled == other.enabled && value == other.value); }
+    bool operator!=(const sTransform &other) const { return (enabled != other.enabled || value != other.value); }
+    bool operator<(const sTransform &other) const { return ((enabled == other.enabled) ? (value < other.value) : (enabled < other.enabled)); }
+    bool enabled;
+    float value;
+  };
 
-	bool hasAnyTransforms() const {return (inMin.enabled || inMax.enabled || outMin.enabled || outMax.enabled);}
-	bool operator==(const EosRouteDst &other) const;
-	bool operator!=(const EosRouteDst &other) const {return !((*this)==other);}
-	bool operator<(const EosRouteDst &other) const;
-	
-	EosAddr		addr;
-	QString		path;
-	sTransform	inMin;
-	sTransform	inMax;
-	sTransform	outMin;
-	sTransform	outMax;
+  bool hasAnyTransforms() const { return (inMin.enabled || inMax.enabled || outMin.enabled || outMax.enabled); }
+  bool operator==(const EosRouteDst &other) const;
+  bool operator!=(const EosRouteDst &other) const { return !((*this) == other); }
+  bool operator<(const EosRouteDst &other) const;
+
+  EosAddr addr;
+  QString path;
+  sTransform inMin;
+  sTransform inMax;
+  sTransform outMin;
+  sTransform outMax;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
