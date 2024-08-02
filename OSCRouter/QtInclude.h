@@ -37,7 +37,6 @@
 
 #ifdef WIN32
 #include <Winsock2.h>
-#include <QtWinExtras/QtWin>
 #endif
 
 #include <QtCore/QtCore>

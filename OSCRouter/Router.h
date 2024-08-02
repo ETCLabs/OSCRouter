@@ -132,7 +132,7 @@ protected:
   EosLog m_Log;
   EosLog m_PrivateLog;
   RECV_Q m_Q;
-  QMutex m_Mutex;
+  QRecursiveMutex m_Mutex;
 
   virtual void run();
   virtual void UpdateLog();
@@ -165,7 +165,7 @@ protected:
   EosLog m_PrivateLog;
   EosPacket::Q m_Q;
   bool m_QEnabled;
-  QMutex m_Mutex;
+  QRecursiveMutex m_Mutex;
 
   virtual void run();
   virtual void UpdateLog();
@@ -202,7 +202,7 @@ protected:
   EosLog m_PrivateLog;
   EosUdpInThread::RECV_Q m_RecvQ;
   EosPacket::Q m_SendQ;
-  QMutex m_Mutex;
+  QRecursiveMutex m_Mutex;
 
   virtual void run();
   virtual void UpdateLog();
@@ -246,7 +246,7 @@ protected:
   EosLog m_Log;
   EosLog m_PrivateLog;
   CONNECTION_Q m_Q;
-  QMutex m_Mutex;
+  QRecursiveMutex m_Mutex;
 
   virtual void run();
   virtual void UpdateLog();
@@ -321,7 +321,7 @@ protected:
   EosLog m_Log;
   EosLog m_PrivateLog;
   ItemStateTable m_ItemStateTable;
-  QMutex m_Mutex;
+  QRecursiveMutex m_Mutex;
 
   virtual void run();
   virtual void BuildRoutes(ROUTES_BY_PORT &routesByPort, UDP_IN_THREADS &udpInThreads, UDP_OUT_THREADS &udpOutThreads, TCP_CLIENT_THREADS &tcpClientThreads, TCP_SERVER_THREADS &tcpServerThreads);

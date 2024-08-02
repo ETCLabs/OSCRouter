@@ -2,7 +2,7 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros">
-    <QTOSCROUTER>C:\Qt\5.15.17\msvc2019_64</QTOSCROUTER>
+    <QTOSCROUTER>C:\Qt\6.6.1\msvc2019_64</QTOSCROUTER>
   </PropertyGroup>
   <PropertyGroup>
     <CustomBuildBeforeTargets>BuildGenerateSources</CustomBuildBeforeTargets>

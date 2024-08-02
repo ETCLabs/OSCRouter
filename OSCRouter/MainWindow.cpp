@@ -223,14 +223,24 @@ void Indicator::paintEvent(QPaintEvent* /*event*/)
 {
   if (!m_IconOutline.isNull() && !m_IconFill.isNull())
   {
+    qreal dpr = devicePixelRatioF();
+    if (dpr > 0 && !qFuzzyCompare(m_IconOutline.devicePixelRatioF(), dpr))
+      UpdateIcon();
+
     QPainter painter(this);
+
+    QSize iconSize = m_IconOutline.size();
+    if (dpr > 0)
+      iconSize /= dpr;
+
     if (m_Opacity > 0)
     {
       painter.setOpacity(m_Opacity);
-      painter.drawImage((width() - m_IconFill.width()) * 0.5, (height() - m_IconFill.height()) * 0.5, m_IconFill);
+      painter.drawImage((width() - iconSize.width()) * 0.5, (height() - iconSize.height()) * 0.5, m_IconFill);
       painter.setOpacity(1.0);
     }
-    painter.drawImage((width() - m_IconOutline.width()) * 0.5, (height() - m_IconOutline.height()) * 0.5, m_IconOutline);
+
+    painter.drawImage((width() - iconSize.width()) * 0.5, (height() - iconSize.height()) * 0.5, m_IconOutline);
   }
 }
 
@@ -247,19 +257,28 @@ void Indicator::UpdateIcon()
     r.adjust(MARGIN, MARGIN, -MARGIN, -MARGIN);
     int size = qMin(r.width(), r.height());
 
+    qreal dpr = devicePixelRatioF();
+    if (dpr <= 0)
+      dpr = 1;
+    size = qRound(size * dpr);
+
     if (size > 2)
     {
       m_IconOutline = QImage(size, size, QImage::Format_ARGB32);
+      m_IconOutline.setDevicePixelRatio(1);
       m_IconOutline.fill(0);
 
       QPainter painter;
       if (painter.begin(&m_IconOutline))
       {
         painter.setRenderHint(QPainter::Antialiasing);
-        painter.setPen(m_Color);
+        painter.setPen(QPen(m_Color, 1.5));
         painter.setBrush(Qt::NoBrush);
         painter.drawEllipse(QRect(1, 1, size - 2, size - 2));
         painter.end();
+
+        m_IconOutline.setDevicePixelRatio(dpr);
+        m_IconOutline.save("c:/users/cmizerak/desktop/icon.png");
 
         m_IconFill = QImage(size, size, QImage::Format_ARGB32);
         m_IconFill.fill(0);
@@ -270,6 +289,8 @@ void Indicator::UpdateIcon()
           painter.setBrush(m_Color);
           painter.drawEllipse(QRect(1, 1, size - 2, size - 2));
           painter.end();
+
+          m_IconFill.setDevicePixelRatio(dpr);
         }
         else
         {
@@ -1580,7 +1601,7 @@ MainWindow::MainWindow(EosPlatform* platform, QWidget* parent /*=0*/, Qt::Window
     HICON hIcon = static_cast<HICON>(LoadImage(GetModuleHandle(0), MAKEINTRESOURCE(IDI_ICON1), IMAGE_ICON, iconSizes[i], iconSizes[i], LR_LOADTRANSPARENT));
     if (hIcon)
     {
-      icon.addPixmap(QtWin::fromHICON(hIcon));
+      icon.addPixmap(QPixmap::fromImage(QImage::fromHICON(hIcon)));
       DestroyIcon(hIcon);
     }
   }
@@ -1607,7 +1628,7 @@ MainWindow::MainWindow(EosPlatform* platform, QWidget* parent /*=0*/, Qt::Window
   InitLogFile();
 
   QGridLayout* layout = new QGridLayout(this);
-  layout->setMargin(0);
+  layout->setContentsMargins(0, 0, 0, 0);
 
   QMenuBar* menu = new QMenuBar(this);
   layout->addWidget(menu, 0, 0);
@@ -1681,7 +1702,7 @@ void MainWindow::InitLogFile()
     if (m_LogFile.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text))
     {
       m_LogStream.setDevice(&m_LogFile);
-      m_LogStream.setCodec("UTF-8");
+      m_LogStream.setEncoding(QStringConverter::Utf8);
       m_LogStream.setGenerateByteOrderMark(true);
     }
   }
@@ -1717,8 +1738,7 @@ void MainWindow::FlushLogQ(EosLog::LOG_Q& logQ)
     {
       const EosLog::sLogMsg logMsg = *i;
 
-      QDateTime dt;
-      dt.setTime_t(static_cast<uint>(logMsg.timestamp));
+      QDateTime dt = QDateTime::fromMSecsSinceEpoch(logMsg.timestamp);
       QString msgText;
       if (logMsg.text.c_str())
         msgText = QString::fromUtf8(logMsg.text.c_str());
@@ -1865,7 +1885,7 @@ void MainWindow::GetDefaultIP(QString& ip)
 
 void MainWindow::GetPersistentSavePath(QString& path) const
 {
-  path = QDir(QStandardPaths::writableLocation(QStandardPaths::DataLocation)).absoluteFilePath("save.osc.txt");
+  path = QDir(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)).absoluteFilePath("save.osc.txt");
 }
 
 ////////////////////////////////////////////////////////////////////////////////

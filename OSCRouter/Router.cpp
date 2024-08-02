@@ -84,7 +84,7 @@ void PacketLogger::PrintPacket(OSCParser &oscParser, const char *packet, size_t 
 
 EosUdpInThread::EosUdpInThread()
   : m_Run(false)
-  , m_Mutex(QMutex::Recursive)
+  , m_Mutex()
   , m_ItemStateTableId(ItemStateTable::sm_Invalid_Id)
   , m_State(ItemState::STATE_UNINITIALIZED)
   , m_ReconnectDelay(0)
@@ -237,7 +237,6 @@ void EosUdpInThread::UpdateLog()
 
 EosUdpOutThread::EosUdpOutThread()
   : m_Run(false)
-  , m_Mutex(QMutex::Recursive)
   , m_ItemStateTableId(ItemStateTable::sm_Invalid_Id)
   , m_State(ItemState::STATE_UNINITIALIZED)
   , m_ReconnectDelay(0)
@@ -412,7 +411,6 @@ void EosUdpOutThread::UpdateLog()
 EosTcpClientThread::EosTcpClientThread()
   : m_AcceptedTcp(0)
   , m_Run(false)
-  , m_Mutex(QMutex::Recursive)
   , m_ItemStateTableId(ItemStateTable::sm_Invalid_Id)
   , m_FrameMode(OSCStream::FRAME_MODE_INVALID)
   , m_State(ItemState::STATE_UNINITIALIZED)
@@ -675,7 +673,6 @@ void EosTcpClientThread::UpdateLog()
 
 EosTcpServerThread::EosTcpServerThread()
   : m_Run(false)
-  , m_Mutex(QMutex::Recursive)
   , m_ItemStateTableId(ItemStateTable::sm_Invalid_Id)
   , m_State(ItemState::STATE_UNINITIALIZED)
   , m_ReconnectDelay(0)
@@ -849,8 +846,7 @@ void OSCBundleMethod::Flush(EosUdpInThread::RECV_Q &q)
 ////////////////////////////////////////////////////////////////////////////////
 
 RouterThread::RouterThread(const Router::ROUTES &routes, const Router::CONNECTIONS &tcpConnections, const ItemStateTable &itemStateTable, unsigned int reconnectDelayMS)
-  : m_Mutex(QMutex::Recursive)
-  , m_Routes(routes)
+  : m_Routes(routes)
   , m_TcpConnections(tcpConnections)
   , m_ItemStateTable(itemStateTable)
   , m_Run(true)
@@ -1035,13 +1031,9 @@ void RouterThread::AddRoutingDestinations(bool isOSC, const QString &path, const
     // wildcard matches
     if (!routesByIp.routesByWildcardPath.empty())
     {
-      QRegExp rx;
-      rx.setPatternSyntax(QRegExp::Wildcard);
-      rx.setCaseSensitivity(Qt::CaseSensitive);
       for (ROUTES_BY_PATH::const_iterator i = routesByIp.routesByWildcardPath.begin(); i != routesByIp.routesByWildcardPath.end(); i++)
       {
-        rx.setPattern(i->first);
-        if (rx.exactMatch(path))
+        if (QRegularExpression::fromWildcard(i->first, Qt::CaseSensitive).match(path).hasMatch())
           destinations.push_back(&(i->second));
       }
     }
