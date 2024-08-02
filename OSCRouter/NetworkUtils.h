@@ -114,6 +114,8 @@ struct EosRouteDst
 
   EosAddr addr;
   QString path;
+  bool script = false;
+  QString scriptText;
   sTransform inMin;
   sTransform inMax;
   sTransform outMin;

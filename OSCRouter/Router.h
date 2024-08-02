@@ -46,6 +46,20 @@ class EosTcp;
 
 ////////////////////////////////////////////////////////////////////////////////
 
+class ScriptEngine
+{
+public:
+  ScriptEngine() = default;
+
+  QJSEngine &js() { return m_JS; }
+  QString evaluate(const QString &script, const QString &path = QString(), const OSCArgument *args = nullptr, size_t argsCount = 0, EosPacket *packet = nullptr);
+
+private:
+  QJSEngine m_JS;
+};
+
+////////////////////////////////////////////////////////////////////////////////
+
 class Router
 {
 public:
@@ -322,6 +336,7 @@ protected:
   EosLog m_PrivateLog;
   ItemStateTable m_ItemStateTable;
   QRecursiveMutex m_Mutex;
+  ScriptEngine *m_ScriptEngine = nullptr;
 
   virtual void run();
   virtual void BuildRoutes(ROUTES_BY_PORT &routesByPort, UDP_IN_THREADS &udpInThreads, UDP_OUT_THREADS &udpOutThreads, TCP_CLIENT_THREADS &tcpClientThreads, TCP_SERVER_THREADS &tcpServerThreads);

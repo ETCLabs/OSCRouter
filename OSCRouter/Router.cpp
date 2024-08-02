@@ -1202,6 +1202,16 @@ void RouterThread::ProcessRecvPacket(ROUTES_BY_PORT &routesByPort, DESTINATIONS_
 bool RouterThread::MakeOSCPacket(const QString &srcPath, const EosRouteDst &dst, OSCArgument *args, size_t argsCount, EosPacket &packet)
 {
   QString sendPath;
+  if (dst.script)
+  {
+    QString error = m_ScriptEngine->evaluate(dst.scriptText, srcPath, args, argsCount, &packet);
+    if (error.isEmpty())
+      return true;
+
+    OSCParserClient_Log(error.toStdString());
+    return false;
+  }
+
   MakeSendPath(srcPath, dst.path, args, argsCount, sendPath);
   if (!sendPath.isEmpty())
   {
@@ -1483,6 +1493,8 @@ void RouterThread::run()
   m_PrivateLog.AddInfo("router thread started");
   UpdateLog();
 
+  m_ScriptEngine = new ScriptEngine();
+
   UDP_IN_THREADS udpInThreads;
   UDP_OUT_THREADS udpOutThreads;
   TCP_CLIENT_THREADS tcpClientThreads;
@@ -1644,6 +1656,9 @@ void RouterThread::run()
 
   m_ItemStateTable.Deactivate();
 
+  delete m_ScriptEngine;
+  m_ScriptEngine = nullptr;
+
   m_PrivateLog.AddInfo("router thread ended");
   UpdateLog();
 }
@@ -1658,5 +1673,118 @@ void RouterThread::OSCParserClient_Log(const std::string &message)
 ////////////////////////////////////////////////////////////////////////////////
 
 void RouterThread::OSCParserClient_Send(const char * /*buf*/, size_t /*size*/) {}
+
+////////////////////////////////////////////////////////////////////////////////
+
+QString ScriptEngine::evaluate(const QString &script, const QString &path /*= QString()*/, const OSCArgument *args /*= nullptr*/, size_t argsCount /*= 0*/, EosPacket *packet /*= nullptr*/)
+{
+  // set globals
+  m_JS.globalObject().setProperty(QLatin1String("OSC"), path);
+
+  quint32 count = static_cast<quint32>(argsCount);
+  if (!args)
+    count = 0;
+
+  QJSValue jsarray = m_JS.newArray(count);
+  for (quint32 i = 0; i < count; ++i)
+  {
+    switch (args[i].GetType())
+    {
+      case OSCArgument::OSC_TYPE_INT32:
+      case OSCArgument::OSC_TYPE_INT64:
+      case OSCArgument::OSC_TYPE_TIME:
+      case OSCArgument::OSC_TYPE_RGBA32:
+      case OSCArgument::OSC_TYPE_MIDI:
+      {
+        int n = 0;
+        if (args[i].GetInt(n))
+          jsarray.setProperty(i, n);
+      }
+      break;
+
+      case OSCArgument::OSC_TYPE_FLOAT32:
+      {
+        float n = 0;
+        if (args[i].GetFloat(n))
+          jsarray.setProperty(i, n);
+      }
+      break;
+
+      case OSCArgument::OSC_TYPE_FLOAT64:
+      {
+        double n = 0;
+        if (args[i].GetDouble(n))
+          jsarray.setProperty(i, n);
+      }
+      break;
+
+      case OSCArgument::OSC_TYPE_TRUE: jsarray.setProperty(i, true); break;
+      case OSCArgument::OSC_TYPE_FALSE: jsarray.setProperty(i, false); break;
+      case OSCArgument::OSC_TYPE_INFINITY: jsarray.setProperty(i, std::numeric_limits<int>::infinity()); break;
+
+      default:
+      {
+        std::string str;
+        if (args[i].GetString(str))
+          jsarray.setProperty(i, QString::fromStdString(str));
+      }
+      break;
+    }
+  }
+
+  m_JS.globalObject().setProperty(QLatin1String("ARGS"), jsarray);
+
+  // evaluate
+  QStringList stack_trace;
+  QJSValue eval = m_JS.evaluate(script, QLatin1String("Line"), 1, &stack_trace);
+  if (eval.isError())
+  {
+    QString error = eval.toString();
+
+    if (!stack_trace.isEmpty())
+    {
+      if (!error.isEmpty())
+        error += QLatin1Char('\n');
+
+      error += stack_trace.join(QLatin1Char('\n'));
+    }
+
+    return error;
+  }
+
+  if (!packet)
+    return QString();  // done with evaluation, no packet needed
+
+  QString sendPath = m_JS.globalObject().property(QLatin1String("OSC")).toString();
+  if (sendPath.isEmpty())
+    sendPath = path;
+
+  OSCPacketWriter osc(sendPath.toUtf8().constData());
+
+  jsarray = m_JS.globalObject().property(QLatin1String("ARGS"));
+  count = static_cast<quint32>(qMax(0, jsarray.property(QLatin1String("length")).toInt()));
+  for (quint32 i = 0; i < count; ++i)
+  {
+    QJSValue arg = jsarray.property(i);
+    switch (arg.toPrimitive().type())
+    {
+      case QJSPrimitiveValue::Boolean: osc.AddBool(arg.toBool()); break;
+      case QJSPrimitiveValue::Integer: osc.AddInt32(arg.toInt()); break;
+      case QJSPrimitiveValue::Double: osc.AddFloat32(static_cast<float>(arg.toNumber())); break;
+      case QJSPrimitiveValue::String: osc.AddString(arg.toString().toStdString()); break;
+      default: break;
+    }
+  }
+
+  size_t packetSize = 0;
+  char *packetData = osc.Create(packetSize);
+  if (packetData && packetSize)
+  {
+    *packet = EosPacket(packetData, static_cast<int>(packetSize));
+    delete[] packetData;
+  }
+
+  return QString();
+}
 
 ////////////////////////////////////////////////////////////////////////////////

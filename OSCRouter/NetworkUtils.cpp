@@ -189,7 +189,8 @@ bool EosRouteSrc::operator<(const EosRouteSrc &other) const
 
 bool EosRouteDst::operator==(const EosRouteDst &other) const
 {
-  return (addr == other.addr && path == other.path && inMin == other.inMin && inMax == other.inMax && outMin == other.outMin && outMax == other.outMax);
+  return (addr == other.addr && path == other.path && script == other.script && scriptText == other.scriptText && inMin == other.inMin && inMax == other.inMax && outMin == other.outMin &&
+          outMax == other.outMax);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -200,6 +201,10 @@ bool EosRouteDst::operator<(const EosRouteDst &other) const
     return (addr < other.addr);
   if (path != other.path)
     return (path < other.path);
+  if (script != other.script)
+    return script < other.script;
+  if (scriptText != other.scriptText)
+    return scriptText < other.scriptText;
   if (inMin != other.inMin)
     return (inMin < other.inMin);
   if (inMax != other.inMax)

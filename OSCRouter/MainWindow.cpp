@@ -55,6 +55,9 @@ QString FileUtils::QuotedString(const QString& str)
     quoted.prepend("\"");
     quoted.append("\"");
   }
+
+  quoted.replace("\n", "\\n");
+
   return quoted;
 }
 
@@ -122,6 +125,9 @@ void FileUtils::GetItemsFromQuotedString(const QString& str, QStringList& items)
 
         // fix quoted quotes
         item.replace("\"\"", "\"");
+
+        // replace newlines
+        item.replace("\\n", "\n");
 
         items.push_back(item);
       }
@@ -840,6 +846,51 @@ void TcpTableWindow::resizeEvent(QResizeEvent* event)
 
 ////////////////////////////////////////////////////////////////////////////////
 
+ScriptEdit::ScriptEdit(QWidget* parent /*= nullptr*/)
+  : QTextEdit(parent)
+{
+  setAcceptRichText(false);
+  setFont(QFontDatabase::systemFont(QFontDatabase::FixedFont));
+  setWordWrapMode(QTextOption::NoWrap);
+  setLineWrapMode(QTextEdit::NoWrap);
+  setMaximumHeight(70);
+
+  m_Error = new QPushButton(tr("!"), this);
+  int s = m_Error->sizeHint().height();
+  m_Error->resize(s, s);
+  m_Error->setStyleSheet(QLatin1String("QPushButton {background-color: #ff244f; color: #ffffff; font-weight: bold;}"));
+  m_Error->hide();
+  connect(m_Error, &QPushButton::clicked, this, &ScriptEdit::onErrorClicked);
+}
+
+void ScriptEdit::CheckForErrors()
+{
+  m_ErrorText = ScriptEngine().evaluate(toPlainText());
+  m_Error->setVisible(!m_ErrorText.isEmpty());
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+void ScriptEdit::onErrorClicked(bool /*checked*/)
+{
+  CheckForErrors();
+
+  if (!m_ErrorText.isEmpty())
+    QMessageBox::critical(this, tr("JavaScript Error"), m_ErrorText);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+void ScriptEdit::resizeEvent(QResizeEvent* event)
+{
+  QTextEdit::resizeEvent(event);
+
+  const int kMargin = 4;
+  m_Error->move(width() - m_Error->width() - kMargin, kMargin);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
 RoutingTableRow::RoutingTableRow(size_t id, QWidget* parent)
   : QWidget(parent)
   , m_Id(id)
@@ -915,6 +966,15 @@ RoutingTableRow::RoutingTableRow(size_t id, QWidget* parent)
   m_OutPath = new QLineEdit(this);
   m_OutPath->setToolTip(tip);
 
+  m_OutScriptText = new ScriptEdit(this);
+  m_OutScriptText->setToolTip(GetJavascriptToolTipText());
+  m_OutScriptText->hide();
+
+  m_OutScript = new QCheckBox(this);
+  m_OutScript->setToolTip(GetJavascriptToolTipText());
+  m_OutScript->setFixedHeight(m_OutPath->sizeHint().height());
+  connect(m_OutScript, &QCheckBox::toggled, this, &RoutingTableRow::onOutScriptToggled);
+
   m_OutMin = new QLineEdit(this);
   m_OutMin->setToolTip(tr("Clip first outgoing OSC argument\n\nScale first outgoing OSC argument when all min/max fields populated"));
 
@@ -928,7 +988,7 @@ RoutingTableRow::RoutingTableRow(size_t id, QWidget* parent)
 
 ////////////////////////////////////////////////////////////////////////////////
 
-QWidget* RoutingTableRow::GetWigetForCol(size_t col)
+QWidget* RoutingTableRow::GetWidgetForCol(size_t col)
 {
   switch (col)
   {
@@ -945,13 +1005,21 @@ QWidget* RoutingTableRow::GetWigetForCol(size_t col)
     case COL_OUT_ACTIVITY: return m_OutActivity;
     case COL_OUT_IP: return m_OutIP;
     case COL_OUT_PORT: return m_OutPort;
-    case COL_OUT_PATH: return m_OutPath;
+    case COL_OUT_SCRIPT: return m_OutScript;
     case COL_OUT_MIN: return m_OutMin;
     case COL_OUT_MAX: return m_OutMax;
     case COL_BUTTON: return m_AddRemove;
+
+    case COL_OUT_PATH:
+    {
+      if (m_OutPath->isHidden())
+        return m_OutScriptText;
+
+      return m_OutPath;
+    }
   }
 
-  return 0;
+  return nullptr;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -979,6 +1047,8 @@ int RoutingTableRow::GetWidthHintForCol(size_t col) const
 
     case COL_DIVIDER: return fontMetrics().tightBoundingRect("  >  ").width();
 
+    case COL_OUT_SCRIPT: return m_OutScript->sizeHint().width();
+
     case COL_BUTTON: return m_AddRemove->sizeHint().height();
   }
 
@@ -1001,25 +1071,41 @@ void RoutingTableRow::SetAddRemoveText(const QString& text)
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void RoutingTableRow::UpdateLayout(const int* colSizes, size_t count, int margin)
+int RoutingTableRow::UpdateLayout(const int* colSizes, size_t count, int margin)
 {
+  int rowHeight = 0;
+
   if (colSizes)
   {
-    int h = sizeHint().height();
-    int x = margin;
     if (count > NUM_COLS)
       count = NUM_COLS;
 
-    for (size_t i = 0; i < count; i++)
+    // determine overall row height
+    for (size_t col = 0; col < count; col++)
     {
-      QWidget* w = GetWigetForCol(i);
+      QWidget* w = GetWidgetForCol(col);
       if (w)
       {
-        w->setGeometry(x, 0, colSizes[i], h);
+        int h = qMin(w->sizeHint().height(), w->maximumHeight());
+        rowHeight = qMax(rowHeight, h);
+      }
+    }
+
+    // update widget geometry
+    int x = margin;
+    for (size_t col = 0; col < count; col++)
+    {
+      QWidget* w = GetWidgetForCol(col);
+      if (w)
+      {
+        int h = qMin(w->sizeHint().height(), w->maximumHeight());
+        w->setGeometry(x, 0, colSizes[col], h);
         x += (w->width() + margin);
       }
     }
   }
+
+  return rowHeight;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1047,6 +1133,15 @@ void RoutingTableRow::Load(const QString& label, const EosRouteSrc& src, const E
   m_OutIP->setText(dst.addr.ip);
   m_OutPort->setText((dst.addr.port == 0) ? QString() : QString::number(dst.addr.port));
   m_OutPath->setText(dst.path);
+  m_OutPath->setVisible(!dst.script);
+
+  bool b = m_OutScript->blockSignals(true);
+  m_OutScript->setChecked(dst.script);
+  m_OutScript->blockSignals(b);
+
+  m_OutScriptText->setText(dst.scriptText);
+  m_OutScriptText->setVisible(dst.script);
+  m_OutScriptText->CheckForErrors();
 
   QString transformStr;
 
@@ -1076,6 +1171,8 @@ bool RoutingTableRow::Save(QString& label, EosRouteSrc& src, EosRouteDst& dst) c
   dst.addr.ip = m_OutIP->text();
   dst.addr.port = m_OutPort->text().toUShort();
   dst.path = m_OutPath->text();
+  dst.script = m_OutScript->isChecked();
+  dst.scriptText = m_OutScriptText->toPlainText();
 
   StringToTransform(m_InMin->text(), dst.inMin);
   StringToTransform(m_InMax->text(), dst.inMax);
@@ -1145,6 +1242,30 @@ void RoutingTableRow::TransformToString(const EosRouteDst::sTransform& transform
 
 ////////////////////////////////////////////////////////////////////////////////
 
+QString RoutingTableRow::GetJavascriptToolTipText()
+{
+  return tr(
+      "JavaScript Variables:\n--------------------\n"
+      "OSC = outgoing osc path (string)\n"
+      "ARGS = array of osc arguments\n\n"
+      "Write your own JavaScript to modify the OSC and ARGS variables\n\n"
+      "Ex:\n"
+      "// modify outgoing osc fader from percent to 8-bit value:\n"
+      "OSC = OSC + \"/level\";\n"
+      "ARGS[0] = Math.round(ARGS[0] * 255);");
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+void RoutingTableRow::onOutScriptToggled(bool checked)
+{
+  m_OutPath->setVisible(!checked);
+  m_OutScriptText->setVisible(checked);
+  emit updateLayout();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
 void RoutingTableRow::onAddRemoveClicked(bool /*checked*/)
 {
   emit addRemoveClicked(m_Id);
@@ -1187,6 +1308,10 @@ RoutingTable::RoutingTable(QWidget* parent)
       case RoutingTableRow::COL_OUT_IP: m_Header[i]->setText(tr("IP")); break;
       case RoutingTableRow::COL_OUT_PORT: m_Header[i]->setText(tr("Port")); break;
       case RoutingTableRow::COL_OUT_PATH: m_Header[i]->setText(tr("Path")); break;
+      case RoutingTableRow::COL_OUT_SCRIPT:
+        m_Header[i]->setText(tr("JS"));
+        m_Header[i]->setToolTip(RoutingTableRow::GetJavascriptToolTipText());
+        break;
       case RoutingTableRow::COL_OUT_MIN: m_Header[i]->setText(tr("Min")); break;
       case RoutingTableRow::COL_OUT_MAX: m_Header[i]->setText(tr("Max")); break;
     }
@@ -1228,6 +1353,7 @@ RoutingTableRow* RoutingTable::CreateRow(size_t id, bool remove, const QString& 
   row->SetAddRemoveText(remove ? "-" : "+");
   row->Load(label, src, dst);
   row->show();
+  connect(row, &RoutingTableRow::updateLayout, this, &RoutingTable::onUpdateLayout);
   connect(row, &RoutingTableRow::addRemoveClicked, this, &RoutingTable::onAddRemoveClicked);
   return row;
 }
@@ -1362,6 +1488,12 @@ void RoutingTable::LoadLineFromFile(const QString& line, Router::ROUTES& routes)
     RoutingTableRow::StringToTransform(items[9], route.dst.outMin);
     RoutingTableRow::StringToTransform(items[10], route.dst.outMax);
 
+    if (items.size() > 11)
+    {
+      route.dst.scriptText = items[11];
+      route.dst.script = true;
+    }
+
     routes.push_back(route);
   }
 }
@@ -1406,6 +1538,8 @@ bool RoutingTable::SaveToFile(const QString& path) const
       line.append(QString(", %1").arg(FileUtils::QuotedString(route.dst.path)));
       line.append(QString(", %1").arg(outMinStr));
       line.append(QString(", %1").arg(outMaxStr));
+      if (route.dst.script)
+        line.append(QString(", %1").arg(FileUtils::QuotedString(route.dst.scriptText)));
       line.append("\n");
 
       QByteArray ba(line.toUtf8());
@@ -1486,14 +1620,6 @@ void RoutingTable::UpdateLayout(int w, bool forResize)
     }
     y += (rowHeight + margin);
 
-    for (ROWS::const_iterator i = m_Rows.begin(); i != m_Rows.end(); i++)
-    {
-      RoutingTableRow* row = *i;
-      row->UpdateLayout(colSizes, RoutingTableRow::NUM_COLS, /*margin*/ 4);
-      row->setGeometry(0, y, x, rowHeight);
-      y += (row->height() + margin);
-    }
-
     int x1 = m_Header[RoutingTableRow::COL_IN_STATE]->geometry().topLeft().x();
     int x2 = m_Header[RoutingTableRow::COL_IN_MAX]->geometry().topRight().x();
     m_Incoming->setGeometry(x1, margin, x2 - x1, rowHeight);
@@ -1501,6 +1627,14 @@ void RoutingTable::UpdateLayout(int w, bool forResize)
     x1 = m_Header[RoutingTableRow::COL_OUT_STATE]->geometry().topLeft().x();
     x2 = m_Header[RoutingTableRow::COL_OUT_MAX]->geometry().topRight().x();
     m_Outgoing->setGeometry(x1, margin, x2 - x1, rowHeight);
+
+    for (ROWS::const_iterator i = m_Rows.begin(); i != m_Rows.end(); i++)
+    {
+      RoutingTableRow* row = *i;
+      rowHeight = row->UpdateLayout(colSizes, RoutingTableRow::NUM_COLS, /*margin*/ 4);
+      row->setGeometry(0, y, x, rowHeight);
+      y += (row->height() + margin);
+    }
 
     m_Tcp->move(m_Outgoing->geometry().right() - m_Tcp->width(), y);
     y += (m_Tcp->height() + margin);

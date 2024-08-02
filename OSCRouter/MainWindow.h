@@ -95,6 +95,7 @@ public:
   virtual void SetColor(const QColor& color);
   virtual void Activate(unsigned int timeoutMS);
   virtual void Deactivate();
+  QSize sizeHint() const override { return QSize(24, 24); }
 
 private slots:
   void onUpdate();
@@ -226,6 +227,28 @@ protected:
 
 ////////////////////////////////////////////////////////////////////////////////
 
+class ScriptEdit : public QTextEdit
+{
+  Q_OBJECT
+
+public:
+  ScriptEdit(QWidget* parent = nullptr);
+
+  void CheckForErrors();
+
+private slots:
+  void onErrorClicked(bool checked);
+
+protected:
+  void resizeEvent(QResizeEvent* event) override;
+
+private:
+  QPushButton* m_Error;
+  QString m_ErrorText;
+};
+
+////////////////////////////////////////////////////////////////////////////////
+
 class RoutingTableRow : public QWidget
 {
   Q_OBJECT
@@ -247,6 +270,7 @@ public:
     COL_OUT_IP,
     COL_OUT_PORT,
     COL_OUT_PATH,
+    COL_OUT_SCRIPT,
     COL_OUT_MIN,
     COL_OUT_MAX,
     COL_BUTTON,
@@ -258,10 +282,10 @@ public:
 
   virtual QSize sizeHint() const;
   virtual void SetAddRemoveText(const QString& text);
-  virtual void UpdateLayout(const int* colSizes, size_t count, int margin);
+  virtual int UpdateLayout(const int* colSizes, size_t count, int margin);
   virtual void Load(const QString& label, const EosRouteSrc& src, const EosRouteDst& dst);
   virtual bool Save(QString& label, EosRouteSrc& src, EosRouteDst& dst) const;
-  virtual QWidget* GetWigetForCol(size_t col);
+  virtual QWidget* GetWidgetForCol(size_t col);
   virtual int GetWidthHintForCol(size_t col) const;
   virtual void SetInItemStateTableId(ItemStateTable::ID itemStateTableId) { m_InItemStateTableId = itemStateTableId; }
   virtual void SetOutItemStateTableId(ItemStateTable::ID itemStateTableId) { m_OutItemStateTableId = itemStateTableId; }
@@ -269,11 +293,14 @@ public:
 
   static void StringToTransform(const QString& str, EosRouteDst::sTransform& transform);
   static void TransformToString(const EosRouteDst::sTransform& transform, QString& str);
+  static QString GetJavascriptToolTipText();
 
 signals:
+  void updateLayout();
   void addRemoveClicked(size_t id);
 
 private slots:
+  void onOutScriptToggled(bool checked);
   void onAddRemoveClicked(bool checked);
 
 private:
@@ -294,6 +321,8 @@ private:
   QLineEdit* m_OutIP;
   QLineEdit* m_OutPort;
   QLineEdit* m_OutPath;
+  ScriptEdit* m_OutScriptText;
+  QCheckBox* m_OutScript;
   QLineEdit* m_OutMin;
   QLineEdit* m_OutMax;
   QPushButton* m_AddRemove;
@@ -330,6 +359,7 @@ signals:
 
 public slots:
   void autoSize(int w, int /*h*/) { UpdateLayout(w, /*forResize*/ false); }
+  void onUpdateLayout() { UpdateLayout(width(), /*forResize*/ false); }
   void onAddRemoveClicked(size_t id);
   void onTcpClicked(bool checked);
   void onApplyClicked(bool checked);
