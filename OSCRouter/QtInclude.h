@@ -43,7 +43,7 @@
 #include <QtGui/QtGui>
 #include <QtWidgets/QtWidgets>
 #include <QtNetwork/QtNetwork>
-#include <QtQml/QtQml>
+#include <QtQml/QJSEngine>
 
 ////////////////////////////////////////////////////////////////////////////////
 
