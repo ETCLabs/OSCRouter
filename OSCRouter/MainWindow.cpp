@@ -940,13 +940,14 @@ int RoutingTableRow::GetWidthHintForCol(size_t col) const
 {
   switch (col)
   {
+    case COL_LABEL:
+    case COL_IN_IP:
+    case COL_OUT_IP: return fontMetrics().tightBoundingRect("  000.000.000.000  ").width();
+
     case COL_IN_STATE:
     case COL_IN_ACTIVITY:
     case COL_OUT_STATE:
     case COL_OUT_ACTIVITY: return 16;
-
-    case COL_IN_IP:
-    case COL_OUT_IP: return fontMetrics().tightBoundingRect("  000.000.000.000  ").width();
 
     case COL_IN_PORT:
     case COL_OUT_PORT: return fontMetrics().tightBoundingRect(QString("  %1  ").arg(std::numeric_limits<uint16_t>::max())).width();
@@ -1614,8 +1615,11 @@ MainWindow::MainWindow(EosPlatform* platform, QWidget* parent /*=0*/, Qt::Window
   QMenu* file = menu->addMenu(tr("&File"));
   file->addAction(tr("&New"), this, &MainWindow::onNewFile);
   file->addAction(tr("&Open"), this, &MainWindow::onOpenFile);
+  file->addSeparator();
   file->addAction(tr("&Save"), this, &MainWindow::onSaveFile);
   file->addAction(tr("Save &As..."), this, &MainWindow::onSaveAsFile);
+  file->addSeparator();
+  file->addAction(tr("E&xit"), this, &MainWindow::close);
 
   QMenu* log = menu->addMenu(tr("&Log"));
   log->addAction(tr("&Clear"), this, &MainWindow::onClearLog);
