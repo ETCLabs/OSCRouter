@@ -278,7 +278,6 @@ void Indicator::UpdateIcon()
         painter.end();
 
         m_IconOutline.setDevicePixelRatio(dpr);
-        m_IconOutline.save("c:/users/cmizerak/desktop/icon.png");
 
         m_IconFill = QImage(size, size, QImage::Format_ARGB32);
         m_IconFill.fill(0);
