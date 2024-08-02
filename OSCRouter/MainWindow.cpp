@@ -169,7 +169,7 @@ void Indicator::Activate(unsigned int timeoutMS)
     if (!m_UpdateTimer)
     {
       m_UpdateTimer = new QTimer(this);
-      connect(m_UpdateTimer, SIGNAL(timeout()), this, SLOT(onUpdate()));
+      connect(m_UpdateTimer, &QTimer::timeout, this, &Indicator::onUpdate);
     }
 
     m_Timer.Start();
@@ -342,7 +342,7 @@ TcpTableRow::TcpTableRow(size_t id, QWidget* parent)
 
   m_AddRemove = new QPushButton(this);
   m_AddRemove->setToolTip(tr("Add/Remove this TCP connection"));
-  connect(m_AddRemove, SIGNAL(clicked(bool)), this, SLOT(onAddRemoveClicked(bool)));
+  connect(m_AddRemove, &QPushButton::clicked, this, &TcpTableRow::onAddRemoveClicked);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -542,7 +542,7 @@ TcpTableRow* TcpTable::CreateRow(size_t id, bool remove, const QString& label, b
   row->SetAddRemoveText(remove ? "-" : "+");
   row->Load(label, server, frameMode, addr);
   row->show();
-  connect(row, SIGNAL(addRemoveClicked(size_t)), this, SLOT(onAddRemoveClicked(size_t)));
+  connect(row, &TcpTableRow::addRemoveClicked, this, &TcpTable::onAddRemoveClicked);
   return row;
 }
 
@@ -806,7 +806,7 @@ TcpTableWindow::TcpTableWindow(QWidget* parent)
 
   m_TcpTable = new TcpTable(0);
   m_TableScrollArea->setWidget(m_TcpTable);
-  connect(m_TableScrollArea, SIGNAL(resized(int, int)), m_TcpTable, SLOT(autoSize(int, int)));
+  connect(m_TableScrollArea, &TableScrollArea::resized, m_TcpTable, &TcpTable::autoSize);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -903,7 +903,7 @@ RoutingTableRow::RoutingTableRow(size_t id, QWidget* parent)
 
   m_AddRemove = new QPushButton(this);
   m_AddRemove->setToolTip(tr("Add/Remove this route"));
-  connect(m_AddRemove, SIGNAL(clicked(bool)), this, SLOT(onAddRemoveClicked(bool)));
+  connect(m_AddRemove, &QPushButton::clicked, this, &RoutingTableRow::onAddRemoveClicked);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1172,10 +1172,10 @@ RoutingTable::RoutingTable(QWidget* parent)
   }
 
   m_Tcp = new QPushButton(tr("TCP Settings..."), this);
-  connect(m_Tcp, SIGNAL(clicked(bool)), this, SLOT(onTcpClicked(bool)));
+  connect(m_Tcp, &QPushButton::clicked, this, &RoutingTable::onTcpClicked);
 
   m_Apply = new QPushButton(tr("Apply"), this);
-  connect(m_Apply, SIGNAL(clicked(bool)), this, SLOT(onApplyClicked(bool)));
+  connect(m_Apply, &QPushButton::clicked, this, &RoutingTable::onApplyClicked);
 
   m_TcpTableWindow = new TcpTableWindow(this);
   m_TcpTableWindow->hide();
@@ -1207,7 +1207,7 @@ RoutingTableRow* RoutingTable::CreateRow(size_t id, bool remove, const QString& 
   row->SetAddRemoveText(remove ? "-" : "+");
   row->Load(label, src, dst);
   row->show();
-  connect(row, SIGNAL(addRemoveClicked(size_t)), this, SLOT(onAddRemoveClicked(size_t)));
+  connect(row, &RoutingTableRow::addRemoveClicked, this, &RoutingTable::onAddRemoveClicked);
   return row;
 }
 
@@ -1631,10 +1631,10 @@ MainWindow::MainWindow(EosPlatform* platform, QWidget* parent /*=0*/, Qt::Window
   m_RoutingTable = new RoutingTable(0);
   m_RoutingTable->setObjectName("RoutingTable");
   m_RoutingTable->setStyleSheet("QWidget#RoutingTable {background: transparent;}");
-  connect(m_RoutingTable, SIGNAL(changed()), this, SLOT(onRoutingTableChanged()));
+  connect(m_RoutingTable, &RoutingTable::changed, this, &MainWindow::onRoutingTableChanged);
   tableScrollArea->SetRoutingTable(m_RoutingTable);
   tableScrollArea->setWidget(m_RoutingTable);
-  connect(tableScrollArea, SIGNAL(resized(int, int)), m_RoutingTable, SLOT(autoSize(int, int)));
+  connect(tableScrollArea, &TableScrollArea::resized, m_RoutingTable, &RoutingTable::autoSize);
 
   QWidget* logBase = new QWidget(splitter);
   QGridLayout* logLayout = new QGridLayout(logBase);
@@ -1652,7 +1652,7 @@ MainWindow::MainWindow(EosPlatform* platform, QWidget* parent /*=0*/, Qt::Window
   m_Log.AddInfo(QString("OSCRouter v%1").arg(APP_VERSION).toUtf8().constData());
 
   QTimer* timer = new QTimer(this);
-  connect(timer, SIGNAL(timeout()), this, SLOT(onTick()));
+  connect(timer, &QTimer::timeout, this, &MainWindow::onTick);
   timer->start(60);
 
   RestoreLastFile();
@@ -1980,7 +1980,7 @@ void MainWindow::onRoutingTableChanged()
     UpdateWindowTitle();
   }
 
-  QTimer::singleShot(1, this, SLOT(buildRoutes()));
+  QTimer::singleShot(1, this, &MainWindow::buildRoutes);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
