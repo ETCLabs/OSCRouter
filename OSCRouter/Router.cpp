@@ -1736,7 +1736,7 @@ QString ScriptEngine::evaluate(const QString &script, const QString &path /*= QS
 
   // evaluate
   QStringList stack_trace;
-  QJSValue eval = m_JS.evaluate(script, QLatin1String("Line"), 1, &stack_trace);
+  QJSValue eval = m_JS.evaluate(script, QString(), 1, &stack_trace);
   if (eval.isError())
   {
     QString error = eval.toString();
