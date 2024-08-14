@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		720F4E982C6C5EDF006EDBBA /* moc_LogWidget.cpp in Build Sources */ = {isa = PBXBuildFile; fileRef = 720F4E952C6C5EDF006EDBBA /* moc_LogWidget.cpp */; };
+		720F4E992C6C5EDF006EDBBA /* LogWidget.cpp in Build Sources */ = {isa = PBXBuildFile; fileRef = 720F4E972C6C5EDF006EDBBA /* LogWidget.cpp */; };
 		72BA0CD32C5D9B340017E069 /* QtQml.framework in Frameworks & Libraries */ = {isa = PBXBuildFile; fileRef = 72BA0CD22C5D9B340017E069 /* QtQml.framework */; };
 		72C19E3C209D1B0400113A34 /* QtCore.framework in Frameworks & Libraries */ = {isa = PBXBuildFile; fileRef = 692D5B5B1FD5D415003CBAA4 /* QtCore.framework */; };
 		72C19E3D209D1B0400113A34 /* QtGui.framework in Frameworks & Libraries */ = {isa = PBXBuildFile; fileRef = 692D5B591FD5D415003CBAA4 /* QtGui.framework */; };
@@ -38,6 +40,9 @@
 		692D5B5A1FD5D415003CBAA4 /* QtWidgets.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QtWidgets.framework; path = /usr/local/Qt/6.6.1/macos/lib/QtWidgets.framework; sourceTree = "<absolute>"; };
 		692D5B5B1FD5D415003CBAA4 /* QtCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QtCore.framework; path = /usr/local/Qt/6.6.1/macos/lib/QtCore.framework; sourceTree = "<absolute>"; };
 		692D5B5C1FD5D415003CBAA4 /* QtNetwork.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QtNetwork.framework; path = /usr/local/Qt/6.6.1/macos/lib/QtNetwork.framework; sourceTree = "<absolute>"; };
+		720F4E952C6C5EDF006EDBBA /* moc_LogWidget.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = moc_LogWidget.cpp; path = OSCRouter/moc_LogWidget.cpp; sourceTree = SOURCE_ROOT; };
+		720F4E962C6C5EDF006EDBBA /* LogWidget.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LogWidget.h; path = OSCRouter/LogWidget.h; sourceTree = SOURCE_ROOT; };
+		720F4E972C6C5EDF006EDBBA /* LogWidget.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LogWidget.cpp; path = OSCRouter/LogWidget.cpp; sourceTree = SOURCE_ROOT; };
 		72BA0CD22C5D9B340017E069 /* QtQml.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QtQml.framework; path = /usr/local/Qt/6.6.1/macos/lib/QtQml.framework; sourceTree = "<group>"; };
 		9730C2E51AB7C0230039899F /* moc_MainWindow.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = moc_MainWindow.cpp; path = OSCRouter/moc_MainWindow.cpp; sourceTree = SOURCE_ROOT; };
 		9730C2EB1AB7C1CE0039899F /* eos.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = eos.icns; sourceTree = SOURCE_ROOT; };
@@ -161,9 +166,12 @@
 				977D1FAF1BC4CD2E00CDAFB4 /* EosPlatform.h */,
 				97965F621B6C1311006C8852 /* ItemState.cpp */,
 				97965F631B6C1311006C8852 /* ItemState.h */,
+				720F4E972C6C5EDF006EDBBA /* LogWidget.cpp */,
+				720F4E962C6C5EDF006EDBBA /* LogWidget.h */,
 				97E137331AB28C3A0056BE05 /* main.cpp */,
 				97E137341AB28C3A0056BE05 /* MainWindow.cpp */,
 				97E137351AB28C3A0056BE05 /* MainWindow.h */,
+				720F4E952C6C5EDF006EDBBA /* moc_LogWidget.cpp */,
 				9730C2E51AB7C0230039899F /* moc_MainWindow.cpp */,
 				97965F641B6C1311006C8852 /* NetworkUtils.cpp */,
 				97965F651B6C1311006C8852 /* NetworkUtils.h */,
@@ -218,6 +226,7 @@
 			buildConfigurationList = 17B3380A4D6A7D415E7F2E1E /* Build configuration list for PBXNativeTarget "OSCRouter" */;
 			buildPhases = (
 				97E137551AB28E930056BE05 /* moc MainWindow */,
+				720F4E932C6C5DD7006EDBBA /* moc LogWidget */,
 				C29B8785722055ED95EF7B57 /* Build Sources */,
 				2A1043669E6E5A7426EA502A /* Frameworks & Libraries */,
 				3787F99312C85FF0073FD7BA /* Bundle Resources */,
@@ -271,6 +280,26 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		720F4E932C6C5DD7006EDBBA /* moc LogWidget */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/OSCRouter/LogWidget.h",
+			);
+			name = "moc LogWidget";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(SRCROOT)/OSCRouter/moc_LogWidget.cpp",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "/usr/local/Qt/6.6.1/macos/libexec/moc ${SRCROOT}/OSCRouter/LogWidget.h -o ${SRCROOT}/OSCRouter/moc_LogWidget.cpp\n";
+		};
 		9730C2E91AB7C0BB0039899F /* Bundle Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -308,6 +337,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				720F4E992C6C5EDF006EDBBA /* LogWidget.cpp in Build Sources */,
+				720F4E982C6C5EDF006EDBBA /* moc_LogWidget.cpp in Build Sources */,
 				97E137381AB28C3A0056BE05 /* MainWindow.cpp in Build Sources */,
 				97E137481AB28C720056BE05 /* EosLog.cpp in Build Sources */,
 				97965F691B6C1311006C8852 /* NetworkUtils.cpp in Build Sources */,
