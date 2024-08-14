@@ -72,6 +72,9 @@
     <ClCompile Include="EosPlatform.cpp">
       <Filter>OSCRouter\Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="LogWidget.cpp">
+      <Filter>OSCRouter\Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="QtInclude.h">
@@ -129,6 +132,9 @@
     </CustomBuild>
     <CustomBuild Include="qt.qrc">
       <Filter>Resource Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="LogWidget.h">
+      <Filter>OSCRouter\Header Files</Filter>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>

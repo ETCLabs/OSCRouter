@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
   pal.setColor(QPalette::WindowText, TEXT_COLOR);
   pal.setColor(QPalette::Disabled, QPalette::WindowText, MUTED_COLOR);
   pal.setColor(QPalette::Base, QColor(60, 60, 60));
-  pal.setColor(QPalette::Button, QColor(60, 60, 60));
+  pal.setColor(QPalette::Button, QColor(30, 30, 30));
   pal.setColor(QPalette::Light, pal.color(QPalette::Button).lighter(20));
   pal.setColor(QPalette::Midlight, pal.color(QPalette::Button).lighter(10));
   pal.setColor(QPalette::Dark, pal.color(QPalette::Button).darker(20));

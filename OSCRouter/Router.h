@@ -66,10 +66,10 @@ public:
   struct sConnection
   {
     QString label;
-    bool server;
-    OSCStream::EnumFrameMode frameMode;
+    bool server = false;
+    OSCStream::EnumFrameMode frameMode = OSCStream::FRAME_MODE_DEFAULT;
     EosAddr addr;
-    ItemStateTable::ID itemStateTableId;
+    ItemStateTable::ID itemStateTableId = ItemStateTable::sm_Invalid_Id;
   };
 
   typedef std::vector<sConnection> CONNECTIONS;
@@ -79,9 +79,9 @@ public:
     sRoute() {}
     QString label;
     EosRouteSrc src;
-    ItemStateTable::ID srcItemStateTableId;
+    ItemStateTable::ID srcItemStateTableId = ItemStateTable::sm_Invalid_Id;
     EosRouteDst dst;
-    ItemStateTable::ID dstItemStateTableId;
+    ItemStateTable::ID dstItemStateTableId = ItemStateTable::sm_Invalid_Id;
   };
 
   typedef std::vector<sRoute> ROUTES;

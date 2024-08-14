@@ -186,7 +186,7 @@ void EosUdpInThread::run()
         if (data && len > 0)
         {
           QHostAddress host(reinterpret_cast<const sockaddr *>(&addr));
-          logPrefix = QString("IN  [%1:%2] ").arg(host.toString()).arg(m_Addr.port).toUtf8().constData();
+          logPrefix = QString("UDP IN  [%1:%2] ").arg(host.toString()).arg(m_Addr.port).toUtf8().constData();
           packetLogger.SetPrefix(logPrefix);
           packetLogger.PrintPacket(logParser, data, static_cast<size_t>(len));
           unsigned int ip = static_cast<unsigned int>(host.toIPv4Address());
@@ -349,7 +349,7 @@ void EosUdpOutThread::run()
       OSCParser logParser;
       logParser.SetRoot(new OSCMethod());
       PacketLogger packetLogger(EosLog::LOG_MSG_TYPE_SEND, m_PrivateLog);
-      packetLogger.SetPrefix(QString("OUT [%1:%2] ").arg(m_Addr.ip).arg(m_Addr.port).toUtf8().constData());
+      packetLogger.SetPrefix(QString("UDP OUT [%1:%2] ").arg(m_Addr.ip).arg(m_Addr.port).toUtf8().constData());
 
       // run
       EosPacket::Q q;
@@ -551,9 +551,9 @@ void EosTcpClientThread::run()
       OSCParser logParser;
       logParser.SetRoot(new OSCMethod());
       PacketLogger inPacketLogger(EosLog::LOG_MSG_TYPE_RECV, m_PrivateLog);
-      inPacketLogger.SetPrefix(QString("TCPIN [%1:%2] ").arg(m_Addr.ip).arg(m_Addr.port).toUtf8().constData());
+      inPacketLogger.SetPrefix(QString("TCP IN  [%1:%2] ").arg(m_Addr.ip).arg(m_Addr.port).toUtf8().constData());
       PacketLogger outPacketLogger(EosLog::LOG_MSG_TYPE_SEND, m_PrivateLog);
-      outPacketLogger.SetPrefix(QString("TCPOUT [%1:%2] ").arg(m_Addr.ip).arg(m_Addr.port).toUtf8().constData());
+      outPacketLogger.SetPrefix(QString("TCP OUT [%1:%2] ").arg(m_Addr.ip).arg(m_Addr.port).toUtf8().constData());
 
       // connect
       while (m_Run && tcp->GetConnectState() == EosTcp::CONNECT_IN_PROGRESS)
@@ -912,7 +912,28 @@ void RouterThread::BuildRoutes(ROUTES_BY_PORT &routesByPort, UDP_IN_THREADS &udp
 
       if (tcpClientThreads.find(tcpConnection.addr) == tcpClientThreads.end() && tcpServerThreads.find(tcpConnection.addr) == tcpServerThreads.end())
       {
-        if (tcpConnection.server)
+        if (tcpConnection.addr.ip.isEmpty())
+        {
+          EosAddr tcpAddr = tcpConnection.addr;
+          for (std::vector<QNetworkAddressEntry>::const_iterator j = nics.begin(); j != nics.end(); j++)
+          {
+            tcpAddr.ip = j->ip().toString();
+
+            if (tcpConnection.server)
+            {
+              EosTcpServerThread *thread = new EosTcpServerThread();
+              tcpServerThreads[tcpAddr] = thread;
+              thread->Start(tcpAddr, tcpConnection.itemStateTableId, tcpConnection.frameMode, m_ReconnectDelay);
+            }
+            else
+            {
+              EosTcpClientThread *thread = new EosTcpClientThread();
+              tcpClientThreads[tcpAddr] = thread;
+              thread->Start(tcpAddr, tcpConnection.itemStateTableId, tcpConnection.frameMode, m_ReconnectDelay);
+            }
+          }
+        }
+        else if (tcpConnection.server)
         {
           EosTcpServerThread *thread = new EosTcpServerThread();
           tcpServerThreads[tcpConnection.addr] = thread;
@@ -1033,7 +1054,7 @@ void RouterThread::AddRoutingDestinations(bool isOSC, const QString &path, const
     {
       for (ROUTES_BY_PATH::const_iterator i = routesByIp.routesByWildcardPath.begin(); i != routesByIp.routesByWildcardPath.end(); i++)
       {
-        if (QRegularExpression::fromWildcard(i->first, Qt::CaseSensitive).match(path).hasMatch())
+        if (QRegularExpression::fromWildcard(i->first, Qt::CaseSensitive, QRegularExpression::NonPathWildcardConversion).match(path).hasMatch())
           destinations.push_back(&(i->second));
       }
     }

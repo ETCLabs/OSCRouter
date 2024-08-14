@@ -110,6 +110,7 @@
     <ClCompile Include="..\..\EosSyncLib\EosSyncLib\OSCParser.cpp" />
     <ClCompile Include="EosPlatform.cpp" />
     <ClCompile Include="ItemState.cpp" />
+    <ClCompile Include="LogWidget.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MainWindow.cpp" />
     <ClCompile Include="NetworkUtils.cpp" />
@@ -121,6 +122,7 @@
     <ClInclude Include="EosPlatform.h" />
     <ClInclude Include="ItemState.h" />
     <ClInclude Include="LeakWatcher.h" />
+    <CustomBuild Include="LogWidget.h" />
     <ClInclude Include="NetworkUtils.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Router.h" />

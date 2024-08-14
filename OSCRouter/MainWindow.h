@@ -19,8 +19,6 @@
 // THE SOFTWARE.
 
 #pragma once
-#ifndef MAIN_WINDOW_H
-#define MAIN_WINDOW_H
 
 #ifndef QT_INCLUDE_H
 #include "QtInclude.h"
@@ -47,32 +45,7 @@
 #endif
 
 class EosPlatform;
-class RoutingTable;
-
-////////////////////////////////////////////////////////////////////////////////
-
-class TableScrollArea : public QScrollArea
-{
-  Q_OBJECT
-
-public:
-  TableScrollArea(QWidget* parent)
-    : QScrollArea(parent)
-  {
-  }
-
-  virtual QSize sizeHint() const { return QSize(1000, 1000); }
-  void SetRoutingTable(RoutingTable* routingTable) { m_RoutingTable = routingTable; }
-
-signals:
-  void resized(int w, int h);
-
-protected:
-  QPointer<RoutingTable> m_RoutingTable;
-
-  virtual void resizeEvent(QResizeEvent* event);
-  virtual void paintEvent(QPaintEvent* event);
-};
+class LogWidget;
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -90,12 +63,12 @@ class Indicator : public QWidget
   Q_OBJECT
 
 public:
-  Indicator(QWidget* parent);
+  Indicator(QWidget* parent = nullptr);
 
   virtual void SetColor(const QColor& color);
   virtual void Activate(unsigned int timeoutMS);
   virtual void Deactivate();
-  QSize sizeHint() const override { return QSize(24, 24); }
+  QSize sizeHint() const override { return QSize(16, 16); }
 
 private slots:
   void onUpdate();
@@ -122,111 +95,6 @@ protected:
 
 ////////////////////////////////////////////////////////////////////////////////
 
-class TcpTableRow : public QWidget
-{
-  Q_OBJECT
-
-public:
-  enum EnumConstants
-  {
-    COL_STATE = 0,
-    COL_ACTIVITY,
-    COL_LABEL,
-    COL_SERVER,
-    COL_FRAME_MODE,
-    COL_IP,
-    COL_PORT,
-    COL_BUTTON,
-
-    NUM_COLS
-  };
-
-  TcpTableRow(size_t id, QWidget* parent);
-
-  virtual QSize sizeHint() const;
-  virtual void SetAddRemoveText(const QString& text);
-  virtual void UpdateLayout(const int* colSizes, size_t count, int margin);
-  virtual void Load(const QString& label, bool server, OSCStream::EnumFrameMode frameMode, const EosAddr& addr);
-  virtual bool Save(QString& label, bool& server, OSCStream::EnumFrameMode& frameMode, EosAddr& addr) const;
-  virtual QWidget* GetWigetForCol(size_t col);
-  virtual int GetWidthHintForCol(size_t col) const;
-  virtual void SetItemStateTableId(ItemStateTable::ID itemStateTableId) { m_ItemStateTableId = itemStateTableId; }
-  virtual void UpdateItemState(const ItemStateTable& itemStateTable);
-
-signals:
-  void addRemoveClicked(size_t id);
-
-private slots:
-  void onAddRemoveClicked(bool checked);
-
-private:
-  size_t m_Id;
-  ItemStateTable::ID m_ItemStateTableId;
-  Indicator* m_State;
-  Indicator* m_Activity;
-  QLineEdit* m_Label;
-  QComboBox* m_Server;
-  QComboBox* m_FrameMode;
-  QLineEdit* m_IP;
-  QLineEdit* m_Port;
-  QPushButton* m_AddRemove;
-};
-
-////////////////////////////////////////////////////////////////////////////////
-
-class TcpTable : public QWidget
-{
-  Q_OBJECT
-
-public:
-  TcpTable(QWidget* parent);
-
-  virtual void Clear();
-  virtual void Load(const Router::CONNECTIONS& connections);
-  virtual void Save(Router::CONNECTIONS& connections, ItemStateTable* itemStateTable) const;
-  virtual void LoadFromFile(const QStringList& lines);
-  virtual bool SaveToFile(QFile& f) const;
-  virtual void Apply();
-  virtual void UpdateItemState(const ItemStateTable& itemStateTable);
-
-  static bool HasConnection(const Router::CONNECTIONS& connections, const EosAddr& addr);
-
-public slots:
-  void autoSize(int w, int /*h*/) { UpdateLayout(w, /*forResize*/ false); }
-  void onAddRemoveClicked(size_t id);
-
-protected:
-  typedef std::vector<TcpTableRow*> ROWS;
-
-  QLabel* m_Header[TcpTableRow::NUM_COLS];
-  ROWS m_Rows;
-  unsigned int m_UpdatingLayout;
-
-  virtual void UpdateLayout(int w, bool forResize);
-  virtual TcpTableRow* CreateRow(size_t id, bool remove, const QString& label, bool server, OSCStream::EnumFrameMode frameMode, const EosAddr& addr);
-  virtual void LoadLineFromFile(const QString& line, Router::CONNECTIONS& connections);
-  virtual void resizeEvent(QResizeEvent* event);
-};
-
-////////////////////////////////////////////////////////////////////////////////
-
-class TcpTableWindow : public QWidget
-{
-public:
-  TcpTableWindow(QWidget* parent);
-
-  QSize sizeHint() const { return QSize(450, 300); }
-  TcpTable& GetTcpTable() { return *m_TcpTable; }
-
-protected:
-  TableScrollArea* m_TableScrollArea;
-  TcpTable* m_TcpTable;
-
-  virtual void resizeEvent(QResizeEvent* event);
-};
-
-////////////////////////////////////////////////////////////////////////////////
-
 class ScriptEdit : public QTextEdit
 {
   Q_OBJECT
@@ -234,6 +102,7 @@ class ScriptEdit : public QTextEdit
 public:
   ScriptEdit(QWidget* parent = nullptr);
 
+  QSize sizeHint() const;
   void CheckForErrors();
 
 private slots:
@@ -249,138 +118,257 @@ private:
 
 ////////////////////////////////////////////////////////////////////////////////
 
-class RoutingTableRow : public QWidget
+class RoutingButton : public QPushButton
 {
   Q_OBJECT
 
 public:
-  enum EnumConstants
-  {
-    COL_LABEL = 0,
-    COL_IN_STATE,
-    COL_IN_ACTIVITY,
-    COL_IN_IP,
-    COL_IN_PORT,
-    COL_IN_PATH,
-    COL_IN_MIN,
-    COL_IN_MAX,
-    COL_DIVIDER,
-    COL_OUT_STATE,
-    COL_OUT_ACTIVITY,
-    COL_OUT_IP,
-    COL_OUT_PORT,
-    COL_OUT_PATH,
-    COL_OUT_SCRIPT,
-    COL_OUT_MIN,
-    COL_OUT_MAX,
-    COL_BUTTON,
-
-    NUM_COLS
-  };
-
-  RoutingTableRow(size_t id, QWidget* parent);
-
-  virtual QSize sizeHint() const;
-  virtual void SetAddRemoveText(const QString& text);
-  virtual int UpdateLayout(const int* colSizes, size_t count, int margin);
-  virtual void Load(const QString& label, const EosRouteSrc& src, const EosRouteDst& dst);
-  virtual bool Save(QString& label, EosRouteSrc& src, EosRouteDst& dst) const;
-  virtual QWidget* GetWidgetForCol(size_t col);
-  virtual int GetWidthHintForCol(size_t col) const;
-  virtual void SetInItemStateTableId(ItemStateTable::ID itemStateTableId) { m_InItemStateTableId = itemStateTableId; }
-  virtual void SetOutItemStateTableId(ItemStateTable::ID itemStateTableId) { m_OutItemStateTableId = itemStateTableId; }
-  virtual void UpdateItemState(const ItemStateTable& itemStateTable);
-
-  static void StringToTransform(const QString& str, EosRouteDst::sTransform& transform);
-  static void TransformToString(const EosRouteDst::sTransform& transform, QString& str);
-  static QString GetJavascriptToolTipText();
+  RoutingButton(const QString& text, size_t id, QWidget* parent = nullptr);
 
 signals:
-  void updateLayout();
-  void addRemoveClicked(size_t id);
+  void clickedWithId(size_t id);
 
 private slots:
-  void onOutScriptToggled(bool checked);
-  void onAddRemoveClicked(bool checked);
+  void onClicked(bool checked);
 
 private:
-  size_t m_Id;
-  ItemStateTable::ID m_InItemStateTableId;
-  Indicator* m_InState;
-  Indicator* m_InActivity;
-  QLineEdit* m_Label;
-  QLineEdit* m_InIP;
-  QLineEdit* m_InPort;
-  QLineEdit* m_InPath;
-  QLineEdit* m_InMin;
-  QLineEdit* m_InMax;
-  QLabel* m_Divider;
-  ItemStateTable::ID m_OutItemStateTableId;
-  Indicator* m_OutState;
-  Indicator* m_OutActivity;
-  QLineEdit* m_OutIP;
-  QLineEdit* m_OutPort;
-  QLineEdit* m_OutPath;
-  ScriptEdit* m_OutScriptText;
-  QCheckBox* m_OutScript;
-  QLineEdit* m_OutMin;
-  QLineEdit* m_OutMax;
-  QPushButton* m_AddRemove;
-
-protected:
-  virtual void UpdateItemState(const ItemState* itemState, Indicator& stateIndicator, Indicator& activityIndicator);
+  size_t m_Id = 0;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
 
-class RoutingTable : public QWidget
+class RoutingCheckBox : public QCheckBox
 {
   Q_OBJECT
 
 public:
-  RoutingTable(QWidget* parent);
-
-  virtual void Clear();
-  virtual void LoadRoutes(const Router::ROUTES& routes);
-  virtual void SaveRoutes(Router::ROUTES& routes, ItemStateTable* itemStateTable) const;
-  virtual void LoadTcpConnections(const Router::CONNECTIONS& tcpConnections);
-  virtual void SaveTcpConnections(Router::CONNECTIONS& tcpConnections, ItemStateTable* itemStateTable);
-  virtual bool LoadFromFile(const QString& path);
-  virtual bool SaveToFile(const QString& path) const;
-  virtual void UpdateItemState(const ItemStateTable& itemStateTable);
-  QLabel* GetIncoming() const { return m_Incoming; }
-  QLabel* GetOutgoing() const { return m_Outgoing; }
-
-  static bool HasRoute(const Router::ROUTES& routes, const EosRouteSrc& src, const EosRouteDst& dst);
-  static bool HasTcpConnection(const Router::CONNECTIONS& tcpConnections, const EosAddr& addr);
+  RoutingCheckBox(size_t id, QWidget* parent = nullptr);
 
 signals:
-  void changed();
+  void toggledWithId(size_t id, bool checked);
 
-public slots:
-  void autoSize(int w, int /*h*/) { UpdateLayout(w, /*forResize*/ false); }
-  void onUpdateLayout() { UpdateLayout(width(), /*forResize*/ false); }
-  void onAddRemoveClicked(size_t id);
-  void onTcpClicked(bool checked);
-  void onApplyClicked(bool checked);
+private slots:
+  void onToggled(bool checked);
+
+private:
+  size_t m_Id = 0;
+};
+
+////////////////////////////////////////////////////////////////////////////////
+
+class RoutingCol : public QWidget
+{
+  Q_OBJECT
+
+public:
+  enum class Constants
+  {
+    kSpacing = 4
+  };
+
+  typedef std::vector<QWidget*> Widgets;
+
+  RoutingCol(QWidget* parent = nullptr);
+
+  void clear();
+  QSize sizeHint() const override;
+  QSize minimumSizeHint() const override;
+  void AddWidgets(const Widgets& widgets);
+  void SetHeight(size_t index, int height);
+  int UpdateLayout();
+  bool empty() const { return m_Rows.empty(); }
 
 protected:
-  typedef std::vector<RoutingTableRow*> ROWS;
-  typedef std::map<EosAddr, ItemStateTable::ID> ADDR_STATES;
+  void resizeEvent(QResizeEvent* event) override;
 
-  QLabel* m_Incoming;
-  QLabel* m_Outgoing;
-  QLabel* m_Header[RoutingTableRow::NUM_COLS];
-  ROWS m_Rows;
-  QPushButton* m_Tcp;
-  QPushButton* m_Apply;
-  TcpTableWindow* m_TcpTableWindow;
-  unsigned int m_UpdatingLayout;
+private:
+  struct Row
+  {
+    int height;
+    Widgets widgets;
+  };
 
-  virtual void UpdateLayout(int w, bool forResize);
-  virtual RoutingTableRow* CreateRow(size_t id, bool remove, const QString& label, const EosRouteSrc& src, const EosRouteDst& dst);
-  virtual void LoadLineFromFile(const QString& line, Router::ROUTES& routes);
-  virtual void resizeEvent(QResizeEvent* event);
+  typedef std::vector<Row> Rows;
+  Rows m_Rows;
+};
+
+////////////////////////////////////////////////////////////////////////////////
+
+class TcpWidget : public QWidget
+{
+  Q_OBJECT
+
+public:
+  TcpWidget(QWidget* parent = nullptr);
+
+  QSize sizeHint() const { return QSize(1000, 1000); }
+  void Clear();
+  void Load(const QStringList& lines);
+  void LoadConnections(const Router::CONNECTIONS& connections);
+  void Save(QTextStream& stream);
+  void SaveConnections(Router::CONNECTIONS& connections, ItemStateTable* itemStateTable);
+  void UpdateItemState(const ItemStateTable& itemStateTable);
+
+protected:
+  void resizeEvent(QResizeEvent* event) override;
+  void showEvent(QShowEvent* event) override;
+  void paintEvent(QPaintEvent* event) override;
+
+private slots:
+  void updateHeaders();
+  void onAddRemoveClicked(size_t id);
+
+private:
+  enum class Col
+  {
+    kLabel = 0,
+    kState,
+    kActivity,
+    kMode,
+    kFraming,
+    kIP,
+    kPort,
+    kButton,
+
+    kCount
+  };
+
+  struct Row
+  {
+    size_t id = 0;
+    ItemStateTable::ID itemStateTableId = ItemStateTable::sm_Invalid_Id;
+    QLineEdit* label = nullptr;
+    Indicator* state = nullptr;
+    Indicator* activity = nullptr;
+    QComboBox* mode = nullptr;
+    QComboBox* framing = nullptr;
+    QLineEdit* ip = nullptr;
+    QLineEdit* port = nullptr;
+    RoutingButton* addRemove = nullptr;
+  };
+
+  typedef std::vector<Row> Rows;
+
+  Rows m_Rows;
+  QLabel* m_Headers[static_cast<int>(Col::kCount)];
+  QScrollArea* m_Scroll = nullptr;
+  QSplitter* m_Cols = nullptr;
+
+  void LoadLine(const QString& line, Router::CONNECTIONS& connections);
+  void AddRow(size_t id, bool remove, const Router::sConnection& connection);
+  void AddCol(int index, QWidget* w, int fixedW = -1);
+  void UpdateLayout();
+  QRect RectForCol(Col col) const;
+
+  static QString HeaderForCol(Col col);
+  static bool HasConnection(const Router::CONNECTIONS& connections, const EosAddr& addr);
+};
+
+////////////////////////////////////////////////////////////////////////////////
+
+class RoutingWidget : public QWidget
+{
+  Q_OBJECT
+
+public:
+  RoutingWidget(QWidget* parent = nullptr);
+
+  QSize sizeHint() const { return QSize(1000, 1000); }
+  void Clear();
+  void Load(const QStringList& lines);
+  void LoadRoutes(const Router::ROUTES& routes);
+  void Save(QTextStream& stream);
+  void SaveRoutes(Router::ROUTES& routes, ItemStateTable* itemStateTable);
+  void UpdateItemState(const ItemStateTable& itemStateTable);
+
+  static void StringToTransform(const QString& str, EosRouteDst::sTransform& transform);
+  static void TransformToString(const EosRouteDst::sTransform& transform, QString& str);
+
+protected:
+  void resizeEvent(QResizeEvent* event) override;
+  void showEvent(QShowEvent* event) override;
+  void paintEvent(QPaintEvent* event) override;
+
+private slots:
+  void updateHeaders();
+  void onOutScriptToggled(size_t id, bool checked);
+  void onAddRemoveClicked(size_t id);
+
+private:
+  enum class Col
+  {
+    kLabel = 0,
+
+    kInState,
+    kInActivity,
+    kInIP,
+    kInPort,
+    kInPath,
+    kInMin,
+    kInMax,
+
+    kDivider,
+
+    kOutState,
+    kOutActivity,
+    kOutIP,
+    kOutPort,
+    kOutPath,
+    kOutScript,
+    kOutMin,
+    kOutMax,
+
+    kButton,
+
+    kCount
+  };
+
+  struct Row
+  {
+    size_t id = 0;
+    ItemStateTable::ID inItemStateTableId = ItemStateTable::sm_Invalid_Id;
+    QLineEdit* label = nullptr;
+    Indicator* inState = nullptr;
+    Indicator* inActivity = nullptr;
+    QLineEdit* inIP = nullptr;
+    QLineEdit* inPort = nullptr;
+    QLineEdit* inPath = nullptr;
+    QLineEdit* inMin = nullptr;
+    QLineEdit* inMax = nullptr;
+    QLabel* divider = nullptr;
+    ItemStateTable::ID outItemStateTableId = ItemStateTable::sm_Invalid_Id;
+    Indicator* outState = nullptr;
+    Indicator* outActivity = nullptr;
+    QLineEdit* outIP = nullptr;
+    QLineEdit* outPort = nullptr;
+    QLineEdit* outPath = nullptr;
+    ScriptEdit* outScriptText = nullptr;
+    RoutingCheckBox* outScript = nullptr;
+    QLineEdit* outMin = nullptr;
+    QLineEdit* outMax = nullptr;
+    RoutingButton* addRemove = nullptr;
+  };
+
+  typedef std::vector<Row> Rows;
+  typedef std::map<EosAddr, ItemStateTable::ID> AddrStates;
+
+  Rows m_Rows;
+  QLabel* m_Incoming = nullptr;
+  QLabel* m_Outgoing = nullptr;
+  QLabel* m_Headers[static_cast<int>(Col::kCount)];
+  QScrollArea* m_Scroll = nullptr;
+  QSplitter* m_Cols = nullptr;
+
+  void LoadLine(const QString& line, Router::ROUTES& routes);
+  void AddRow(size_t id, bool remove, const QString& label, const EosRouteSrc& src, const EosRouteDst& dst);
+  void AddCol(int index, QWidget* w, bool fixed = false);
+  void AddCol(int index, const RoutingCol::Widgets& w, bool fixed = false);
+  void UpdateItemState(const ItemState* itemState, Indicator& stateIndicator, Indicator& activityIndicator);
+  void UpdateLayout();
+  QRect RectForCol(Col col) const;
+
+  static QString HeaderForCol(Col col);
+  static bool HasRoute(const Router::ROUTES& routes, const EosRouteSrc& src, const EosRouteDst& dst);
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -393,16 +381,15 @@ public:
   MainWindow(EosPlatform* platform, QWidget* parent = 0, Qt::WindowFlags f = Qt::WindowFlags());
   virtual ~MainWindow();
 
-  virtual QSize sizeHint() const { return QSize(1280, 640); }
-  virtual void FlushLogQ(EosLog::LOG_Q& logQ);
-  virtual bool BuildRoutes();
+  QSize sizeHint() const override { return QSize(1280, 640); }
+  void FlushLogQ(EosLog::LOG_Q& logQ);
+  bool BuildRoutes();
 
 protected:
-  virtual void closeEvent(QCloseEvent* event);
+  void closeEvent(QCloseEvent* event) override;
 
 private slots:
   void onTick();
-  void onRoutingTableChanged();
   void buildRoutes();
   void onNewFile();
   void onOpenFile();
@@ -410,39 +397,41 @@ private slots:
   void onSaveAsFile();
   void onClearLog();
   void onOpenLog();
+  void onApplyClicked(bool checked);
 
 private:
   EosLog m_Log;
   EosLog::LOG_Q m_TempLogQ;
   ItemStateTable m_ItemStateTable;
-  QListWidget* m_LogWidget;
+  LogWidget* m_LogWidget;
   QSettings m_Settings;
   EosPlatform* m_pPlatform;
-  int m_LogDepth;
   int m_FileDepth;
   int m_FileLineCount;
   unsigned int m_ReconnectDelay;
   QFile m_LogFile;
   QTextStream m_LogStream;
-  RoutingTable* m_RoutingTable;
+  RoutingWidget* m_RoutingWidget;
+  TcpWidget* m_TcpWidget;
   RouterThread* m_RouterThread;
   QString m_FilePath;
   bool m_Unsaved;
   bool m_DisableSystemIdle;
 
-  virtual void Shutdown();
-  virtual void GetPersistentSavePath(QString& path) const;
-  virtual void UpdateWindowTitle();
-  virtual void RestoreLastFile();
-  virtual bool LoadFile(const QString& path);
-  virtual bool SaveFile(const QString& path);
-  virtual void InitLogFile();
-  virtual void ShutdownLogFile();
-  virtual void FlushRouterThread(bool logsOnly);
+  void Shutdown();
+  void GetPersistentSavePath(QString& path) const;
+  void UpdateWindowTitle();
+  void RestoreLastFile();
+  bool LoadFile(const QString& path);
+  bool SaveFile(const QString& path);
+  void InitLogFile();
+  void ShutdownLogFile();
+  void FlushRouterThread(bool logsOnly);
+  bool Load(const QString& path);
+  bool Save(const QString& path);
+  bool ResolveUnsaved();
 
   static void GetDefaultIP(QString& ip);
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-
-#endif
