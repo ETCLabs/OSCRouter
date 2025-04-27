@@ -25,6 +25,12 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
+    <Filter Include="psn">
+      <UniqueIdentifier>{5cf8ae74-bac8-4849-b031-6b5cac54e062}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="psn\Header FIles">
+      <UniqueIdentifier>{922adfef-c664-41fa-9a99-b40ee712ec40}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -124,6 +130,24 @@
     </ClInclude>
     <ClInclude Include="EosPlatform.h">
       <Filter>OSCRouter\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\psn\psn_decoder.hpp">
+      <Filter>psn\Header FIles</Filter>
+    </ClInclude>
+    <ClInclude Include="..\psn\psn_decoder_impl.hpp">
+      <Filter>psn\Header FIles</Filter>
+    </ClInclude>
+    <ClInclude Include="..\psn\psn_defs.hpp">
+      <Filter>psn\Header FIles</Filter>
+    </ClInclude>
+    <ClInclude Include="..\psn\psn_encoder.hpp">
+      <Filter>psn\Header FIles</Filter>
+    </ClInclude>
+    <ClInclude Include="..\psn\psn_encoder_impl.hpp">
+      <Filter>psn\Header FIles</Filter>
+    </ClInclude>
+    <ClInclude Include="..\psn\psn_lib.hpp">
+      <Filter>psn\Header FIles</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

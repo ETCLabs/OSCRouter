@@ -34,7 +34,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 
-#define APP_VERSION "0.19"
+#define APP_VERSION "0.20"
 #define SETTING_LOG_DEPTH "LogDepth"
 #define SETTING_FILE_DEPTH "FileDepth"
 #define SETTING_LAST_FILE "LastFile"
@@ -844,6 +844,54 @@ bool TcpWidget::HasConnection(const Router::CONNECTIONS& connections, const EosA
 
 ////////////////////////////////////////////////////////////////////////////////
 
+ProtocolComboBox::ProtocolComboBox(size_t row, Protocol protocol, QWidget* parent /*= nullptr*/)
+  : QComboBox(parent)
+  , m_Row(row)
+{
+  setToolTip(tr("Protocol"));
+
+  protocol = SanitizedProtocol(static_cast<int>(protocol));
+  for (int i = 0; i < static_cast<int>(Protocol::kCount); ++i)
+  {
+    addItem(ProtocolName(static_cast<Protocol>(i)), i);
+    if (static_cast<Protocol>(i) == protocol)
+      setCurrentIndex(count() - 1);
+  }
+
+  connect(this, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &ProtocolComboBox::onCurrentIndexChanged);
+}
+
+Protocol ProtocolComboBox::GetProtocol() const
+{
+  return SanitizedProtocol(currentData().toInt());
+}
+
+void ProtocolComboBox::onCurrentIndexChanged(int /*index*/)
+{
+  emit protocolChanged(m_Row, GetProtocol());
+}
+
+QString ProtocolComboBox::ProtocolName(Protocol protocol)
+{
+  switch (protocol)
+  {
+    case Protocol::kOSC: return tr("OSC");
+    case Protocol::kPSN: return tr("PSN");
+  }
+
+  return tr("Unknown(%1)").arg(static_cast<int>(protocol));
+}
+
+Protocol ProtocolComboBox::SanitizedProtocol(int protocol)
+{
+  if (protocol < 0 || protocol >= static_cast<int>(Protocol::kCount))
+    return Protocol::kDefault;
+
+  return static_cast<Protocol>(protocol);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
 RoutingWidget::RoutingWidget(QWidget* parent /*= nullptr*/)
   : QWidget(parent)
 {
@@ -920,6 +968,9 @@ QString RoutingWidget::HeaderForCol(Col col)
     case Col::kInPort:
     case Col::kOutPort: return tr("Port");
 
+    case Col::kInProtocol:
+    case Col::kOutProtocol: return tr("Prot");
+
     case Col::kInPath:
     case Col::kOutPath: return tr("Path");
 
@@ -974,8 +1025,11 @@ void RoutingWidget::AddRow(size_t id, bool remove, const QString& label, const E
   AddCol(col++, row.inActivity, /*fixed*/ true);
 
   row.inIP = new QLineEdit(m_Cols->widget(col));
-  row.inIP->setToolTip(tr("Only route packets received from this specific IP address\n\nLeave blank to route packets received from any IP address"));
-  row.inIP->setText(src.addr.ip);
+  row.inIP->setToolTip(tr("Only route packets received from this specific IP address\n\nLeave blank to route packets received from any IP address\n\nFor multicast, use 2 comma separated IP addresses\n(the first may be blank)"));
+  if (src.multicastIP.isEmpty())
+    row.inIP->setText(src.addr.ip);
+  else
+    row.inIP->setText(src.addr.ip + QLatin1Char(',') + src.multicastIP);
   AddCol(col++, row.inIP);
 
   row.inPort = new QLineEdit(m_Cols->widget(col));
@@ -983,11 +1037,28 @@ void RoutingWidget::AddRow(size_t id, bool remove, const QString& label, const E
   row.inPort->setText((src.addr.port == 0) ? QString() : QString::number(src.addr.port));
   AddCol(col++, row.inPort);
 
+  row.inProtocol = new ProtocolComboBox(id, src.protocol, m_Cols->widget(col));
+  connect(row.inProtocol, &ProtocolComboBox::protocolChanged, this, &RoutingWidget::onInProtocolChanged);
+  AddCol(col++, row.inProtocol);
+
   row.inPath = new QLineEdit(m_Cols->widget(col));
   row.inPath->setToolTip(
-      tr("Only route received OSC commands with this specific OSC command path\n(use * for wildcard matching, ex: /eos/out/event/*)\n\nLeave blank to route received packets with any OSC "
-         "command path "
-         "(or non-OSC packets)"));
+      tr("Only route received OSC commands with this specific OSC command path\n"
+         "(use * for wildcard matching, ex: /eos/out/event/*)\n"
+         "\n"
+         "Leave blank to route received packets with any OSC command path (or non-OSC packets)\n"
+         "\n"
+         "Incoming PSN:\n"
+         "  Individual:\n"
+         "    /psn/<id>/pos=x,y,z\n"
+         "    /psn/<id>/speed=x,y,z\n"
+         "    /psn/<id>/orientation=x,y,z\n"
+         "    /psn/<id>/acceleration=x,y,z\n"
+         "    /psn/<id>/target=x,y,z\n"
+         "    /psn/<id>/status=status\n"
+         "    /psn/<id>/timestamp=timestamp\n"
+         "  Unified:\n"
+         "    /psn/<id>/pos/speed/orientation/acceleration/..."));
   row.inPath->setText(src.path);
   AddCol(col++, row.inPath);
 
@@ -1036,10 +1107,16 @@ void RoutingWidget::AddRow(size_t id, bool remove, const QString& label, const E
   row.outPort->setText((dst.addr.port == 0) ? QString() : QString::number(dst.addr.port));
   AddCol(col++, row.outPort);
 
+  row.outProtocol = new ProtocolComboBox(id, dst.protocol, m_Cols->widget(col));
+  connect(row.outProtocol, &ProtocolComboBox::protocolChanged, this, &RoutingWidget::onOutProtocolChanged);
+  AddCol(col++, row.outProtocol);
+
   QString tip =
       tr("Route received OSC commands to this OSC command\n"
          "\n"
          "Use %1, %2, %3, etc... to insert specific sections from the received OSC command\n"
+         "\n"
+         "For PSN output, see incoming path tool tip for path formatting\n"
          "\n"
          "Ex: Remap path\n"
          "Input:  /eos/out/event/cue/1/25/fire\n"
@@ -1063,8 +1140,10 @@ void RoutingWidget::AddRow(size_t id, bool remove, const QString& label, const E
   tip =
       tr("JavaScript Variables:\n--------------------\n"
          "OSC = outgoing osc path (string)\n"
-         "ARGS = array of osc arguments\n\n"
-         "Write your own JavaScript to modify the OSC and ARGS variables\n\n"
+         "ARGS = array of osc arguments\n"
+         "\n"
+         "Write your own JavaScript to modify the OSC and ARGS variables\n"
+         "\n"
          "Ex:\n"
          "// modify outgoing osc fader from percent to 8-bit value:\n"
          "OSC = OSC + \"/level\";\n"
@@ -1167,8 +1246,17 @@ void RoutingWidget::LoadLine(const QString& line, Router::ROUTES& routes)
     if (items.size() > 11)
     {
       route.dst.scriptText = items[11];
-      route.dst.script = true;
+      route.dst.script = !route.dst.scriptText.isEmpty();
     }
+
+    if (items.size() > 12)
+      route.src.multicastIP = items[12];
+
+    if (items.size() > 13)
+      route.src.protocol = ProtocolComboBox::SanitizedProtocol(items[13].toInt());
+
+    if (items.size() > 14)
+      route.dst.protocol = ProtocolComboBox::SanitizedProtocol(items[14].toInt());
 
     routes.push_back(route);
   }
@@ -1203,8 +1291,10 @@ void RoutingWidget::Save(QTextStream& stream)
     stream << QStringLiteral(",%1").arg(FileUtils::QuotedString(route.dst.path));
     stream << QStringLiteral(",%1").arg(outMinStr);
     stream << QStringLiteral(",%1").arg(outMaxStr);
-    if (route.dst.script)
-      stream << QStringLiteral(",%1").arg(FileUtils::QuotedString(route.dst.scriptText));
+    stream << QStringLiteral(",%1").arg(route.dst.script ? FileUtils::QuotedString(route.dst.scriptText) : QString());
+    stream << QStringLiteral(",%1").arg(FileUtils::QuotedString(route.src.multicastIP));
+    stream << QStringLiteral(",%1").arg(static_cast<int>(route.src.protocol));
+    stream << QStringLiteral(",%1").arg(static_cast<int>(route.dst.protocol));
     stream << QLatin1Char('\n');
   }
 }
@@ -1228,10 +1318,20 @@ void RoutingWidget::SaveRoutes(Router::ROUTES& routes, ItemStateTable* itemState
 
     route.label = row.label->text();
 
-    route.src.addr.ip = row.inIP->text();
+    QStringList ips = row.inIP->text().split(QLatin1Char(','));
+    if (ips.size() > 1)
+    {
+      route.src.addr.ip = ips[0].trimmed();
+      route.src.multicastIP = ips[1].trimmed();
+    }
+    else
+      route.src.addr.ip = row.inIP->text();
+
+    route.src.protocol = row.inProtocol->GetProtocol();
     route.src.path = row.inPath->text();
 
     route.dst.addr.ip = row.outIP->text();
+    route.dst.protocol = row.outProtocol->GetProtocol();
     route.dst.addr.port = row.outPort->text().toUShort();
     route.dst.path = row.outPath->text();
     route.dst.script = row.outScript->isChecked();
@@ -1425,6 +1525,30 @@ void RoutingWidget::onAddRemoveClicked(size_t id)
   Router::ROUTES routes;
   SaveRoutes(routes, /*itemStateTable*/ 0);
   LoadRoutes(routes);
+}
+
+void RoutingWidget::onInProtocolChanged(size_t row, Protocol protocol)
+{
+  if (row >= m_Rows.size() || protocol != Protocol::kPSN)
+    return;
+
+  const Row& r = m_Rows[row];
+  if (r.inIP->text().isEmpty())
+    r.inIP->setText(QLatin1String(",") + Router::GetDefaultPSNIP());
+  if (r.inPort->text().isEmpty())
+    r.inPort->setText(QString::number(Router::GetDefaultPSNPort()));
+}
+
+void RoutingWidget::onOutProtocolChanged(size_t row, Protocol protocol)
+{
+  if (row >= m_Rows.size() || protocol != Protocol::kPSN)
+    return;
+
+  const Row& r = m_Rows[row];
+  if (r.outIP->text().isEmpty())
+    r.outIP->setText(QLatin1String(",") + Router::GetDefaultPSNIP());
+  if (r.outPort->text().isEmpty())
+    r.outPort->setText(QString::number(Router::GetDefaultPSNPort()));
 }
 
 void RoutingWidget::StringToTransform(const QString& str, EosRouteDst::sTransform& transform)

@@ -78,14 +78,28 @@ struct EosAddr
 
 ////////////////////////////////////////////////////////////////////////////////
 
+enum class Protocol
+{
+  kOSC = 0,
+  kPSN,
+
+  kCount,
+  kDefault = kOSC,
+  kInvalid = 0xffff
+};
+
+////////////////////////////////////////////////////////////////////////////////
+
 struct EosRouteSrc
 {
   EosRouteSrc() {}
-  EosRouteSrc(const EosAddr &Addr, const QString &Path);
+  EosRouteSrc(const EosAddr &Addr, Protocol Protocol, const QString &Path);
   bool operator==(const EosRouteSrc &other) const;
   bool operator!=(const EosRouteSrc &other) const;
   bool operator<(const EosRouteSrc &other) const;
   EosAddr addr;
+  QString multicastIP;
+  Protocol protocol = Protocol::kDefault;
   QString path;
 };
 
@@ -113,6 +127,7 @@ struct EosRouteDst
   bool operator<(const EosRouteDst &other) const;
 
   EosAddr addr;
+  Protocol protocol = Protocol::kDefault;
   QString path;
   bool script = false;
   QString scriptText;

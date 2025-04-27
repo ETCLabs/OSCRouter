@@ -156,8 +156,9 @@ void EosAddr::UIntToIP(unsigned int n, QString &ip)
 
 ////////////////////////////////////////////////////////////////////////////////
 
-EosRouteSrc::EosRouteSrc(const EosAddr &Addr, const QString &Path)
+EosRouteSrc::EosRouteSrc(const EosAddr &Addr, Protocol Protocol, const QString &Path)
   : addr(Addr)
+  , protocol(Protocol)
   , path(Path)
 {
 }
@@ -166,22 +167,26 @@ EosRouteSrc::EosRouteSrc(const EosAddr &Addr, const QString &Path)
 
 bool EosRouteSrc::operator==(const EosRouteSrc &other) const
 {
-  return (addr == other.addr && path == other.path);
+  return (addr == other.addr && multicastIP == other.multicastIP && protocol == other.protocol && path == other.path);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
 bool EosRouteSrc::operator!=(const EosRouteSrc &other) const
 {
-  return (addr != other.addr || path != other.path);
+  return (addr != other.addr || multicastIP != other.multicastIP || protocol != other.protocol || path != other.path);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
 bool EosRouteSrc::operator<(const EosRouteSrc &other) const
 {
-  if (addr == other.addr)
+  if (addr != other.addr)
     return (addr < other.addr);
+  if (multicastIP != other.multicastIP)
+    return (multicastIP < other.multicastIP);
+  if (protocol != other.protocol)
+    return (protocol < other.protocol);
   return (path < other.path);
 }
 
@@ -189,8 +194,8 @@ bool EosRouteSrc::operator<(const EosRouteSrc &other) const
 
 bool EosRouteDst::operator==(const EosRouteDst &other) const
 {
-  return (addr == other.addr && path == other.path && script == other.script && scriptText == other.scriptText && inMin == other.inMin && inMax == other.inMax && outMin == other.outMin &&
-          outMax == other.outMax);
+  return (addr == other.addr && protocol == other.protocol && path == other.path && script == other.script && scriptText == other.scriptText && inMin == other.inMin && inMax == other.inMax &&
+          outMin == other.outMin && outMax == other.outMax);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -199,6 +204,8 @@ bool EosRouteDst::operator<(const EosRouteDst &other) const
 {
   if (addr != other.addr)
     return (addr < other.addr);
+  if (protocol != other.protocol)
+    return protocol < other.protocol;
   if (path != other.path)
     return (path < other.path);
   if (script != other.script)

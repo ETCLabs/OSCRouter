@@ -52,7 +52,7 @@
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\EosSyncLib\EosSyncLib;$(QTOSCROUTER)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\EosSyncLib\EosSyncLib;..\psn;$(QTOSCROUTER)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4127;4996;4512</DisableSpecificWarnings>
       <PreprocessorDefinitions>WIN32;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <TreatSpecificWarningsAsErrors>4715</TreatSpecificWarningsAsErrors>
@@ -77,7 +77,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\..\EosSyncLib\EosSyncLib;$(QTOSCROUTER)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\EosSyncLib\EosSyncLib;..\psn;$(QTOSCROUTER)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4127;4996;4512</DisableSpecificWarnings>
       <PreprocessorDefinitions>WIN32;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <TreatSpecificWarningsAsErrors>4715</TreatSpecificWarningsAsErrors>
@@ -119,6 +119,12 @@
   <ItemGroup>
     <ClInclude Include="..\..\EosSyncLib\EosSyncLib\EosUdp.h" />
     <ClInclude Include="..\..\EosSyncLib\EosSyncLib\EosUdp_Win.h" />
+    <ClInclude Include="..\psn\psn_decoder.hpp" />
+    <ClInclude Include="..\psn\psn_decoder_impl.hpp" />
+    <ClInclude Include="..\psn\psn_defs.hpp" />
+    <ClInclude Include="..\psn\psn_encoder.hpp" />
+    <ClInclude Include="..\psn\psn_encoder_impl.hpp" />
+    <ClInclude Include="..\psn\psn_lib.hpp" />
     <ClInclude Include="EosPlatform.h" />
     <ClInclude Include="ItemState.h" />
     <ClInclude Include="LeakWatcher.h" />

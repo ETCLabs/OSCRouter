@@ -22,6 +22,7 @@
 #include "EosTimer.h"
 #include "EosUdp.h"
 #include "EosTcp.h"
+#include <psn_lib.hpp>
 
 #ifdef WIN32
 #include <WinSock2.h>
@@ -41,6 +42,16 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #define EPSILLON 0.00001f
+
+uint16_t Router::GetDefaultPSNPort()
+{
+  return psn::DEFAULT_UDP_PORT;
+}
+
+QString Router::GetDefaultPSNIP()
+{
+  return QString::fromStdString(psn::DEFAULT_UDP_MULTICAST_ADDR);
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -100,11 +111,13 @@ EosUdpInThread::~EosUdpInThread()
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void EosUdpInThread::Start(const EosAddr &addr, ItemStateTable::ID itemStateTableId, unsigned int reconnectDelayMS)
+void EosUdpInThread::Start(const EosAddr &addr, QString multicastIP, Protocol protocol, ItemStateTable::ID itemStateTableId, unsigned int reconnectDelayMS)
 {
   Stop();
 
   m_Addr = addr;
+  m_MulticastIP = multicastIP;
+  m_Protocol = protocol;
   m_ItemStateTableId = itemStateTableId;
   m_ReconnectDelay = reconnectDelayMS;
   m_Run = true;
@@ -153,11 +166,201 @@ void EosUdpInThread::SetState(ItemState::EnumState state)
 
 ////////////////////////////////////////////////////////////////////////////////
 
+void EosUdpInThread::RecvPacket(const QHostAddress &host, const char *data, int len, OSCParser& logParser, PacketLogger &packetLogger)
+{
+  if (m_Protocol != Protocol::kPSN)
+  {
+    QueuePacket(host, data, len, logParser, packetLogger);
+    return;
+  }
+
+  if (!m_PSNDecoder->decode(data, static_cast<size_t>(len)))
+    return;  // could not decode psn packet
+
+  if (m_PSNFrame.has_value() && m_PSNFrame.value() == m_PSNDecoder->get_data().header.frame_id)
+    return;  // already recevied this psn frame
+
+  m_PSNFrame = m_PSNDecoder->get_data().header.frame_id;
+
+  const psn::tracker_map &trackers = m_PSNDecoder->get_data().trackers;
+  for (psn::tracker_map::const_iterator trackerIter = trackers.begin(); trackerIter != trackers.end(); ++trackerIter)
+  {
+    const psn::tracker &tracker = trackerIter->second;
+    std::string path = "/psn/" + std::to_string(tracker.get_id());
+
+    std::string completePath = path;
+    OSCPacketWriter completeOSC;
+
+    if (tracker.is_pos_set())
+    {
+      OSCPacketWriter osc(path + "/pos");
+      completePath += "/pos";
+      osc.AddFloat32(tracker.get_pos().x);
+      osc.AddFloat32(tracker.get_pos().y);
+      osc.AddFloat32(tracker.get_pos().z);
+      completeOSC.AddFloat32(tracker.get_pos().x);
+      completeOSC.AddFloat32(tracker.get_pos().y);
+      completeOSC.AddFloat32(tracker.get_pos().z);
+      size_t size = 0;
+      char *packet = osc.Create(size);
+      if (packet)
+      {
+        if (size > 0)
+          QueuePacket(host, packet, static_cast<int>(size), logParser, packetLogger);
+        delete[] packet;
+      }
+    }
+
+    if (tracker.is_speed_set())
+    {
+        OSCPacketWriter osc(path + "/speed");
+        completePath += "/speed";
+        osc.AddFloat32(tracker.get_speed().x);
+        osc.AddFloat32(tracker.get_speed().y);
+        osc.AddFloat32(tracker.get_speed().z);
+        completeOSC.AddFloat32(tracker.get_speed().x);
+        completeOSC.AddFloat32(tracker.get_speed().y);
+        completeOSC.AddFloat32(tracker.get_speed().z);
+        size_t size = 0;
+        char *packet = osc.Create(size);
+        if (packet)
+        {
+          if (size > 0)
+            QueuePacket(host, packet, static_cast<int>(size), logParser, packetLogger);
+          delete[] packet;
+        }
+    }
+
+    if (tracker.is_ori_set())
+    {
+        OSCPacketWriter osc(path + "/orientation");
+        completePath += "/orientation";
+        osc.AddFloat32(tracker.get_ori().x);
+        osc.AddFloat32(tracker.get_ori().y);
+        osc.AddFloat32(tracker.get_ori().z);
+        completeOSC.AddFloat32(tracker.get_ori().x);
+        completeOSC.AddFloat32(tracker.get_ori().y);
+        completeOSC.AddFloat32(tracker.get_ori().z);
+        size_t size = 0;
+        char *packet = osc.Create(size);
+        if (packet)
+        {
+          if (size > 0)
+            QueuePacket(host, packet, static_cast<int>(size), logParser, packetLogger);
+          delete[] packet;
+        }
+    }
+
+    if (tracker.is_accel_set())
+    {
+        OSCPacketWriter osc(path + "/acceleration");
+        completePath += "/acceleration";
+        osc.AddFloat32(tracker.get_accel().x);
+        osc.AddFloat32(tracker.get_accel().y);
+        osc.AddFloat32(tracker.get_accel().z);
+        completeOSC.AddFloat32(tracker.get_accel().x);
+        completeOSC.AddFloat32(tracker.get_accel().y);
+        completeOSC.AddFloat32(tracker.get_accel().z);
+        size_t size = 0;
+        char *packet = osc.Create(size);
+        if (packet)
+        {
+          if (size > 0)
+            QueuePacket(host, packet, static_cast<int>(size), logParser, packetLogger);
+          delete[] packet;
+        }
+    }
+
+    if (tracker.is_target_pos_set())
+    {
+        OSCPacketWriter osc(path + "/target");
+        completePath += "/target";
+        osc.AddFloat32(tracker.get_target_pos().x);
+        osc.AddFloat32(tracker.get_target_pos().y);
+        osc.AddFloat32(tracker.get_target_pos().z);
+        completeOSC.AddFloat32(tracker.get_target_pos().x);
+        completeOSC.AddFloat32(tracker.get_target_pos().y);
+        completeOSC.AddFloat32(tracker.get_target_pos().z);
+        size_t size = 0;
+        char *packet = osc.Create(size);
+        if (packet)
+        {
+          if (size > 0)
+            QueuePacket(host, packet, static_cast<int>(size), logParser, packetLogger);
+          delete[] packet;
+        }
+    }
+
+    if (tracker.is_status_set())
+    {
+        OSCPacketWriter osc(path + "/status");
+        completePath += "/status";
+        osc.AddFloat32(tracker.get_status());
+        completeOSC.AddFloat32(tracker.get_status());
+        size_t size = 0;
+        char *packet = osc.Create(size);
+        if (packet)
+        {
+          if (size > 0)
+            QueuePacket(host, packet, static_cast<int>(size), logParser, packetLogger);
+          delete[] packet;
+        }
+    }
+
+    if (tracker.is_status_set())
+    {
+        OSCPacketWriter osc(path + "/timestamp");
+        completePath += "/timestamp";
+        osc.AddUInt64(tracker.get_timestamp());
+        completeOSC.AddUInt64(tracker.get_timestamp());
+        size_t size = 0;
+        char *packet = osc.Create(size);
+        if (packet)
+        {
+          if (size > 0)
+            QueuePacket(host, packet, static_cast<int>(size), logParser, packetLogger);
+          delete[] packet;
+        }
+    }
+
+    if (!completeOSC.empty())
+    {
+      completeOSC.SetPath(completePath);
+      size_t size = 0;
+      char *packet = completeOSC.Create(size);
+      if (packet)
+      {
+        if (size > 0)
+          QueuePacket(host, packet, static_cast<int>(size), logParser, packetLogger);
+        delete[] packet;
+      }
+    }
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+void EosUdpInThread::QueuePacket(const QHostAddress &host, const char *data, int len, OSCParser &logParser, PacketLogger &packetLogger)
+{
+  std::string logPrefix = QString("UDP IN  [%1:%2] ").arg(host.toString()).arg(m_Addr.port).toUtf8().constData();
+  packetLogger.SetPrefix(logPrefix);
+  packetLogger.PrintPacket(logParser, data, static_cast<size_t>(len));
+  unsigned int ip = static_cast<unsigned int>(host.toIPv4Address());
+  m_Mutex.lock();
+  m_Q.push_back(sRecvPacket(data, len, ip));
+  m_Mutex.unlock();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
 void EosUdpInThread::run()
 {
   QString msg = QString("udp input %1:%2 thread started").arg(m_Addr.ip).arg(m_Addr.port);
   m_PrivateLog.AddInfo(msg.toUtf8().constData());
   UpdateLog();
+
+  m_PSNDecoder = new psn::psn_decoder();
+  m_PSNFrame.reset();
 
   EosTimer reconnectTimer;
 
@@ -167,7 +370,7 @@ void EosUdpInThread::run()
     SetState(ItemState::STATE_CONNECTING);
 
     EosUdpIn *udpIn = EosUdpIn::Create();
-    if (udpIn->Initialize(m_PrivateLog, m_Addr.ip.toUtf8().constData(), m_Addr.port))
+    if (udpIn->Initialize(m_PrivateLog, m_Addr.ip.toUtf8().constData(), m_Addr.port, m_MulticastIP.isEmpty() ? nullptr : m_MulticastIP.toUtf8().constData()))
     {
       SetState(ItemState::STATE_CONNECTED);
 
@@ -184,16 +387,7 @@ void EosUdpInThread::run()
         int addrSize = static_cast<int>(sizeof(addr));
         const char *data = udpIn->RecvPacket(m_PrivateLog, 100, 0, len, &addr, &addrSize);
         if (data && len > 0)
-        {
-          QHostAddress host(reinterpret_cast<const sockaddr *>(&addr));
-          logPrefix = QString("UDP IN  [%1:%2] ").arg(host.toString()).arg(m_Addr.port).toUtf8().constData();
-          packetLogger.SetPrefix(logPrefix);
-          packetLogger.PrintPacket(logParser, data, static_cast<size_t>(len));
-          unsigned int ip = static_cast<unsigned int>(host.toIPv4Address());
-          m_Mutex.lock();
-          m_Q.push_back(sRecvPacket(data, len, ip));
-          m_Mutex.unlock();
-        }
+          RecvPacket(QHostAddress(reinterpret_cast<const sockaddr *>(&addr)), data, len, logParser, packetLogger);
 
         UpdateLog();
 
@@ -216,6 +410,8 @@ void EosUdpInThread::run()
     while (m_Run && !reconnectTimer.GetExpired(m_ReconnectDelay))
       msleep(10);
   }
+
+  delete m_PSNDecoder;
 
   msg = QString("udp input %1:%2 thread ended").arg(m_Addr.ip).arg(m_Addr.port);
   m_PrivateLog.AddInfo(msg.toUtf8().constData());
@@ -342,7 +538,7 @@ void EosUdpOutThread::run()
     SetState(ItemState::STATE_CONNECTING);
 
     EosUdpOut *udpOut = EosUdpOut::Create();
-    if (udpOut->Initialize(m_PrivateLog, m_Addr.ip.toUtf8().constData(), m_Addr.port))
+    if (udpOut->Initialize(m_PrivateLog, m_Addr.ip.toUtf8().constData(), m_Addr.port, QHostAddress(m_Addr.ip).isMulticast()))
     {
       SetState(ItemState::STATE_CONNECTED);
 
@@ -964,7 +1160,7 @@ void RouterThread::BuildRoutes(ROUTES_BY_PORT &routesByPort, UDP_IN_THREADS &udp
           {
             EosUdpInThread *thread = new EosUdpInThread();
             udpInThreads[inAddr] = thread;
-            thread->Start(inAddr, route.srcItemStateTableId, m_ReconnectDelay);
+            thread->Start(inAddr, route.src.multicastIP, route.src.protocol, route.srcItemStateTableId, m_ReconnectDelay);
           }
         }
       }
@@ -1076,23 +1272,22 @@ void RouterThread::ProcessRecvQ(OSCParser &oscBundleParser, ROUTES_BY_PORT &rout
   {
     EosUdpInThread::sRecvPacket &recvPacket = *i;
 
-    // handle OSC bundles
     char *buf = recvPacket.packet.GetData();
     size_t packetSize = static_cast<size_t>(std::max(0, recvPacket.packet.GetSize()));
     if (OSCParser::IsOSCPacket(buf, packetSize))
     {
-      OSCBundleMethod *bundleHandler = static_cast<OSCBundleMethod *>(oscBundleParser.GetRoot());
-      bundleHandler->SetIP(recvPacket.ip);
-      oscBundleParser.ProcessPacket(*this, recvPacket.packet.GetData(), static_cast<size_t>(qMax(0, recvPacket.packet.GetSize())));
-      EosUdpInThread::RECV_Q bundleQ;
-      bundleHandler->Flush(bundleQ);
-      if (!bundleQ.empty())
-      {
-        for (EosUdpInThread::RECV_Q::iterator j = bundleQ.begin(); j != bundleQ.end(); j++)
-          ProcessRecvPacket(routesByPort, routingDestinationList, udpOutThreads, tcpClientThreads, addr, /*isOSC*/ true, *j);
+        OSCBundleMethod *bundleHandler = static_cast<OSCBundleMethod *>(oscBundleParser.GetRoot());
+        bundleHandler->SetIP(recvPacket.ip);
+        oscBundleParser.ProcessPacket(*this, recvPacket.packet.GetData(), static_cast<size_t>(qMax(0, recvPacket.packet.GetSize())));
+        EosUdpInThread::RECV_Q bundleQ;
+        bundleHandler->Flush(bundleQ);
+        if (!bundleQ.empty())
+        {
+            for (EosUdpInThread::RECV_Q::iterator j = bundleQ.begin(); j != bundleQ.end(); j++)
+                ProcessRecvPacket(routesByPort, routingDestinationList, udpOutThreads, tcpClientThreads, addr, /*isOSC*/ true, *j);
 
-        continue;
-      }
+            continue;
+        }
     }
 
     ProcessRecvPacket(routesByPort, routingDestinationList, udpOutThreads, tcpClientThreads, addr, /*isOSC*/ false, recvPacket);
@@ -1194,11 +1389,24 @@ void RouterThread::ProcessRecvPacket(ROUTES_BY_PORT &routesByPort, DESTINATIONS_
           {
             if (isOSC)
             {
-              EosPacket packet;
-              if (MakeOSCPacket(path, routeDst.dst, args, argsCount, packet) && thread->Send(packet))
+              EosPacket oscPacket;
+              if (MakeOSCPacket(path, routeDst.dst, args, argsCount, oscPacket))
               {
-                SetItemActivity(routeDst.srcItemStateTableId);
-                SetItemActivity(thread->GetItemStateTableId());
+                bool sent = false;
+                if (routeDst.dst.protocol == Protocol::kPSN)
+                {
+                  EosPacket psnPacket;
+                  if (MakePSNPacket(oscPacket, psnPacket) && thread->Send(psnPacket))
+                    sent = true;
+                }
+                else if (thread->Send(oscPacket))
+                  sent = true;
+
+                if (sent)
+                {
+                  SetItemActivity(routeDst.srcItemStateTableId);
+                  SetItemActivity(thread->GetItemStateTableId());
+                }
               }
             }
             else if (thread->Send(recvPacket.packet))
@@ -1287,6 +1495,127 @@ bool RouterThread::MakeOSCPacket(const QString &srcPath, const EosRouteDst &dst,
       packet = EosPacket(oscPacketData, static_cast<int>(oscPacketSize));
       delete[] oscPacketData;
       return true;
+    }
+  }
+
+  return false;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+bool GetFloat3(OSCArgument *args, size_t argCount, size_t index, psn::float3 &f3)
+{
+  if (!args || (index + 2) >= argCount)
+    return false;
+
+  if (!args[index].GetFloat(f3.x))
+    return false;
+
+  if (!args[index + 1].GetFloat(f3.y))
+    return false;
+
+  return args[index + 2].GetFloat(f3.z);
+}
+
+bool RouterThread::MakePSNPacket(EosPacket &osc, EosPacket &psn)
+{
+  char *data = osc.GetData();
+  if (!data || osc.GetSize() < 1)
+    return false;
+
+  // find osc path null terminator
+  for (int i = 0; i < osc.GetSize(); i++)
+  {
+    if (data[i] == 0)
+    {
+      if (i < 1)
+        break;
+
+      QString path = QString::fromUtf8(data[0] == '/' ? &data[1] : &data[0]);
+      QStringList parts = path.split(QLatin1Char('/'));
+      if (parts.size() < 2)
+        break;
+
+      if (parts[0] != QLatin1String("psn"))
+        break;
+
+      psn::tracker tracker(parts[1].toUShort());
+
+      if (parts.size() > 2)
+      {
+        size_t argCount = 0xffffffff;
+        OSCArgument *args = OSCArgument::GetArgs(&data[i], static_cast<size_t>(osc.GetSize()), argCount);
+        size_t argIndex = 0;
+        psn::float3 f3;
+        for (int part = 2; part < parts.size(); ++part)
+        {
+          if (parts[part] == QLatin1String("pos"))
+          {
+            if (GetFloat3(args, argCount, argIndex, f3))
+              tracker.set_pos(f3);
+            argIndex += 3;
+          }
+          else if (parts[part] == QLatin1String("speed"))
+          {
+            if (GetFloat3(args, argCount, argIndex, f3))
+              tracker.set_speed(f3);
+            argIndex += 3;
+          }
+          else if (parts[part] == QLatin1String("orientation"))
+          {
+            if (GetFloat3(args, argCount, argIndex, f3))
+              tracker.set_ori(f3);
+            argIndex += 3;
+          }
+          else if (parts[part] == QLatin1String("acceleration"))
+          {
+            if (GetFloat3(args, argCount, argIndex, f3))
+              tracker.set_accel(f3);
+            argIndex += 3;
+          }
+          else if (parts[part] == QLatin1String("target"))
+          {
+            if (GetFloat3(args, argCount, argIndex, f3))
+              tracker.set_target_pos(f3);
+            argIndex += 3;
+          }
+          else if (parts[part] == QLatin1String("status"))
+          {
+            float f = 0;
+            if (args && argIndex < argCount && args[argIndex].GetFloat(f))
+              tracker.set_status(f);
+            ++argIndex;
+          }
+          else if (parts[part] == QLatin1String("timestamp"))
+          {
+            uint64_t u = 0;
+            if (args && argIndex < argCount && args[argIndex].GetUInt64(u))
+              tracker.set_timestamp(u);
+            ++argIndex;
+          }
+        }
+
+        if (args)
+          delete[] args;
+      }
+
+      psn::tracker_map trackers;
+      trackers[tracker.get_id()] = tracker;
+
+      uint64_t timestamp = 0;
+      if (m_PSNEncoderTimer.isValid())
+        timestamp = m_PSNEncoderTimer.elapsed();
+      else
+        m_PSNEncoderTimer.start();
+
+      std::list<std::string> packets = m_PSNEncoder->encode_data(trackers, tracker.is_timestamp_set() ? tracker.get_timestamp() : timestamp);
+      if (!packets.empty() && packets.front().data() && packets.front().size() != 0)
+      {
+        psn = EosPacket(packets.front().data(), static_cast<int>(packets.front().size()));
+        return true;
+      }
+
+      break;
     }
   }
 
@@ -1515,6 +1844,8 @@ void RouterThread::run()
   UpdateLog();
 
   m_ScriptEngine = new ScriptEngine();
+  m_PSNEncoder = new psn::psn_encoder("OSCRouter");
+  m_PSNEncoderTimer.invalidate();
 
   UDP_IN_THREADS udpInThreads;
   UDP_OUT_THREADS udpOutThreads;
@@ -1676,6 +2007,9 @@ void RouterThread::run()
   }
 
   m_ItemStateTable.Deactivate();
+
+  delete m_PSNEncoder;
+  m_PSNEncoder = nullptr;
 
   delete m_ScriptEngine;
   m_ScriptEngine = nullptr;

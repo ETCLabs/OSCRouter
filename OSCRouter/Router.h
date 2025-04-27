@@ -44,6 +44,12 @@
 
 class EosTcp;
 
+namespace psn
+{
+class psn_decoder;
+class psn_encoder;
+};
+
 ////////////////////////////////////////////////////////////////////////////////
 
 class ScriptEngine
@@ -85,6 +91,9 @@ public:
   };
 
   typedef std::vector<sRoute> ROUTES;
+
+  static uint16_t GetDefaultPSNPort();
+  static QString GetDefaultPSNIP();
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -130,15 +139,18 @@ public:
   EosUdpInThread();
   virtual ~EosUdpInThread();
 
-  virtual void Start(const EosAddr &addr, ItemStateTable::ID itemStateTableId, unsigned int reconnectDelayMS);
+  virtual void Start(const EosAddr &addr, QString multicastIP, Protocol protocol, ItemStateTable::ID itemStateTableId, unsigned int reconnectDelayMS);
   virtual void Stop();
   const EosAddr &GetAddr() const { return m_Addr; }
+  Protocol GetProtocol() const { return m_Protocol; }
   ItemStateTable::ID GetItemStateTableId() const { return m_ItemStateTableId; }
   ItemState::EnumState GetState();
   virtual void Flush(EosLog::LOG_Q &logQ, RECV_Q &recvQ);
 
 protected:
   EosAddr m_Addr;
+  QString m_MulticastIP;
+  Protocol m_Protocol = Protocol::kDefault;
   ItemStateTable::ID m_ItemStateTableId;
   ItemState::EnumState m_State;
   unsigned int m_ReconnectDelay;
@@ -147,10 +159,14 @@ protected:
   EosLog m_PrivateLog;
   RECV_Q m_Q;
   QRecursiveMutex m_Mutex;
+  psn::psn_decoder *m_PSNDecoder = nullptr;
+  std::optional<uint8_t> m_PSNFrame;
 
   virtual void run();
   virtual void UpdateLog();
   virtual void SetState(ItemState::EnumState state);
+  virtual void RecvPacket(const QHostAddress &host, const char *data, int len, OSCParser& logParser, PacketLogger &packetLogger);
+  virtual void QueuePacket(const QHostAddress &host, const char *data, int len, OSCParser &logParser, PacketLogger &packetLogger);
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -337,6 +353,8 @@ protected:
   ItemStateTable m_ItemStateTable;
   QRecursiveMutex m_Mutex;
   ScriptEngine *m_ScriptEngine = nullptr;
+  psn::psn_encoder *m_PSNEncoder = nullptr;
+  QElapsedTimer m_PSNEncoderTimer;
 
   virtual void run();
   virtual void BuildRoutes(ROUTES_BY_PORT &routesByPort, UDP_IN_THREADS &udpInThreads, UDP_OUT_THREADS &udpOutThreads, TCP_CLIENT_THREADS &tcpClientThreads, TCP_SERVER_THREADS &tcpServerThreads);
@@ -347,6 +365,7 @@ protected:
   virtual void ProcessRecvPacket(ROUTES_BY_PORT &routesByPort, DESTINATIONS_LIST &routingDestinationList, UDP_OUT_THREADS &udpOutThreads, TCP_CLIENT_THREADS &tcpClientThreads, const EosAddr &addr,
                                  bool isOSC, EosUdpInThread::sRecvPacket &recvPacket);
   virtual bool MakeOSCPacket(const QString &srcPath, const EosRouteDst &dst, OSCArgument *args, size_t argsCount, EosPacket &packet);
+  virtual bool MakePSNPacket(EosPacket& osc, EosPacket &psn);
   virtual void ProcessTcpConnectionQ(TCP_CLIENT_THREADS &tcpClientThreads, OSCStream::EnumFrameMode frameMode, EosTcpServerThread::CONNECTION_Q &tcpConnectionQ);
   virtual bool ApplyTransform(OSCArgument &arg, const EosRouteDst &dst, OSCPacketWriter &packet);
   virtual void MakeSendPath(const QString &srcPath, const QString &dstPath, const OSCArgument *args, size_t argsCount, QString &sendPath);

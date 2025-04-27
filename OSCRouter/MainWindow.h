@@ -266,6 +266,30 @@ private:
 
 ////////////////////////////////////////////////////////////////////////////////
 
+class ProtocolComboBox : public QComboBox
+{
+  Q_OBJECT
+
+public:
+  ProtocolComboBox(size_t row, Protocol protocol, QWidget* parent = nullptr);
+
+  Protocol GetProtocol() const;
+
+  static QString ProtocolName(Protocol protocol);
+  static Protocol SanitizedProtocol(int protocol);
+
+signals:
+  void protocolChanged(size_t row, Protocol protocol);
+
+private slots:
+  void onCurrentIndexChanged(int index);
+
+private:
+  size_t m_Row = 0;
+};
+
+////////////////////////////////////////////////////////////////////////////////
+
 class RoutingWidget : public QWidget
 {
   Q_OBJECT
@@ -293,6 +317,8 @@ private slots:
   void updateHeaders();
   void onOutScriptToggled(size_t id, bool checked);
   void onAddRemoveClicked(size_t id);
+  void onInProtocolChanged(size_t row, Protocol protocol);
+  void onOutProtocolChanged(size_t row, Protocol protocol);
 
 private:
   enum class Col
@@ -303,6 +329,7 @@ private:
     kInActivity,
     kInIP,
     kInPort,
+    kInProtocol,
     kInPath,
     kInMin,
     kInMax,
@@ -313,6 +340,7 @@ private:
     kOutActivity,
     kOutIP,
     kOutPort,
+    kOutProtocol,
     kOutPath,
     kOutScript,
     kOutMin,
@@ -332,6 +360,7 @@ private:
     Indicator* inActivity = nullptr;
     QLineEdit* inIP = nullptr;
     QLineEdit* inPort = nullptr;
+    ProtocolComboBox* inProtocol = nullptr;
     QLineEdit* inPath = nullptr;
     QLineEdit* inMin = nullptr;
     QLineEdit* inMax = nullptr;
@@ -341,6 +370,7 @@ private:
     Indicator* outActivity = nullptr;
     QLineEdit* outIP = nullptr;
     QLineEdit* outPort = nullptr;
+    ProtocolComboBox* outProtocol = nullptr;
     QLineEdit* outPath = nullptr;
     ScriptEdit* outScriptText = nullptr;
     RoutingCheckBox* outScript = nullptr;
