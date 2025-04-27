@@ -58,6 +58,7 @@ int main(int argc, char *argv[])
 
   QString fixedFont = QFontDatabase::systemFont(QFontDatabase::FixedFont).family();
   app.setDesktopSettingsAware(false);
+  app.styleHints()->setColorScheme(Qt::ColorScheme::Dark);
   app.setStyleSheet(QString("QToolTip {border: 0.9px solid #3e3e42; padding: 6px; background-color: #2d2d2d; border-radius: 3px; color: #dcdcdc; font-family: %1;}").arg(fixedFont));
   app.setStyle(QStyleFactory::create("Fusion"));
 
