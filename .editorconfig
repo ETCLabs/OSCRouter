@@ -1,0 +1,5 @@
+root = true
+
+[*.{c,cpp,cxx,c++,cc,h,hh,hpp,inl,ipp}]
+indent_style = space
+indent_size = 2
