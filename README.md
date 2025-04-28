@@ -1,6 +1,8 @@
 # OSCRouter
 Simple UDP/TCP packet router for Mac and Windows, with optional OSC specific options
 
+⭐ Now with support for PosiStageNet (PSN) and Javascript
+
 ![screenshot](https://raw.githubusercontent.com/ElectronicTheatreControlsLabs/Downloads/master/Images/OSCRouter_Screenshot.png)
 
 ## About this ETCLabs Project
