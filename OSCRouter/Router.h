@@ -48,7 +48,7 @@ namespace psn
 {
 class psn_decoder;
 class psn_encoder;
-};
+};  // namespace psn
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -165,7 +165,7 @@ protected:
   virtual void run();
   virtual void UpdateLog();
   virtual void SetState(ItemState::EnumState state);
-  virtual void RecvPacket(const QHostAddress &host, const char *data, int len, OSCParser& logParser, PacketLogger &packetLogger);
+  virtual void RecvPacket(const QHostAddress &host, const char *data, int len, OSCParser &logParser, PacketLogger &packetLogger);
   virtual void QueuePacket(const QHostAddress &host, const char *data, int len, OSCParser &logParser, PacketLogger &packetLogger);
 };
 
@@ -365,7 +365,7 @@ protected:
   virtual void ProcessRecvPacket(ROUTES_BY_PORT &routesByPort, DESTINATIONS_LIST &routingDestinationList, UDP_OUT_THREADS &udpOutThreads, TCP_CLIENT_THREADS &tcpClientThreads, const EosAddr &addr,
                                  bool isOSC, EosUdpInThread::sRecvPacket &recvPacket);
   virtual bool MakeOSCPacket(const QString &srcPath, const EosRouteDst &dst, OSCArgument *args, size_t argsCount, EosPacket &packet);
-  virtual bool MakePSNPacket(EosPacket& osc, EosPacket &psn);
+  virtual bool MakePSNPacket(EosPacket &osc, EosPacket &psn);
   virtual void ProcessTcpConnectionQ(TCP_CLIENT_THREADS &tcpClientThreads, OSCStream::EnumFrameMode frameMode, EosTcpServerThread::CONNECTION_Q &tcpConnectionQ);
   virtual bool ApplyTransform(OSCArgument &arg, const EosRouteDst &dst, OSCPacketWriter &packet);
   virtual void MakeSendPath(const QString &srcPath, const QString &dstPath, const OSCArgument *args, size_t argsCount, QString &sendPath);

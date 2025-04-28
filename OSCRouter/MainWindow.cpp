@@ -1025,7 +1025,13 @@ void RoutingWidget::AddRow(size_t id, bool remove, const QString& label, const E
   AddCol(col++, row.inActivity, /*fixed*/ true);
 
   row.inIP = new QLineEdit(m_Cols->widget(col));
-  row.inIP->setToolTip(tr("Only route packets received from this specific IP address\n\nLeave blank to route packets received from any IP address\n\nFor multicast, use 2 comma separated IP addresses\n(the first may be blank)"));
+  row.inIP->setToolTip(
+      tr("Only route packets received from this specific IP address\n"
+         "\n"
+         "Leave blank to route packets received from any IP address\n"
+         "\n"
+         "For multicast, use 2 comma separated IP addresses\n"
+         "(the first may be blank)"));
   if (src.multicastIP.isEmpty())
     row.inIP->setText(src.addr.ip);
   else

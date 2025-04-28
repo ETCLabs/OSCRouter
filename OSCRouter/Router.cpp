@@ -166,7 +166,7 @@ void EosUdpInThread::SetState(ItemState::EnumState state)
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void EosUdpInThread::RecvPacket(const QHostAddress &host, const char *data, int len, OSCParser& logParser, PacketLogger &packetLogger)
+void EosUdpInThread::RecvPacket(const QHostAddress &host, const char *data, int len, OSCParser &logParser, PacketLogger &packetLogger)
 {
   if (m_Protocol != Protocol::kPSN)
   {
@@ -213,114 +213,114 @@ void EosUdpInThread::RecvPacket(const QHostAddress &host, const char *data, int 
 
     if (tracker.is_speed_set())
     {
-        OSCPacketWriter osc(path + "/speed");
-        completePath += "/speed";
-        osc.AddFloat32(tracker.get_speed().x);
-        osc.AddFloat32(tracker.get_speed().y);
-        osc.AddFloat32(tracker.get_speed().z);
-        completeOSC.AddFloat32(tracker.get_speed().x);
-        completeOSC.AddFloat32(tracker.get_speed().y);
-        completeOSC.AddFloat32(tracker.get_speed().z);
-        size_t size = 0;
-        char *packet = osc.Create(size);
-        if (packet)
-        {
-          if (size > 0)
-            QueuePacket(host, packet, static_cast<int>(size), logParser, packetLogger);
-          delete[] packet;
-        }
+      OSCPacketWriter osc(path + "/speed");
+      completePath += "/speed";
+      osc.AddFloat32(tracker.get_speed().x);
+      osc.AddFloat32(tracker.get_speed().y);
+      osc.AddFloat32(tracker.get_speed().z);
+      completeOSC.AddFloat32(tracker.get_speed().x);
+      completeOSC.AddFloat32(tracker.get_speed().y);
+      completeOSC.AddFloat32(tracker.get_speed().z);
+      size_t size = 0;
+      char *packet = osc.Create(size);
+      if (packet)
+      {
+        if (size > 0)
+          QueuePacket(host, packet, static_cast<int>(size), logParser, packetLogger);
+        delete[] packet;
+      }
     }
 
     if (tracker.is_ori_set())
     {
-        OSCPacketWriter osc(path + "/orientation");
-        completePath += "/orientation";
-        osc.AddFloat32(tracker.get_ori().x);
-        osc.AddFloat32(tracker.get_ori().y);
-        osc.AddFloat32(tracker.get_ori().z);
-        completeOSC.AddFloat32(tracker.get_ori().x);
-        completeOSC.AddFloat32(tracker.get_ori().y);
-        completeOSC.AddFloat32(tracker.get_ori().z);
-        size_t size = 0;
-        char *packet = osc.Create(size);
-        if (packet)
-        {
-          if (size > 0)
-            QueuePacket(host, packet, static_cast<int>(size), logParser, packetLogger);
-          delete[] packet;
-        }
+      OSCPacketWriter osc(path + "/orientation");
+      completePath += "/orientation";
+      osc.AddFloat32(tracker.get_ori().x);
+      osc.AddFloat32(tracker.get_ori().y);
+      osc.AddFloat32(tracker.get_ori().z);
+      completeOSC.AddFloat32(tracker.get_ori().x);
+      completeOSC.AddFloat32(tracker.get_ori().y);
+      completeOSC.AddFloat32(tracker.get_ori().z);
+      size_t size = 0;
+      char *packet = osc.Create(size);
+      if (packet)
+      {
+        if (size > 0)
+          QueuePacket(host, packet, static_cast<int>(size), logParser, packetLogger);
+        delete[] packet;
+      }
     }
 
     if (tracker.is_accel_set())
     {
-        OSCPacketWriter osc(path + "/acceleration");
-        completePath += "/acceleration";
-        osc.AddFloat32(tracker.get_accel().x);
-        osc.AddFloat32(tracker.get_accel().y);
-        osc.AddFloat32(tracker.get_accel().z);
-        completeOSC.AddFloat32(tracker.get_accel().x);
-        completeOSC.AddFloat32(tracker.get_accel().y);
-        completeOSC.AddFloat32(tracker.get_accel().z);
-        size_t size = 0;
-        char *packet = osc.Create(size);
-        if (packet)
-        {
-          if (size > 0)
-            QueuePacket(host, packet, static_cast<int>(size), logParser, packetLogger);
-          delete[] packet;
-        }
+      OSCPacketWriter osc(path + "/acceleration");
+      completePath += "/acceleration";
+      osc.AddFloat32(tracker.get_accel().x);
+      osc.AddFloat32(tracker.get_accel().y);
+      osc.AddFloat32(tracker.get_accel().z);
+      completeOSC.AddFloat32(tracker.get_accel().x);
+      completeOSC.AddFloat32(tracker.get_accel().y);
+      completeOSC.AddFloat32(tracker.get_accel().z);
+      size_t size = 0;
+      char *packet = osc.Create(size);
+      if (packet)
+      {
+        if (size > 0)
+          QueuePacket(host, packet, static_cast<int>(size), logParser, packetLogger);
+        delete[] packet;
+      }
     }
 
     if (tracker.is_target_pos_set())
     {
-        OSCPacketWriter osc(path + "/target");
-        completePath += "/target";
-        osc.AddFloat32(tracker.get_target_pos().x);
-        osc.AddFloat32(tracker.get_target_pos().y);
-        osc.AddFloat32(tracker.get_target_pos().z);
-        completeOSC.AddFloat32(tracker.get_target_pos().x);
-        completeOSC.AddFloat32(tracker.get_target_pos().y);
-        completeOSC.AddFloat32(tracker.get_target_pos().z);
-        size_t size = 0;
-        char *packet = osc.Create(size);
-        if (packet)
-        {
-          if (size > 0)
-            QueuePacket(host, packet, static_cast<int>(size), logParser, packetLogger);
-          delete[] packet;
-        }
+      OSCPacketWriter osc(path + "/target");
+      completePath += "/target";
+      osc.AddFloat32(tracker.get_target_pos().x);
+      osc.AddFloat32(tracker.get_target_pos().y);
+      osc.AddFloat32(tracker.get_target_pos().z);
+      completeOSC.AddFloat32(tracker.get_target_pos().x);
+      completeOSC.AddFloat32(tracker.get_target_pos().y);
+      completeOSC.AddFloat32(tracker.get_target_pos().z);
+      size_t size = 0;
+      char *packet = osc.Create(size);
+      if (packet)
+      {
+        if (size > 0)
+          QueuePacket(host, packet, static_cast<int>(size), logParser, packetLogger);
+        delete[] packet;
+      }
     }
 
     if (tracker.is_status_set())
     {
-        OSCPacketWriter osc(path + "/status");
-        completePath += "/status";
-        osc.AddFloat32(tracker.get_status());
-        completeOSC.AddFloat32(tracker.get_status());
-        size_t size = 0;
-        char *packet = osc.Create(size);
-        if (packet)
-        {
-          if (size > 0)
-            QueuePacket(host, packet, static_cast<int>(size), logParser, packetLogger);
-          delete[] packet;
-        }
+      OSCPacketWriter osc(path + "/status");
+      completePath += "/status";
+      osc.AddFloat32(tracker.get_status());
+      completeOSC.AddFloat32(tracker.get_status());
+      size_t size = 0;
+      char *packet = osc.Create(size);
+      if (packet)
+      {
+        if (size > 0)
+          QueuePacket(host, packet, static_cast<int>(size), logParser, packetLogger);
+        delete[] packet;
+      }
     }
 
     if (tracker.is_status_set())
     {
-        OSCPacketWriter osc(path + "/timestamp");
-        completePath += "/timestamp";
-        osc.AddUInt64(tracker.get_timestamp());
-        completeOSC.AddUInt64(tracker.get_timestamp());
-        size_t size = 0;
-        char *packet = osc.Create(size);
-        if (packet)
-        {
-          if (size > 0)
-            QueuePacket(host, packet, static_cast<int>(size), logParser, packetLogger);
-          delete[] packet;
-        }
+      OSCPacketWriter osc(path + "/timestamp");
+      completePath += "/timestamp";
+      osc.AddUInt64(tracker.get_timestamp());
+      completeOSC.AddUInt64(tracker.get_timestamp());
+      size_t size = 0;
+      char *packet = osc.Create(size);
+      if (packet)
+      {
+        if (size > 0)
+          QueuePacket(host, packet, static_cast<int>(size), logParser, packetLogger);
+        delete[] packet;
+      }
     }
 
     if (!completeOSC.empty())
@@ -1276,18 +1276,18 @@ void RouterThread::ProcessRecvQ(OSCParser &oscBundleParser, ROUTES_BY_PORT &rout
     size_t packetSize = static_cast<size_t>(std::max(0, recvPacket.packet.GetSize()));
     if (OSCParser::IsOSCPacket(buf, packetSize))
     {
-        OSCBundleMethod *bundleHandler = static_cast<OSCBundleMethod *>(oscBundleParser.GetRoot());
-        bundleHandler->SetIP(recvPacket.ip);
-        oscBundleParser.ProcessPacket(*this, recvPacket.packet.GetData(), static_cast<size_t>(qMax(0, recvPacket.packet.GetSize())));
-        EosUdpInThread::RECV_Q bundleQ;
-        bundleHandler->Flush(bundleQ);
-        if (!bundleQ.empty())
-        {
-            for (EosUdpInThread::RECV_Q::iterator j = bundleQ.begin(); j != bundleQ.end(); j++)
-                ProcessRecvPacket(routesByPort, routingDestinationList, udpOutThreads, tcpClientThreads, addr, /*isOSC*/ true, *j);
+      OSCBundleMethod *bundleHandler = static_cast<OSCBundleMethod *>(oscBundleParser.GetRoot());
+      bundleHandler->SetIP(recvPacket.ip);
+      oscBundleParser.ProcessPacket(*this, recvPacket.packet.GetData(), static_cast<size_t>(qMax(0, recvPacket.packet.GetSize())));
+      EosUdpInThread::RECV_Q bundleQ;
+      bundleHandler->Flush(bundleQ);
+      if (!bundleQ.empty())
+      {
+        for (EosUdpInThread::RECV_Q::iterator j = bundleQ.begin(); j != bundleQ.end(); j++)
+          ProcessRecvPacket(routesByPort, routingDestinationList, udpOutThreads, tcpClientThreads, addr, /*isOSC*/ true, *j);
 
-            continue;
-        }
+        continue;
+      }
     }
 
     ProcessRecvPacket(routesByPort, routingDestinationList, udpOutThreads, tcpClientThreads, addr, /*isOSC*/ false, recvPacket);
