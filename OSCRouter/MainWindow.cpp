@@ -107,6 +107,8 @@ void FileUtils::GetItemsFromQuotedString(const QString& str, QStringList& items)
         quoted = true;
       else if ((i + 1) >= len || str[i + 1] != QChar('\"'))
         quoted = false;
+      else
+        ++i;
     }
   }
 }
