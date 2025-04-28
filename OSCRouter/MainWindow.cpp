@@ -1138,8 +1138,18 @@ void RoutingWidget::AddRow(size_t id, bool remove, const QString& label, const E
          "\n"
          "Ex: Remap argument to path\n"
          "Input:  /eos/cue/fire, 25(i)\n"
-         "Path:   /eos/%4/start=\n"
-         "Output: /cue/25/start");
+         "Path:   /eos/%4/start\n"
+         "Output: /cue/25/start\n"
+         "\n"
+         "Ex: PSN to OSC\n"
+         "Input:  /psn/1/pos, 10(f), 20(f), 30(f)\n"
+         "Path:   /eos/chan/%2/param/x_focus/y_focus/z_focus=%4,%5,%6\n"
+         "Output: /eos/chan/1/param/param/x_focus/y_focus/z_focus, 10(f), 20(f), 30(f)\n"
+         "\n"
+         "Ex: OSC to PSN\n"
+         "Input:  /hoist/xyz, 10(f), 20(f), 30(f)\n"
+         "Path:   /psn/1/pos=%3,%4,%5\n"
+         "Output: PSN packet: tracker id 1, pos(10, 20, 30)");
   row.outPath = new QLineEdit(m_Cols->widget(col));
   row.outPath->setToolTip(tip);
   row.outPath->setText(dst.path);
