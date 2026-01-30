@@ -612,6 +612,7 @@ private:
   RouterThread* m_RouterThread;
   QString m_FilePath;
   bool m_Unsaved;
+  QByteArray m_FileContents;
   bool m_DisableSystemIdle;
   QWidget* m_Help = nullptr;
   QWidget* m_About = nullptr;
@@ -626,8 +627,12 @@ private:
   void ShutdownLogFile();
   void SyncRouterThread(bool logsOnly);
   bool Load(const QString& path);
-  bool Save(const QString& path);
+  bool SaveToDevice(QIODevice& device);
+  bool SaveToBuffer(QByteArray& buffer);
+  bool SaveToFile(const QString& path);
   bool ResolveUnsaved();
+  void SetUnsaved(bool unsaved);
+  void UpdateUnsaved();
 };
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -2872,7 +2872,7 @@ MainWindow::MainWindow(EosPlatform* platform, QWidget* parent /*=0*/, Qt::Window
   buttonLayout->setAlignment(Qt::AlignRight);
   routingLayout->addLayout(buttonLayout);
 
-  m_StartButton = new QPushButton(tr("Start"), routingBase);
+  m_StartButton = new QPushButton(tr("Apply && Start"), routingBase);
   QFont fnt = m_StartButton->font();
   fnt.setPointSize(fnt.pointSize() + 2);
   m_StartButton->setFont(fnt);
@@ -3077,15 +3077,7 @@ bool MainWindow::LoadFile(const QString& path)
 {
   m_FilePath = path;
   m_Settings.setValue(SETTING_LAST_FILE, m_FilePath);
-
-  if (Load(path))
-  {
-    m_Unsaved = false;
-    UpdateWindowTitle();
-    return true;
-  }
-
-  return false;
+  return Load(path);
 }
 
 bool MainWindow::Load(const QString& path)
@@ -3106,6 +3098,9 @@ bool MainWindow::Load(const QString& path)
   m_RoutingWidget->Load(lines);
   m_TcpWidget->Load(lines);
 
+  SaveToBuffer(m_FileContents);
+  SetUnsaved(false);
+
   return true;
 }
 
@@ -3114,9 +3109,10 @@ bool MainWindow::SaveFile(const QString& path)
   m_FilePath = path;
   m_Settings.setValue(SETTING_LAST_FILE, m_FilePath);
 
-  if (Save(path))
+  if (SaveToFile(path))
   {
-    m_Unsaved = false;
+    SaveToBuffer(m_FileContents);
+    SetUnsaved(false);
     UpdateWindowTitle();
     return true;
   }
@@ -3126,21 +3122,31 @@ bool MainWindow::SaveFile(const QString& path)
   return false;
 }
 
-bool MainWindow::Save(const QString& path)
+bool MainWindow::SaveToDevice(QIODevice& device)
 {
-  QDir().mkpath(QFileInfo(path).absolutePath());
-
-  QFile file(path);
-  QTextStream stream(&file);
+  QTextStream stream(&device);
   stream.setEncoding(QStringConverter::Utf8);
-  if (!file.open(QFile::WriteOnly | QFile::Truncate | QFile::Text))
+  if (!device.open(QFile::WriteOnly | QFile::Truncate))
     return false;
 
   m_SettingsWidget->Save(stream);
   m_RoutingWidget->Save(stream);
   m_TcpWidget->Save(stream);
-
   return true;
+}
+
+bool MainWindow::SaveToBuffer(QByteArray& buffer)
+{
+  QBuffer device(&buffer);
+  return SaveToDevice(device);
+}
+
+bool MainWindow::SaveToFile(const QString& path)
+{
+  QDir().mkpath(QFileInfo(path).absolutePath());
+
+  QFile file(path);
+  return SaveToDevice(file);
 }
 
 void MainWindow::RestoreLastFile()
@@ -3161,12 +3167,13 @@ void MainWindow::RestoreLastFile()
     if (Load(path))
     {
       m_FilePath = m_Settings.value(SETTING_LAST_FILE).toString();
-      m_Unsaved = true;
       loaded = true;
     }
   }
 
-  if (loaded && m_StartButton->isEnabled() && m_Settings.value(SETTING_AUTO_START).toBool())
+  if (!loaded)
+    SaveToBuffer(m_FileContents);
+  else if (m_StartButton->isEnabled() && m_Settings.value(SETTING_AUTO_START).toBool())
     onStartClicked(false);
 }
 
@@ -3219,8 +3226,8 @@ void MainWindow::onNewFile()
   GetPersistentSavePath(path);
   QFile::setPermissions(path, QFile::WriteOwner);
   QFile::remove(path);
-  m_Unsaved = false;
-  UpdateWindowTitle();
+  SaveToBuffer(m_FileContents);
+  SetUnsaved(false);
 }
 
 void MainWindow::onOpenFile()
@@ -3394,7 +3401,7 @@ void MainWindow::closeEvent(QCloseEvent* event)
 
   QString path;
   GetPersistentSavePath(path);
-  Save(path);
+  SaveToFile(path);
   QApplication::exit(0);
 }
 
@@ -3422,6 +3429,21 @@ bool MainWindow::ResolveUnsaved()
   return true;
 }
 
+void MainWindow::SetUnsaved(bool unsaved)
+{
+  if (m_Unsaved == unsaved)
+    return;
+
+  m_Unsaved = unsaved;
+  UpdateWindowTitle();
+}
+
+void MainWindow::UpdateUnsaved()
+{
+  QByteArray newFileContents;
+  SetUnsaved(SaveToBuffer(newFileContents) && newFileContents != m_FileContents);
+}
+
 void MainWindow::onStartClicked(bool /*checked*/)
 {
   Router::ROUTES routes;
@@ -3437,11 +3459,7 @@ void MainWindow::onStartClicked(bool /*checked*/)
   m_SettingsWidget->SaveSettings(settings);
   m_SettingsWidget->LoadSettings(settings);
 
-  if (!m_Unsaved)
-  {
-    m_Unsaved = true;
-    UpdateWindowTitle();
-  }
+  UpdateUnsaved();
 
   QTimer::singleShot(1, this, &MainWindow::buildRoutes);
 }
@@ -3458,22 +3476,13 @@ void MainWindow::onMuteToggled(bool incoming, bool checked)
   else
     m_ItemStateTable.SetMuteAllOutgoing(checked);
 
-  if (m_Unsaved)
-    return;
-
-  m_Unsaved = true;
-  UpdateWindowTitle();
+  UpdateUnsaved();
 }
 
 void MainWindow::onMuteRouteToggled(size_t id, bool checked)
 {
   m_ItemStateTable.Mute(id, checked);
-
-  if (m_Unsaved)
-    return;
-
-  m_Unsaved = true;
-  UpdateWindowTitle();
+  UpdateUnsaved();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
