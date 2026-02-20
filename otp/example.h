@@ -1,0 +1,42 @@
+// Copyright (c) 2018 Electronic Theatre Controls, Inc., http://www.etcconnect.com
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
+
+#pragma once
+
+#include "otp/qotp.h"
+
+class OTPExample : public QObject
+{
+  Q_OBJECT
+
+public:
+  OTPExample(QObject* parent = nullptr);
+
+private slots:
+  void movePoints();
+  void onConsumerAppeared(const QUuid& cid, const otp::Endpoint& consumer);
+  void onPointChanged(const otp::Frame& frame, const otp::Point& point);
+  void onProducerAppeared(const QUuid& cid, const otp::Endpoint& producer);
+  void onLog(QtMsgType type, QString text);
+
+private:
+  otp::QProducer* producer_ = nullptr;
+  float t_ = 0;
+};
