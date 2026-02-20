@@ -19,6 +19,7 @@
 // THE SOFTWARE.
 
 #include "NetworkUtils.h"
+#include "otp/otp.h"
 
 // must be last include
 #include "LeakWatcher.h"
@@ -162,6 +163,8 @@ bool ValidPort(Protocol protocol, unsigned short port)
   {
     case Protocol::kArtNet:
     case Protocol::kMIDI: return true;
+
+    case Protocol::kOTP: return (port >= otp::kMinSystemNumber && port <= otp::kMaxSystemNumber);
   }
 
   return (port != 0);

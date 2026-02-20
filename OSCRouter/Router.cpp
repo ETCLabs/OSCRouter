@@ -173,12 +173,17 @@ void EosUdpInThread::SetState(ItemState::EnumState state)
 
 void EosUdpInThread::RecvPacket(const QHostAddress &host, const char *data, int len, OSCParser &logParser, PacketLogger &packetLogger)
 {
-  if (m_Protocol != Protocol::kPSN)
+  switch (m_Protocol)
   {
-    QueuePacket(host, data, len, logParser, packetLogger);
-    return;
+    case Protocol::kPSN: RecvPacketPSN(host, data, len, logParser, packetLogger); break;
+    default: QueuePacket(host, data, len, logParser, packetLogger); break;
   }
+}
 
+////////////////////////////////////////////////////////////////////////////////
+
+void EosUdpInThread::RecvPacketPSN(const QHostAddress &host, const char *data, int len, OSCParser &logParser, PacketLogger &packetLogger)
+{
   if (!m_PSNDecoder->decode(data, static_cast<size_t>(len)))
     return;  // could not decode psn packet
 
@@ -1096,8 +1101,8 @@ void RouterThread::Sync(EosLog::LOG_Q &logQ, ItemStateTable &itemStateTable)
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void RouterThread::BuildRoutes(ROUTES_BY_PORT &routesByPort, ROUTES_BY_PORT &routesBysACNUniverse, ROUTES_BY_PORT &routesByArtNetUniverse, ROUTES_BY_PORT &routesByMIDI, UDP_IN_THREADS &udpInThreads,
-                               UDP_OUT_THREADS &udpOutThreads, TCP_CLIENT_THREADS &tcpClientThreads, TCP_SERVER_THREADS &tcpServerThreads)
+void RouterThread::BuildRoutes(ROUTES_BY_PORT &routesByPort, ROUTES_BY_PORT &routesBysACNUniverse, ROUTES_BY_PORT &routesByArtNetUniverse, ROUTES_BY_PORT &routesByMIDI, ROUTES_BY_PORT &routesByOTP,
+                               UDP_IN_THREADS &udpInThreads, UDP_OUT_THREADS &udpOutThreads, TCP_CLIENT_THREADS &tcpClientThreads, TCP_SERVER_THREADS &tcpServerThreads)
 {
   m_PrivateLog.AddInfo("Building Routing Table...");
 
@@ -1152,6 +1157,10 @@ void RouterThread::BuildRoutes(ROUTES_BY_PORT &routesByPort, ROUTES_BY_PORT &rou
     {
       routes = &routesByMIDI;
     }
+    else if (route.src.protocol == Protocol::kOTP)
+    {
+      routes = &routesByOTP;
+    }
     else if (udpInThreads.find(route.src.addr) == udpInThreads.end())
     {
       EosUdpInThread *thread = new EosUdpInThread();
@@ -1160,7 +1169,8 @@ void RouterThread::BuildRoutes(ROUTES_BY_PORT &routesByPort, ROUTES_BY_PORT &rou
     }
 
     // create udp out thread if known dst, and not an explicit tcp client
-    if (route.dst.protocol != Protocol::ksACN && route.dst.protocol != Protocol::kArtNet && route.dst.protocol != Protocol::kMIDI && tcpClientThreads.find(route.dst.addr) == tcpClientThreads.end())
+    if (route.dst.protocol != Protocol::ksACN && route.dst.protocol != Protocol::kArtNet && route.dst.protocol != Protocol::kMIDI && route.dst.protocol != Protocol::kOTP &&
+        tcpClientThreads.find(route.dst.addr) == tcpClientThreads.end())
       CreateUdpOutThread(route.dst.addr, route.dstItemStateTableId, udpOutThreads);
 
     // add entry to main routing table...
@@ -1287,11 +1297,12 @@ void RouterThread::DestroyArtNet(ArtNet &artnet)
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void RouterThread::BuildsACN(ROUTES_BY_PORT &routesByPort, ROUTES_BY_PORT &routesBysACNUniverse, ROUTES_BY_PORT &routesByMIDI, ROUTES_BY_PORT &routesByArtNetUniverse, sACN &sacn)
+void RouterThread::BuildsACN(ROUTES_BY_PORT &routesByPort, ROUTES_BY_PORT &routesBysACNUniverse, ROUTES_BY_PORT &routesByArtNetUniverse, ROUTES_BY_PORT &routesByMIDI, ROUTES_BY_PORT &routesByOTP,
+                             sACN &sacn)
 {
   bool hasInput = !routesBysACNUniverse.empty();
   bool hasOutput = HasProtocolOutput(routesByPort, Protocol::ksACN) || HasProtocolOutput(routesBysACNUniverse, Protocol::ksACN) || HasProtocolOutput(routesByArtNetUniverse, Protocol::ksACN) ||
-                   HasProtocolOutput(routesByMIDI, Protocol::ksACN);
+                   HasProtocolOutput(routesByMIDI, Protocol::ksACN) || HasProtocolOutput(routesByOTP, Protocol::ksACN);
   if (!hasInput && !hasOutput)
     return;
 
@@ -1443,11 +1454,12 @@ int ArtNetUniverseData(artnet_node n, int port, void *d)
   return 0;
 }
 
-void RouterThread::BuildArtNet(ROUTES_BY_PORT &routesByPort, ROUTES_BY_PORT &routesBysACNUniverse, ROUTES_BY_PORT &routesByArtNetUniverse, ROUTES_BY_PORT &routesByMIDI, ArtNet &artnet)
+void RouterThread::BuildArtNet(ROUTES_BY_PORT &routesByPort, ROUTES_BY_PORT &routesBysACNUniverse, ROUTES_BY_PORT &routesByArtNetUniverse, ROUTES_BY_PORT &routesByMIDI, ROUTES_BY_PORT &routesByOTP,
+                               ArtNet &artnet)
 {
   bool hasInput = !routesByArtNetUniverse.empty();
   bool hasOutput = HasProtocolOutput(routesByPort, Protocol::kArtNet) || HasProtocolOutput(routesBysACNUniverse, Protocol::kArtNet) || HasProtocolOutput(routesByArtNetUniverse, Protocol::kArtNet) ||
-                   HasProtocolOutput(routesByMIDI, Protocol::kArtNet);
+                   HasProtocolOutput(routesByMIDI, Protocol::kArtNet) || HasProtocolOutput(routesByOTP, Protocol::kArtNet);
   if (!hasInput && !hasOutput)
     return;
 
@@ -1532,6 +1544,7 @@ void RouterThread::BuildArtNet(ROUTES_BY_PORT &routesByPort, ROUTES_BY_PORT &rou
     SetItemState(routesBysACNUniverse, Protocol::kArtNet, state);
     SetItemState(routesByArtNetUniverse, Protocol::kArtNet, state);
     SetItemState(routesByMIDI, Protocol::kArtNet, state);
+    SetItemState(routesByOTP, Protocol::kArtNet, state);
   }
 }
 
@@ -1575,6 +1588,54 @@ void RouterThread::BuildMIDI(ROUTES_BY_PORT &routesByMIDI, MIDI &midi)
     SetItemState(routesByIp, Protocol::kInvalid, ItemState::STATE_CONNECTED);
     m_PrivateLog.AddInfo(QStringLiteral("MIDI started listening on port %1").arg(port).toUtf8().constData());
     midi.inputs[port] = midiIn;
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+void RouterThread::BuildOTP(ROUTES_BY_PORT &routesByPort, ROUTES_BY_PORT &routesBysACNUniverse, ROUTES_BY_PORT &routesByArtNetUniverse, ROUTES_BY_PORT &routesByMIDI, ROUTES_BY_PORT &routesByOTP,
+                            OTPI &otpi)
+{
+  bool hasInput = !routesByOTP.empty();
+  bool hasOutput = HasProtocolOutput(routesByPort, Protocol::kOTP) || HasProtocolOutput(routesBysACNUniverse, Protocol::kOTP) || HasProtocolOutput(routesByArtNetUniverse, Protocol::kOTP) ||
+                   HasProtocolOutput(routesByMIDI, Protocol::kOTP) || HasProtocolOutput(routesByOTP, Protocol::kOTP);
+
+  if (hasInput)
+  {
+    otp::SystemSet systems;
+
+    if (!m_Settings.otpModuleTypes.empty())
+    {
+      for (ROUTES_BY_PORT::const_iterator portIter = routesByOTP.begin(); portIter != routesByOTP.end(); ++portIter)
+      {
+        unsigned short port = portIter->first;
+        if (port >= otp::kMinSystemNumber && port <= otp::kMaxSystemNumber)
+          systems.insert(static_cast<otp::SystemNumber>(port));
+      }
+    }
+
+    otpi.consumer.SetCallbacks(this);
+    otpi.consumer.SetName(QLatin1String(VER_PRODUCTNAME_STR));
+    otpi.consumer.SetModuleTypes(m_Settings.otpModuleTypes);
+    otpi.consumer.SetNetworkInterface(m_Settings.otpIP);
+    otpi.consumer.SetSystems(systems);
+
+    otp::SystemList active_systems = otpi.consumer.GetSystems();
+    for (ROUTES_BY_PORT::const_iterator portIter = routesByOTP.begin(); portIter != routesByOTP.end(); ++portIter)
+    {
+      unsigned short port = portIter->first;
+      const ROUTES_BY_IP &routesByIp = portIter->second;
+      bool connected = port >= otp::kMinSystemNumber && port <= otp::kMaxSystemNumber && active_systems.find(static_cast<otp::SystemNumber>(port)) != active_systems.end();
+      SetItemState(routesByIp, Protocol::kInvalid, connected ? ItemState::STATE_CONNECTED : ItemState::STATE_NOT_CONNECTED);
+    }
+  }
+
+  if (hasOutput)
+  {
+    otpi.producer.SetCallbacks(this);
+    otpi.producer.SetName(QLatin1String(VER_PRODUCTNAME_STR));
+    otpi.producer.SetNetworkInterface(m_Settings.otpIP);
+    otpi.producer.Init();
   }
 }
 
@@ -1631,8 +1692,9 @@ void RouterThread::AddRoutingDestinations(bool isOSC, const QString &path, const
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void RouterThread::ProcessRecvQ(bool muteAllOutgoing, sACN &sacn, ArtNet &artnet, MIDI &midi, OSCParser &oscBundleParser, ROUTES_BY_PORT &routesByPort, DESTINATIONS_LIST &routingDestinationList,
-                                UDP_OUT_THREADS &udpOutThreads, TCP_SERVER_THREADS &tcpServerThreads, TCP_CLIENT_THREADS &tcpClientThreads, const EosAddr &addr, EosUdpInThread::RECV_Q &recvQ)
+void RouterThread::ProcessRecvQ(bool muteAllOutgoing, sACN &sacn, ArtNet &artnet, MIDI &midi, OTPI &otpi, OSCParser &oscBundleParser, ROUTES_BY_PORT &routesByPort,
+                                DESTINATIONS_LIST &routingDestinationList, UDP_OUT_THREADS &udpOutThreads, TCP_SERVER_THREADS &tcpServerThreads, TCP_CLIENT_THREADS &tcpClientThreads,
+                                const EosAddr &addr, EosUdpInThread::RECV_Q &recvQ)
 {
   for (EosUdpInThread::RECV_Q::iterator i = recvQ.begin(); i != recvQ.end(); i++)
   {
@@ -1650,20 +1712,20 @@ void RouterThread::ProcessRecvQ(bool muteAllOutgoing, sACN &sacn, ArtNet &artnet
       if (!bundleQ.empty())
       {
         for (EosUdpInThread::RECV_Q::iterator j = bundleQ.begin(); j != bundleQ.end(); j++)
-          ProcessRecvPacket(muteAllOutgoing, sacn, artnet, midi, routesByPort, routingDestinationList, udpOutThreads, tcpServerThreads, tcpClientThreads, addr, Protocol::kOSC, *j);
+          ProcessRecvPacket(muteAllOutgoing, sacn, artnet, midi, otpi, routesByPort, routingDestinationList, udpOutThreads, tcpServerThreads, tcpClientThreads, addr, Protocol::kOSC, *j);
 
         continue;
       }
     }
 
-    ProcessRecvPacket(muteAllOutgoing, sacn, artnet, midi, routesByPort, routingDestinationList, udpOutThreads, tcpServerThreads, tcpClientThreads, addr, Protocol::kInvalid, recvPacket);
+    ProcessRecvPacket(muteAllOutgoing, sacn, artnet, midi, otpi, routesByPort, routingDestinationList, udpOutThreads, tcpServerThreads, tcpClientThreads, addr, Protocol::kInvalid, recvPacket);
   }
   recvQ.clear();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void RouterThread::ProcessRecvPacket(bool muteAllOutgoing, sACN &sacn, ArtNet &artnet, MIDI &midi, ROUTES_BY_PORT &routesByPort, DESTINATIONS_LIST &routingDestinationList,
+void RouterThread::ProcessRecvPacket(bool muteAllOutgoing, sACN &sacn, ArtNet &artnet, MIDI &midi, OTPI &otpi, ROUTES_BY_PORT &routesByPort, DESTINATIONS_LIST &routingDestinationList,
                                      UDP_OUT_THREADS &udpOutThreads, TCP_SERVER_THREADS &tcpServerThreads, TCP_CLIENT_THREADS &tcpClientThreads, const EosAddr &addr, Protocol protocol,
                                      EosUdpInThread::sRecvPacket &recvPacket)
 {
@@ -1736,7 +1798,8 @@ void RouterThread::ProcessRecvPacket(bool muteAllOutgoing, sACN &sacn, ArtNet &a
         // send UDP or TCP?
         bool tcp = false;
         EosTcpClientThread *tcpClient = nullptr;
-        if (routeDst.dst.protocol != Protocol::kPSN && routeDst.dst.protocol != Protocol::ksACN && routeDst.dst.protocol != Protocol::kArtNet && routeDst.dst.protocol != Protocol::kMIDI)
+        if (routeDst.dst.protocol != Protocol::kPSN && routeDst.dst.protocol != Protocol::ksACN && routeDst.dst.protocol != Protocol::kArtNet && routeDst.dst.protocol != Protocol::kMIDI &&
+            routeDst.dst.protocol != Protocol::kOTP)
         {
           TCP_CLIENT_THREADS::const_iterator k = tcpClientThreads.find(dstAddr);
           if (k != tcpClientThreads.end())
@@ -1768,7 +1831,7 @@ void RouterThread::ProcessRecvPacket(bool muteAllOutgoing, sACN &sacn, ArtNet &a
             }
           }
         }
-        else if (protocol == Protocol::kOSC || protocol == Protocol::ksACN || protocol == Protocol::kArtNet || protocol == Protocol::kMIDI)
+        else if (protocol == Protocol::kOSC || protocol == Protocol::ksACN || protocol == Protocol::kArtNet || protocol == Protocol::kMIDI || protocol == Protocol::kOTP)
         {
           EosPacket oscPacket;
           MakeOSCPacket(artnet, addr, protocol, path, routeDst, args, argsCount, oscPacket);
@@ -1796,6 +1859,10 @@ void RouterThread::ProcessRecvPacket(bool muteAllOutgoing, sACN &sacn, ArtNet &a
           else if (routeDst.dst.protocol == Protocol::kMIDI)
           {
             SendMIDI(midi, routeDst, oscPacket);
+          }
+          else if (routeDst.dst.protocol == Protocol::kOTP)
+          {
+            SendOTP(otpi, routeDst, oscPacket);
           }
           else if (oscPacket.GetDataConst() && oscPacket.GetSize() > 0)
           {
@@ -2589,6 +2656,191 @@ void RouterThread::SendMIDI(MIDI &midi, const sRouteDst &routeDst, EosPacket &os
 
 ////////////////////////////////////////////////////////////////////////////////
 
+void RouterThread::SendOTP(OTPI &otpi, const sRouteDst &routeDst, EosPacket &oscPacket)
+{
+  if (!oscPacket.GetData() || oscPacket.GetSize() < 1)
+    return;
+
+  if (routeDst.dst.addr.port < otp::kMinSystemNumber || routeDst.dst.addr.port > otp::kMaxSystemNumber)
+    return;
+
+  // find osc path null terminator
+  QString path;
+  size_t argCount = 0xffffffff;
+  OSCArgument *args = nullptr;
+  char *data = oscPacket.GetData();
+  if (data)
+  {
+    for (int i = 0; i < oscPacket.GetSize(); i++)
+    {
+      if (data[i] == 0)
+      {
+        path = QString::fromUtf8(data);
+        args = OSCArgument::GetArgs(&data[i], static_cast<size_t>(oscPacket.GetSize()), argCount);
+        break;
+      }
+    }
+  }
+
+  if (!args)
+    return;
+
+  if (argCount < 3)
+  {
+    delete[] args;
+    return;
+  }
+
+  QStringList parts = path.split(QLatin1Char('/'));
+  if (parts.size() < 6)
+  {
+    delete[] args;
+    return;
+  }
+
+  otp::Frame frame;
+  frame.system = static_cast<otp::SystemNumber>(routeDst.dst.addr.port);
+  frame.group = static_cast<otp::GroupNumber>(parts[2].toInt());
+  frame.point = static_cast<otp::PointNumber>(parts[3].toInt());
+
+  otp::Point point;
+  point.name = QLatin1String(VER_PRODUCTNAME_STR) + QLatin1String("Point");
+  point.priority = static_cast<otp::PriorityNumber>(parts[4].toInt());
+
+  if (parts[5] == QLatin1String("pos"))
+  {
+    int x = 0;
+    int y = 0;
+    int z = 0;
+    if (args[0].GetInt(x) && args[1].GetInt(y) && args[2].GetInt(z))
+    {
+      otp::Vector3 v;
+      v.x = x;
+      v.y = y;
+      v.z = z;
+
+      point.modules.pos = v;
+    }
+  }
+  else if (parts[5] == QLatin1String("posVelAccel"))
+  {
+    if (parts.size() < 6)
+    {
+      delete[] args;
+      return;
+    }
+
+    int vx = 0;
+    int vy = 0;
+    int vz = 0;
+    int ax = 0;
+    int ay = 0;
+    int az = 0;
+    if (args[0].GetInt(vx) && args[1].GetInt(vy) && args[2].GetInt(vz) && args[3].GetInt(ax) && args[4].GetInt(ay) && args[5].GetInt(az))
+    {
+      otp::VelAccel va;
+      va.vel.x = vx;
+      va.vel.y = vy;
+      va.vel.z = vz;
+      va.accel.x = ax;
+      va.accel.y = ay;
+      va.accel.z = az;
+
+      point.modules.pos_vel_accel = va;
+    }
+  }
+  else if (parts[5] == QLatin1String("rot"))
+  {
+    unsigned int x = 0;
+    unsigned int y = 0;
+    unsigned int z = 0;
+    if (args[0].GetUInt(x) && args[1].GetUInt(y) && args[2].GetUInt(z))
+    {
+      otp::Vector3u v;
+      v.x = x;
+      v.y = y;
+      v.z = z;
+
+      point.modules.rot = v;
+    }
+  }
+  else if (parts[5] == QLatin1String("rotVelAccel"))
+  {
+    if (parts.size() < 6)
+    {
+      delete[] args;
+      return;
+    }
+
+    int vx = 0;
+    int vy = 0;
+    int vz = 0;
+    unsigned int ax = 0;
+    unsigned int ay = 0;
+    unsigned int az = 0;
+    if (args[0].GetInt(vx) && args[1].GetInt(vy) && args[2].GetInt(vz) && args[3].GetUInt(ax) && args[4].GetUInt(ay) && args[5].GetUInt(az))
+    {
+      otp::VelAccel va;
+      va.vel.x = vx;
+      va.vel.y = vy;
+      va.vel.z = vz;
+      va.accel.x = ax;
+      va.accel.y = ay;
+      va.accel.z = az;
+
+      point.modules.rot_vel_accel = va;
+    }
+  }
+  else if (parts[5] == QLatin1String("scale"))
+  {
+    int x = 0;
+    int y = 0;
+    int z = 0;
+    if (args[0].GetInt(x) && args[1].GetInt(y) && args[2].GetInt(z))
+    {
+      otp::Vector3 v;
+      v.x = x;
+      v.y = y;
+      v.z = z;
+
+      point.modules.scale = v;
+    }
+  }
+  else if (parts[5] == QLatin1String("frame"))
+  {
+    int frameSystem = 0;
+    int frameGroup = 0;
+    int framePoint = 0;
+    if (args[0].GetInt(frameSystem) && args[1].GetInt(frameGroup) && args[2].GetInt(framePoint))
+    {
+      otp::Frame refFrame;
+      refFrame.system = frameSystem;
+      refFrame.group = frameGroup;
+      refFrame.point = framePoint;
+
+      point.modules.frame = refFrame;
+    }
+  }
+
+  if (point.modules.empty())
+  {
+    delete[] args;
+    return;
+  }
+
+  otp::PointChange result = otpi.producer.SetPoint(frame, point);
+
+  if (result == otp::PointChange::kSystemAppeared)
+    SetItemState(routeDst.dstItemStateTableId, ItemState::STATE_CONNECTED);
+
+  QString log = QStringLiteral("OTP OUT [%1] %2/%3/%4 ").arg(frame.system).arg(frame.group).arg(frame.point).arg(point.priority) + point.modules.toString();
+  m_PrivateLog.Add(EosLog::LOG_MSG_TYPE_SEND, log.toStdString());
+
+  SetItemActivity(routeDst.dstItemStateTableId);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
 void RouterThread::ProcessTcpConnectionQ(TCP_CLIENT_THREADS &tcpClientThreads, EosTcpServerThread &tcpServer, EosTcpServerThread::CONNECTION_Q &tcpConnectionQ, bool mute)
 {
   for (EosTcpServerThread::CONNECTION_Q::const_iterator i = tcpConnectionQ.begin(); i != tcpConnectionQ.end(); i++)
@@ -2923,6 +3175,7 @@ void RouterThread::run()
   ROUTES_BY_PORT routesBysACNUniverse;
   ROUTES_BY_PORT routesByArtNetUniverse;
   ROUTES_BY_PORT routesByMIDI;
+  ROUTES_BY_PORT routesByOTP;
   DESTINATIONS_LIST routingDestinationList;
   EosUdpInThread::RECV_PORT_Q dmxRecvQ;
   EosUdpInThread::RECV_Q recvQ;
@@ -2933,16 +3186,19 @@ void RouterThread::run()
   oscBundleParser.SetRoot(new OSCBundleMethod());
   PacketLogger packetLogger(EosLog::LOG_MSG_TYPE_RECV, m_PrivateLog);
 
-  BuildRoutes(routesByPort, routesBysACNUniverse, routesByArtNetUniverse, routesByMIDI, udpInThreads, udpOutThreads, tcpClientThreads, tcpServerThreads);
+  BuildRoutes(routesByPort, routesBysACNUniverse, routesByArtNetUniverse, routesByMIDI, routesByOTP, udpInThreads, udpOutThreads, tcpClientThreads, tcpServerThreads);
 
   sACN sacn;
-  BuildsACN(routesByPort, routesBysACNUniverse, routesByArtNetUniverse, routesByMIDI, sacn);
+  BuildsACN(routesByPort, routesBysACNUniverse, routesByArtNetUniverse, routesByMIDI, routesByOTP, sacn);
 
   ArtNet artnet;
-  BuildArtNet(routesByPort, routesBysACNUniverse, routesByArtNetUniverse, routesByMIDI, artnet);
+  BuildArtNet(routesByPort, routesBysACNUniverse, routesByArtNetUniverse, routesByMIDI, routesByOTP, artnet);
 
   MIDI midi;
   BuildMIDI(routesByMIDI, midi);
+
+  OTPI otpi;
+  BuildOTP(routesByPort, routesBysACNUniverse, routesByArtNetUniverse, routesByMIDI, routesByOTP, otpi);
 
   if (!m_Settings.script.isEmpty())
   {
@@ -2966,7 +3222,8 @@ void RouterThread::run()
         EosUdpInThread::sRecvPortPacket &dmxPacket = dmxRecvQ[i];
         dmxAddr.fromUInt(dmxPacket.p.ip);
         dmxAddr.port = dmxPacket.port;
-        ProcessRecvPacket(muteAll.outgoing, sacn, artnet, midi, routesBysACNUniverse, routingDestinationList, udpOutThreads, tcpServerThreads, tcpClientThreads, dmxAddr, Protocol::ksACN, dmxPacket.p);
+        ProcessRecvPacket(muteAll.outgoing, sacn, artnet, midi, otpi, routesBysACNUniverse, routingDestinationList, udpOutThreads, tcpServerThreads, tcpClientThreads, dmxAddr, Protocol::ksACN,
+                          dmxPacket.p);
       }
     }
 
@@ -2981,13 +3238,16 @@ void RouterThread::run()
         EosUdpInThread::sRecvPortPacket &dmxPacket = dmxRecvQ[i];
         dmxAddr.fromUInt(dmxPacket.p.ip);
         dmxAddr.port = dmxPacket.port;
-        ProcessRecvPacket(muteAll.outgoing, sacn, artnet, midi, routesByArtNetUniverse, routingDestinationList, udpOutThreads, tcpServerThreads, tcpClientThreads, dmxAddr, Protocol::kArtNet,
+        ProcessRecvPacket(muteAll.outgoing, sacn, artnet, midi, otpi, routesByArtNetUniverse, routingDestinationList, udpOutThreads, tcpServerThreads, tcpClientThreads, dmxAddr, Protocol::kArtNet,
                           dmxPacket.p);
       }
     }
 
     // MIDI input
-    RecvMIDI(oscBundleParser, packetLogger, muteAll.incoming, muteAll.outgoing, sacn, artnet, midi, routesByMIDI, routingDestinationList, udpOutThreads, tcpServerThreads, tcpClientThreads);
+    RecvMIDI(oscBundleParser, packetLogger, muteAll.incoming, muteAll.outgoing, sacn, artnet, midi, otpi, routesByMIDI, routingDestinationList, udpOutThreads, tcpServerThreads, tcpClientThreads);
+
+    // OTP input
+    RecvOTP(oscBundleParser, packetLogger, muteAll.incoming, muteAll.outgoing, sacn, artnet, midi, otpi, routesByOTP, routingDestinationList, udpOutThreads, tcpServerThreads, tcpClientThreads);
 
     // UDP input
     for (UDP_IN_THREADS::iterator i = udpInThreads.begin(); i != udpInThreads.end();)
@@ -3000,7 +3260,7 @@ void RouterThread::run()
       tempLogQ.clear();
 
       SetItemState(thread->GetItemStateTableId(), thread->GetState());
-      ProcessRecvQ(muteAll.outgoing, sacn, artnet, midi, oscBundleParser, routesByPort, routingDestinationList, udpOutThreads, tcpServerThreads, tcpClientThreads, thread->GetAddr(), recvQ);
+      ProcessRecvQ(muteAll.outgoing, sacn, artnet, midi, otpi, oscBundleParser, routesByPort, routingDestinationList, udpOutThreads, tcpServerThreads, tcpClientThreads, thread->GetAddr(), recvQ);
 
       if (!running)
       {
@@ -3048,7 +3308,7 @@ void RouterThread::run()
       tempLogQ.clear();
 
       SetItemState(thread->GetItemStateTableId(), thread->GetState());
-      ProcessRecvQ(muteAll.outgoing, sacn, artnet, midi, oscBundleParser, routesByPort, routingDestinationList, udpOutThreads, tcpServerThreads, tcpClientThreads, thread->GetAddr(), recvQ);
+      ProcessRecvQ(muteAll.outgoing, sacn, artnet, midi, otpi, oscBundleParser, routesByPort, routingDestinationList, udpOutThreads, tcpServerThreads, tcpClientThreads, thread->GetAddr(), recvQ);
 
       if (!running)
       {
@@ -3098,6 +3358,9 @@ void RouterThread::run()
 
     // ArtNet output
     FlushArtNet(artnet);
+
+    // OTP output
+    otpi.producer.Tick();
 
     UpdateLog();
 
@@ -3378,8 +3641,9 @@ void RouterThread::RecvArtNet(ArtNet &artnet, EosUdpInThread::RECV_PORT_Q &recvQ
   artnet.dirty.clear();
 }
 
-void RouterThread::RecvMIDI(OSCParser &oscParser, PacketLogger &packetLogger, bool muteAllIncoming, bool muteAllOutgoing, sACN &sacn, ArtNet &artnet, MIDI &midi, ROUTES_BY_PORT &routesByPort,
-                            DESTINATIONS_LIST &routingDestinationList, UDP_OUT_THREADS &udpOutThreads, TCP_SERVER_THREADS &tcpServerThreads, TCP_CLIENT_THREADS &tcpClientThreads)
+void RouterThread::RecvMIDI(OSCParser &oscParser, PacketLogger &packetLogger, bool muteAllIncoming, bool muteAllOutgoing, sACN &sacn, ArtNet &artnet, MIDI &midi, OTPI &otpi,
+                            ROUTES_BY_PORT &routesByPort, DESTINATIONS_LIST &routingDestinationList, UDP_OUT_THREADS &udpOutThreads, TCP_SERVER_THREADS &tcpServerThreads,
+                            TCP_CLIENT_THREADS &tcpClientThreads)
 {
   if (midi.inputs.empty())
     return;
@@ -3420,7 +3684,7 @@ void RouterThread::RecvMIDI(OSCParser &oscParser, PacketLogger &packetLogger, bo
         EosUdpInThread::sRecvPacket packet(oscPacket, static_cast<int>(oscPacketSize), /*Ip*/ 0);
         delete[] oscPacket;
 
-        ProcessRecvPacket(muteAllOutgoing, sacn, artnet, midi, routesByPort, routingDestinationList, udpOutThreads, tcpServerThreads, tcpClientThreads, addr, Protocol::kOSC, packet);
+        ProcessRecvPacket(muteAllOutgoing, sacn, artnet, midi, otpi, routesByPort, routingDestinationList, udpOutThreads, tcpServerThreads, tcpClientThreads, addr, Protocol::kOSC, packet);
       }
     }
 
@@ -3472,10 +3736,178 @@ void RouterThread::RecvMIDI(OSCParser &oscParser, PacketLogger &packetLogger, bo
         EosUdpInThread::sRecvPacket packet(oscPacket, static_cast<int>(oscPacketSize), /*Ip*/ 0);
         delete[] oscPacket;
 
-        ProcessRecvPacket(muteAllOutgoing, sacn, artnet, midi, routesByPort, routingDestinationList, udpOutThreads, tcpServerThreads, tcpClientThreads, addr, Protocol::kOSC, packet);
+        ProcessRecvPacket(muteAllOutgoing, sacn, artnet, midi, otpi, routesByPort, routingDestinationList, udpOutThreads, tcpServerThreads, tcpClientThreads, addr, Protocol::kOSC, packet);
       }
     }
   }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+void RouterThread::RecvOTP(OSCParser &oscParser, PacketLogger &packetLogger, bool muteAllIncoming, bool muteAllOutgoing, sACN &sacn, ArtNet &artnet, MIDI &midi, OTPI &otpi,
+                           ROUTES_BY_PORT &routesByPort, DESTINATIONS_LIST &routingDestinationList, UDP_OUT_THREADS &udpOutThreads, TCP_SERVER_THREADS &tcpServerThreads,
+                           TCP_CLIENT_THREADS &tcpClientThreads)
+{
+  otpi.consumer.Tick();
+
+  if (m_OTPRecv.systems.empty())
+    return;
+
+  if (muteAllIncoming)
+  {
+    m_OTPRecv.systems.clear();
+    return;
+  }
+
+  EosAddr addr;
+  packetLogger.SetPrefix("OTP IN  ");
+
+  for (otp::SystemList::const_iterator sysIter = m_OTPRecv.systems.begin(); sysIter != m_OTPRecv.systems.end(); ++sysIter)
+  {
+    otp::SystemNumber systemNumber = sysIter->first;
+    const otp::GroupList &groups = sysIter->second.groups;
+
+    for (otp::GroupList::const_iterator groupIter = groups.begin(); groupIter != groups.end(); ++groupIter)
+    {
+      otp::GroupNumber groupNumber = groupIter->first;
+      const otp::PointList &points = groupIter->second.points;
+
+      std::string path = "/otp/" + std::to_string(groupNumber) + "/";
+      for (otp::PointList::const_iterator pointIter = points.begin(); pointIter != points.end(); ++pointIter)
+      {
+        otp::PointNumber pointNumber = pointIter->first;
+        const otp::Point &point = pointIter->second;
+
+        if (point.modules.pos.has_value())
+        {
+          OSCPacketWriter osc(path + std::to_string(pointNumber) + "/" + std::to_string(point.priority) + "/pos");
+          osc.AddInt32(point.modules.pos->x);
+          osc.AddInt32(point.modules.pos->y);
+          osc.AddInt32(point.modules.pos->z);
+
+          size_t oscPacketSize = 0;
+          char *oscPacket = osc.Create(oscPacketSize);
+          if (oscPacket)
+          {
+            addr.port = systemNumber;
+            packetLogger.PrintPacket(oscParser, oscPacket, oscPacketSize);
+            EosUdpInThread::sRecvPacket packet(oscPacket, static_cast<int>(oscPacketSize), /*Ip*/ 0);
+            delete[] oscPacket;
+
+            ProcessRecvPacket(muteAllOutgoing, sacn, artnet, midi, otpi, routesByPort, routingDestinationList, udpOutThreads, tcpServerThreads, tcpClientThreads, addr, Protocol::kOSC, packet);
+          }
+        }
+
+        if (point.modules.pos_vel_accel.has_value())
+        {
+          OSCPacketWriter osc(path + std::to_string(pointNumber) + "/" + std::to_string(point.priority) + "/posVelAccel");
+          osc.AddInt32(point.modules.pos_vel_accel->vel.x);
+          osc.AddInt32(point.modules.pos_vel_accel->vel.y);
+          osc.AddInt32(point.modules.pos_vel_accel->vel.z);
+          osc.AddInt32(point.modules.pos_vel_accel->accel.x);
+          osc.AddInt32(point.modules.pos_vel_accel->accel.y);
+          osc.AddInt32(point.modules.pos_vel_accel->accel.z);
+
+          size_t oscPacketSize = 0;
+          char *oscPacket = osc.Create(oscPacketSize);
+          if (oscPacket)
+          {
+            addr.port = systemNumber;
+            packetLogger.PrintPacket(oscParser, oscPacket, oscPacketSize);
+            EosUdpInThread::sRecvPacket packet(oscPacket, static_cast<int>(oscPacketSize), /*Ip*/ 0);
+            delete[] oscPacket;
+
+            ProcessRecvPacket(muteAllOutgoing, sacn, artnet, midi, otpi, routesByPort, routingDestinationList, udpOutThreads, tcpServerThreads, tcpClientThreads, addr, Protocol::kOSC, packet);
+          }
+        }
+
+        if (point.modules.rot.has_value())
+        {
+          OSCPacketWriter osc(path + std::to_string(pointNumber) + "/" + std::to_string(point.priority) + "/rot");
+          osc.AddInt32(point.modules.rot->x);
+          osc.AddInt32(point.modules.rot->y);
+          osc.AddInt32(point.modules.rot->z);
+
+          size_t oscPacketSize = 0;
+          char *oscPacket = osc.Create(oscPacketSize);
+          if (oscPacket)
+          {
+            addr.port = systemNumber;
+            packetLogger.PrintPacket(oscParser, oscPacket, oscPacketSize);
+            EosUdpInThread::sRecvPacket packet(oscPacket, static_cast<int>(oscPacketSize), /*Ip*/ 0);
+            delete[] oscPacket;
+
+            ProcessRecvPacket(muteAllOutgoing, sacn, artnet, midi, otpi, routesByPort, routingDestinationList, udpOutThreads, tcpServerThreads, tcpClientThreads, addr, Protocol::kOSC, packet);
+          }
+        }
+
+        if (point.modules.rot_vel_accel.has_value())
+        {
+          OSCPacketWriter osc(path + std::to_string(pointNumber) + "/" + std::to_string(point.priority) + "/rotVelAccel");
+          osc.AddInt32(point.modules.rot_vel_accel->vel.x);
+          osc.AddInt32(point.modules.rot_vel_accel->vel.y);
+          osc.AddInt32(point.modules.rot_vel_accel->vel.z);
+          osc.AddInt32(point.modules.rot_vel_accel->accel.x);
+          osc.AddInt32(point.modules.rot_vel_accel->accel.y);
+          osc.AddInt32(point.modules.rot_vel_accel->accel.z);
+
+          size_t oscPacketSize = 0;
+          char *oscPacket = osc.Create(oscPacketSize);
+          if (oscPacket)
+          {
+            addr.port = systemNumber;
+            packetLogger.PrintPacket(oscParser, oscPacket, oscPacketSize);
+            EosUdpInThread::sRecvPacket packet(oscPacket, static_cast<int>(oscPacketSize), /*Ip*/ 0);
+            delete[] oscPacket;
+
+            ProcessRecvPacket(muteAllOutgoing, sacn, artnet, midi, otpi, routesByPort, routingDestinationList, udpOutThreads, tcpServerThreads, tcpClientThreads, addr, Protocol::kOSC, packet);
+          }
+        }
+
+        if (point.modules.scale.has_value())
+        {
+          OSCPacketWriter osc(path + std::to_string(pointNumber) + "/" + std::to_string(point.priority) + "/scale");
+          osc.AddInt32(point.modules.scale->x);
+          osc.AddInt32(point.modules.scale->y);
+          osc.AddInt32(point.modules.scale->z);
+
+          size_t oscPacketSize = 0;
+          char *oscPacket = osc.Create(oscPacketSize);
+          if (oscPacket)
+          {
+            addr.port = systemNumber;
+            packetLogger.PrintPacket(oscParser, oscPacket, oscPacketSize);
+            EosUdpInThread::sRecvPacket packet(oscPacket, static_cast<int>(oscPacketSize), /*Ip*/ 0);
+            delete[] oscPacket;
+
+            ProcessRecvPacket(muteAllOutgoing, sacn, artnet, midi, otpi, routesByPort, routingDestinationList, udpOutThreads, tcpServerThreads, tcpClientThreads, addr, Protocol::kOSC, packet);
+          }
+        }
+
+        if (point.modules.frame.has_value())
+        {
+          OSCPacketWriter osc(path + std::to_string(pointNumber) + "/" + std::to_string(point.priority) + "/frame");
+          osc.AddInt32(point.modules.frame->system);
+          osc.AddInt32(point.modules.frame->group);
+          osc.AddUInt32(point.modules.frame->point);
+
+          size_t oscPacketSize = 0;
+          char *oscPacket = osc.Create(oscPacketSize);
+          if (oscPacket)
+          {
+            addr.port = systemNumber;
+            packetLogger.PrintPacket(oscParser, oscPacket, oscPacketSize);
+            EosUdpInThread::sRecvPacket packet(oscPacket, static_cast<int>(oscPacketSize), /*Ip*/ 0);
+            delete[] oscPacket;
+
+            ProcessRecvPacket(muteAllOutgoing, sacn, artnet, midi, otpi, routesByPort, routingDestinationList, udpOutThreads, tcpServerThreads, tcpClientThreads, addr, Protocol::kOSC, packet);
+          }
+        }
+      }
+    }
+  }
+
+  m_OTPRecv.systems.clear();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -3671,6 +4103,88 @@ void RouterThread::LogMIDI(bool send, const std::string &name, const std::vector
   }
 
   m_PrivateLog.Add(send ? EosLog::LOG_MSG_TYPE_SEND : EosLog::LOG_MSG_TYPE_RECV, log);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+void RouterThread::LogOTP(const std::string &name, const otp::LogMsg &msg)
+{
+  if (msg.text.isEmpty())
+    return;
+
+  switch (msg.type)
+  {
+    case QtDebugMsg: m_PrivateLog.AddDebug(name + msg.text.toStdString()); break;
+    case QtWarningMsg: m_PrivateLog.AddWarning(name + msg.text.toStdString()); break;
+
+    case QtCriticalMsg:
+    case QtFatalMsg: m_PrivateLog.AddError(name + msg.text.toStdString()); break;
+
+    default: m_PrivateLog.AddInfo(name + msg.text.toStdString()); break;
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+void RouterThread::ConsumerCallback_ProducerChanged(otp::EndpointChange change, const QUuid &cid, const otp::Endpoint &producer)
+{
+  switch (change)
+  {
+    case otp::EndpointChange::kAppeared:
+      ConsumerCallback_Log(otp::LogMsg(QtInfoMsg, QStringLiteral("producer appeared, cid(%1), %2").arg(cid.toString(QUuid::WithoutBraces)).arg(producer.toString())));
+      break;
+
+    case otp::EndpointChange::kExpired:
+      ConsumerCallback_Log(otp::LogMsg(QtInfoMsg, QStringLiteral("producer expired, cid(%1), %2").arg(cid.toString(QUuid::WithoutBraces)).arg(producer.toString())));
+      break;
+
+    case otp::EndpointChange::kUpdated:
+      ConsumerCallback_Log(otp::LogMsg(QtInfoMsg, QStringLiteral("producer changed, cid(%1), %2").arg(cid.toString(QUuid::WithoutBraces)).arg(producer.toString())));
+      break;
+
+    default: break;
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+void RouterThread::ConsumerCallback_PointChanged(otp::PointChange /*change*/, const otp::Frame &frame, const otp::Point &point)
+{
+  m_OTPRecv.systems[frame.system].groups[frame.group].points[frame.point] = point;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+void RouterThread::ConsumerCallback_Log(const otp::LogMsg &msg)
+{
+  LogOTP("OTP Consumer: ", msg);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+void RouterThread::ProducerCallback_ConsumerChanged(otp::EndpointChange change, const QUuid &cid, const otp::Endpoint &consumer)
+{
+  switch (change)
+  {
+    case otp::EndpointChange::kAppeared:
+      ProducerCallback_Log(otp::LogMsg(QtInfoMsg, QStringLiteral("consumer appeared, cid(%1), %2").arg(cid.toString(QUuid::WithoutBraces)).arg(consumer.toString())));
+      break;
+
+    case otp::EndpointChange::kExpired:
+      ProducerCallback_Log(otp::LogMsg(QtInfoMsg, QStringLiteral("consumer expired, cid(%1), %2").arg(cid.toString(QUuid::WithoutBraces)).arg(consumer.toString())));
+      break;
+
+    case otp::EndpointChange::kUpdated:
+      ProducerCallback_Log(otp::LogMsg(QtInfoMsg, QStringLiteral("consumer changed, cid(%1), %2").arg(cid.toString(QUuid::WithoutBraces)).arg(consumer.toString())));
+      break;
+
+    default: break;
+  }
+}
+
+void RouterThread::ProducerCallback_Log(const otp::LogMsg &msg)
+{
+  LogOTP("OTP Producer: ", msg);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -50,6 +50,7 @@ file(GLOB HEADERS
   "OSCRouter/*.h"  
   "artnet/*.h"
   "psn/*.hpp"
+  "otp/otp.h"
   "sACN/ACN/StreamingACN/Client/*.h"
   "sACN/ACN/StreamingACN/Client/Src/*.h"
   "sACN/ACN/StreamingACN/Common/*.h"
@@ -66,6 +67,7 @@ file(GLOB HEADERS
 file(GLOB SOURCES
   "OSCRouter/*.cpp"
   "artnet/*.c"
+  "otp/otp.cpp"
   "sACN/ACN/StreamingACN/Client/Src/*.cpp"
   "sACN/ACN/StreamingACN/Common/*.cpp"
   "sACN/ACN/StreamingACN/Server/Src/*.cpp"

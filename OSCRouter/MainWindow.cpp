@@ -1135,6 +1135,35 @@ SettingsWidget::SettingsWidget(QSettings& settings, QWidget* parent /*= nullptr*
   grid->addWidget(m_LevelChangesOnly, row, 1);
   ++row;
 
+  grid->addWidget(new QLabel(tr("OTP Interface"), base), row, 0);
+  m_OTPInterface = new QComboBox(base);
+  connect(m_OTPInterface, &QComboBox::currentIndexChanged, this, &SettingsWidget::onCurrentIndexChanged);
+  grid->addWidget(m_OTPInterface, row, 1);
+  ++row;
+
+  QHBoxLayout* otpModulesLayout = new QHBoxLayout();
+  for (size_t moduleIndex = 0; moduleIndex < m_OTPModules.size(); ++moduleIndex)
+  {
+    QString moduleName;
+    switch (static_cast<otp::ModuleType>(moduleIndex))
+    {
+      case otp::ModuleType::kPos: moduleName = tr("Position"); break;
+      case otp::ModuleType::kPosVelAccel: moduleName = tr("Position Vel/Accel"); break;
+      case otp::ModuleType::kRot: moduleName = tr("Rotation"); break;
+      case otp::ModuleType::kRotVelAccel: moduleName = tr("Rotation Vel/Accel"); break;
+      case otp::ModuleType::kScale: moduleName = tr("Scale"); break;
+      case otp::ModuleType::kFrame: moduleName = tr("Reference Frame"); break;
+      default: break;
+    }
+
+    m_OTPModules[moduleIndex] = new QCheckBox(moduleName, base);
+    otpModulesLayout->addWidget(m_OTPModules[moduleIndex]);
+  }
+
+  grid->addWidget(new QLabel(tr("Incoming OTP Modules"), base), row, 0);
+  grid->addLayout(otpModulesLayout, row, 1, Qt::AlignLeft);
+  ++row;
+
   label = new QLabel(tr("JavaScript Globals"), base);
   label->setToolTip(tr("Declare global JavaScript variables\n\nEx:\nvar gPacketCounter = 0;"));
   grid->addWidget(label, row, 0, Qt::AlignTop);
@@ -1173,6 +1202,7 @@ void SettingsWidget::Clear()
 {
   PopulateInterfaces(m_sACNInterface, tr("Default (All Interfaces)"));
   PopulateInterfaces(m_ArtNetInterface, tr("Default (First Interface)"));
+  PopulateInterfaces(m_OTPInterface, tr("Default (First Interface)"));
 }
 
 void SettingsWidget::Load(const QStringList& lines)
@@ -1204,6 +1234,22 @@ void SettingsWidget::LoadLine(const QString& line, Router::Settings& settings)
       settings.levelChangesOnly = items[3].toInt() != 0;
     if (items.size() > 4)
       settings.script = items[4];
+    if (items.size() > 5)
+      settings.otpIP = items[5];
+    if (items.size() > 6)
+    {
+      settings.otpModuleTypes.clear();
+
+      for (qsizetype moduleIndex = 0; moduleIndex < static_cast<qsizetype>(otp::ModuleType::kCount); ++moduleIndex)
+      {
+        qsizetype offset = moduleIndex + 6;
+        if (offset >= items.size())
+          break;
+
+        if (items[offset].toInt() != 0)
+          settings.otpModuleTypes.insert(static_cast<otp::ModuleType>(moduleIndex));
+      }
+    }
   }
 }
 
@@ -1213,6 +1259,12 @@ void SettingsWidget::LoadSettings(const Router::Settings& settings)
   SetInterface(m_sACNInterface, settings.sACNIP);
   SetInterface(m_ArtNetInterface, settings.artNetIP);
   m_LevelChangesOnly->setChecked(settings.levelChangesOnly);
+  SetInterface(m_OTPInterface, settings.otpIP);
+  for (size_t moduleIndex = 0; moduleIndex < m_OTPModules.size(); ++moduleIndex)
+  {
+    bool moduleEnabled = settings.otpModuleTypes.find(static_cast<otp::ModuleType>(moduleIndex)) != settings.otpModuleTypes.end();
+    m_OTPModules[moduleIndex]->setChecked(moduleEnabled);
+  }
   m_Script->setText(settings.script);
   m_Script->CheckForErrors();
 }
@@ -1222,17 +1274,33 @@ void SettingsWidget::Save(QTextStream& stream)
   Router::Settings settings;
   SaveSettings(settings);
 
-  stream << QStringLiteral("Settings,%1,%2,%3,%4\n")
+  stream << QStringLiteral("Settings,%1,%2,%3,%4,%5")
                 .arg(FileUtils::QuotedString(settings.sACNIP))
                 .arg(FileUtils::QuotedString(settings.artNetIP))
                 .arg(settings.levelChangesOnly ? 1 : 0)
-                .arg(FileUtils::QuotedString(settings.script));
+                .arg(FileUtils::QuotedString(settings.script))
+                .arg(FileUtils::QuotedString(settings.otpIP));
+
+  for (size_t moduleIndex = 0; moduleIndex < m_OTPModules.size(); ++moduleIndex)
+  {
+    bool moduleEnabled = settings.otpModuleTypes.find(static_cast<otp::ModuleType>(moduleIndex)) != settings.otpModuleTypes.end();
+    stream << "," + QString::number(moduleEnabled ? 1 : 0);
+  }
+
+  stream << QLatin1Char('\n');
 }
 
 void SettingsWidget::SaveSettings(Router::Settings& settings)
 {
   settings.sACNIP = GetInterface(m_sACNInterface);
   settings.artNetIP = GetInterface(m_ArtNetInterface);
+  settings.otpIP = GetInterface(m_OTPInterface);
+  settings.otpModuleTypes.clear();
+  for (size_t moduleIndex = 0; moduleIndex < m_OTPModules.size(); ++moduleIndex)
+  {
+    if (m_OTPModules[moduleIndex]->isChecked())
+      settings.otpModuleTypes.insert(static_cast<otp::ModuleType>(moduleIndex));
+  }
   settings.levelChangesOnly = m_LevelChangesOnly->isChecked();
   settings.script = m_Script->toPlainText();
 }
@@ -1422,8 +1490,9 @@ ProtocolComboBox::ProtocolComboBox(size_t row, Protocol protocol, QWidget* paren
   addItem(ProtocolName(Protocol::kOSC), static_cast<int>(Protocol::kOSC));
   addItem(ProtocolName(Protocol::ksACN), static_cast<int>(Protocol::ksACN));
   addItem(ProtocolName(Protocol::kArtNet), static_cast<int>(Protocol::kArtNet));
-  addItem(ProtocolName(Protocol::kPSN), static_cast<int>(Protocol::kPSN));
   addItem(ProtocolName(Protocol::kMIDI), static_cast<int>(Protocol::kMIDI));
+  addItem(ProtocolName(Protocol::kPSN), static_cast<int>(Protocol::kPSN));
+  addItem(ProtocolName(Protocol::kOTP), static_cast<int>(Protocol::kOTP));
 
   int index = findData(static_cast<int>(SanitizedProtocol(static_cast<int>(protocol))));
   if (index >= 0)
@@ -1451,6 +1520,7 @@ QString ProtocolComboBox::ProtocolName(Protocol protocol)
     case Protocol::ksACN: return tr("sACN");
     case Protocol::kArtNet: return tr("ArtNet");
     case Protocol::kMIDI: return tr("MIDI");
+    case Protocol::kOTP: return tr("OTP");
   }
 
   return tr("Unknown(%1)").arg(static_cast<int>(protocol));
@@ -1587,14 +1657,14 @@ QString RoutingWidget::HeaderForCol(Col col)
 
     case Col::kLabel: return tr("Name");
 
+    case Col::kInProtocol:
+    case Col::kOutProtocol: return tr("Protocol");
+
     case Col::kInIP:
     case Col::kOutIP: return tr("IP");
 
     case Col::kInPort:
     case Col::kOutPort: return tr("Port");
-
-    case Col::kInProtocol:
-    case Col::kOutProtocol: return tr("Protocol");
 
     case Col::kInPath:
     case Col::kOutPath: return tr("Path");
@@ -1675,6 +1745,10 @@ void RoutingWidget::AddRow(size_t id, bool remove, const QString& label, const R
   row.inActivity->Deactivate();
   AddCol(col++, row.inActivity, /*fixed*/ true);
 
+  row.inProtocol = new ProtocolComboBox(id, route.src.protocol, m_Cols->widget(col));
+  connect(row.inProtocol, &ProtocolComboBox::protocolChanged, this, &RoutingWidget::onProtocolChanged);
+  AddCol(col++, row.inProtocol, /*fixed*/ true);
+
   row.inIP = new LineEdit(m_Cols->widget(col));
   if (route.src.multicastIP.isEmpty())
     row.inIP->setText(route.src.addr.ip);
@@ -1685,10 +1759,6 @@ void RoutingWidget::AddRow(size_t id, bool remove, const QString& label, const R
   row.inPort = new LineEdit(m_Cols->widget(col));
   row.inPort->setText(ValidPort(route.src.protocol, route.src.addr.port) ? QString::number(route.src.addr.port) : QString());
   AddCol(col++, row.inPort);
-
-  row.inProtocol = new ProtocolComboBox(id, route.src.protocol, m_Cols->widget(col));
-  connect(row.inProtocol, &ProtocolComboBox::protocolChanged, this, &RoutingWidget::onProtocolChanged);
-  AddCol(col++, row.inProtocol, /*fixed*/ true);
 
   row.inPath = new LineEdit(m_Cols->widget(col));
   row.inPath->setText(route.src.path);
@@ -1735,6 +1805,10 @@ void RoutingWidget::AddRow(size_t id, bool remove, const QString& label, const R
   row.outActivity->Deactivate();
   AddCol(col++, row.outActivity, /*fixed*/ true);
 
+  row.outProtocol = new ProtocolComboBox(id, route.dst.protocol, m_Cols->widget(col));
+  connect(row.outProtocol, &ProtocolComboBox::protocolChanged, this, &RoutingWidget::onProtocolChanged);
+  AddCol(col++, row.outProtocol, /*fixed*/ true);
+
   row.outIP = new LineEdit(m_Cols->widget(col));
   row.outIP->setText(route.dst.addr.ip);
   AddCol(col++, row.outIP);
@@ -1742,10 +1816,6 @@ void RoutingWidget::AddRow(size_t id, bool remove, const QString& label, const R
   row.outPort = new LineEdit(m_Cols->widget(col));
   row.outPort->setText(ValidPort(route.dst.protocol, route.dst.addr.port) ? QString::number(route.dst.addr.port) : QString());
   AddCol(col++, row.outPort);
-
-  row.outProtocol = new ProtocolComboBox(id, route.dst.protocol, m_Cols->widget(col));
-  connect(row.outProtocol, &ProtocolComboBox::protocolChanged, this, &RoutingWidget::onProtocolChanged);
-  AddCol(col++, row.outProtocol, /*fixed*/ true);
 
   row.outPath = new LineEdit(m_Cols->widget(col));
   row.outPath->setText(route.dst.path);
@@ -2175,7 +2245,7 @@ void RoutingWidget::UpdateEnableState()
 
     row.mute->setEnabled(e && i != lastRow);
     row.label->setEnabled(e);
-    row.inIP->setEnabled(e && protocol != Protocol::kMIDI);
+    row.inIP->setEnabled(e && protocol != Protocol::kMIDI && protocol != Protocol::kOTP);
     row.inPort->setEnabled(e);
     row.inProtocol->setEnabled(e);
     row.inPath->setEnabled(e && protocol != Protocol::ksACN && protocol != Protocol::kArtNet);
@@ -2186,7 +2256,7 @@ void RoutingWidget::UpdateEnableState()
 
     protocol = row.outProtocol->GetProtocol();
 
-    row.outIP->setEnabled(e && protocol != Protocol::kMIDI);
+    row.outIP->setEnabled(e && protocol != Protocol::kMIDI && protocol != Protocol::kOTP);
     row.outPort->setEnabled(e);
     row.outProtocol->setEnabled(e);
     row.outPath->setEnabled(e);
@@ -2287,7 +2357,7 @@ void RoutingWidget::onProtocolChanged(size_t row, Protocol /*protocol*/)
   Protocol inProtocol = r.inProtocol->GetProtocol();
   Protocol outProtocol = r.outProtocol->GetProtocol();
 
-  r.inIP->setEnabled(r.enable->isChecked() && inProtocol != Protocol::kMIDI);
+  r.inIP->setEnabled(r.enable->isChecked() && inProtocol != Protocol::kMIDI && inProtocol != Protocol::kOTP);
   r.inIP->setToolTip(GetHelpText(Col::kInIP, inProtocol, outProtocol, /*script*/ false));
   r.inPort->setToolTip(GetHelpText(Col::kInPort, inProtocol, outProtocol, /*script*/ false));
   r.inPath->setToolTip(GetHelpText(Col::kInPath, inProtocol, outProtocol, /*script*/ false));
@@ -2301,7 +2371,7 @@ void RoutingWidget::onProtocolChanged(size_t row, Protocol /*protocol*/)
       r.inPort->setText(QString::number(Router::GetDefaultPSNPort()));
   }
 
-  r.outIP->setEnabled(r.enable->isChecked() && outProtocol != Protocol::kMIDI);
+  r.outIP->setEnabled(r.enable->isChecked() && outProtocol != Protocol::kMIDI && outProtocol != Protocol::kOTP);
   r.outIP->setToolTip(GetHelpText(Col::kOutIP, inProtocol, outProtocol, /*script*/ false));
   r.outPort->setToolTip(GetHelpText(Col::kOutPort, inProtocol, outProtocol, /*script*/ false));
   r.outPath->setToolTip(GetHelpText(Col::kOutPath, inProtocol, outProtocol, /*script*/ false));
@@ -2408,7 +2478,11 @@ QString RoutingWidget::GetHelpText(Col col, Protocol inProtocol, Protocol outPro
     {
       if (inProtocol == Protocol::kMIDI)
       {
-        text = tr("Outgoing MIDI: IP is not used");
+        text = tr("Incoming MIDI: IP is not used");
+      }
+      else if (inProtocol == Protocol::kOTP)
+      {
+        text = tr("Incoming OTP: IP is not used");
       }
       else
       {
@@ -2430,6 +2504,7 @@ QString RoutingWidget::GetHelpText(Col col, Protocol inProtocol, Protocol outPro
         case Protocol::ksACN: text = tr("Route sACN levels received on this sACN universe (REQUIRED)"); break;
         case Protocol::kArtNet: text = tr("Route ArtNet levels received on this ArtNet universe (REQUIRED)"); break;
         case Protocol::kMIDI: text = tr("See available MIDI ports in Settings tab"); break;
+        case Protocol::kOTP: text = tr("OTP System Number [%1-%2] (REQUIRED)").arg(otp::kMinSystemNumber).arg(otp::kMaxSystemNumber); break;
         default: text = tr("Route packets received on this port (REQUIRED)"); break;
       }
     }
@@ -2503,6 +2578,23 @@ QString RoutingWidget::GetHelpText(Col col, Protocol inProtocol, Protocol outPro
           text += QStringLiteral("    /msc/<device ID>/<command format>/%1\n").arg(MSCCmdName(static_cast<MSCCmd>(i)));
       }
 
+      if (all || inProtocol == Protocol::kOTP)
+      {
+        if (!text.isEmpty())
+          text += "\n\n";
+
+        text += tr("Incoming OTP:\n"
+                   "  Port is the OTP System Number [%1-%2]\n\n"
+                   "  /otp/<group>/<point>/<priority>/pos=x,y,z\n"
+                   "  /otp/<group>/<point>/<priority>/posVelAccel=velX,velY,velZ,accelX,accelY,accelZ\n"
+                   "  /otp/<group>/<point>/<priority>/rot=x,y,z\n"
+                   "  /otp/<group>/<point>/<priority>/rotVelAccel=velX,velY,velZ,accelX,accelY,accelZ\n"
+                   "  /otp/<group>/<point>/<priority>/scale=x,y,z\n"
+                   "  /otp/<group>/<point>/<priority>/frame=x,y,z\n")
+                    .arg(otp::kMinSystemNumber)
+                    .arg(otp::kMaxSystemNumber);
+      }
+
       if (!all)
       {
         text +=
@@ -2517,6 +2609,10 @@ QString RoutingWidget::GetHelpText(Col col, Protocol inProtocol, Protocol outPro
       if (outProtocol == Protocol::kMIDI)
       {
         text = tr("Outgoing MIDI: IP is not used");
+      }
+      else if (outProtocol == Protocol::kOTP)
+      {
+        text = tr("Outgoing OTP: IP is not used");
       }
       else
       {
@@ -2552,6 +2648,12 @@ QString RoutingWidget::GetHelpText(Col col, Protocol inProtocol, Protocol outPro
         case Protocol::kMIDI:
         {
           text = tr("See available MIDI ports in Settings tab");
+        }
+        break;
+
+        case Protocol::kOTP:
+        {
+          text = tr("OTP System Number [%1-%2]").arg(otp::kMinSystemNumber).arg(otp::kMaxSystemNumber);
         }
         break;
 
@@ -2719,6 +2821,33 @@ QString RoutingWidget::GetHelpText(Col col, Protocol inProtocol, Protocol outPro
                "Input:  /eos/out/event/cue/1/3/fire\n"
                "Path:   /msc/2/1/go=%6,%5\n"
                "Output: MIDI packet: F0 7F 04 02 05 01 33 00 31 F7\n");
+      }
+
+      if (all || inProtocol == Protocol::kOTP || outProtocol == Protocol::kOTP)
+      {
+        text += tr("\n\n"
+                   "Incoming/Outgoing OTP:\n"
+                   "  Port is the OTP System Number [%1-%2]\n\n"
+                   "  /otp/<group>/<point>/<priority>/pos=x,y,z\n"
+                   "  /otp/<group>/<point>/<priority>/posVelAccel=velX,velY,velZ,accelX,accelY,accelZ\n"
+                   "  /otp/<group>/<point>/<priority>/rot=x,y,z\n"
+                   "  /otp/<group>/<point>/<priority>/rotVelAccel=velX,velY,velZ,accelX,accelY,accelZ\n"
+                   "  /otp/<group>/<point>/<priority>/scale=x,y,z\n"
+                   "  /otp/<group>/<point>/<priority>/frame=x,y,z\n")
+                    .arg(otp::kMinSystemNumber)
+                    .arg(otp::kMaxSystemNumber);
+
+        text +=
+            tr("\n"
+               "Ex: OTP to OSC\n"
+               "Input:  /otp/5/6/100/pos, 7(i), 8(i), 9(i)\n"
+               "Path:   /eos/chan/%3/param/red/green/blue=%6,%7,%8\n"
+               "Output: /eos/chan/6/param/red/green/blue, 7(i), 8(i), 9(i)\n"
+               "\n"
+               "Ex: OSC to OTP\n"
+               "Input:  /hoist/xyz, 10(f), 20(f), 30(f)\n"
+               "Path:   /otp/5/6/100/pos=%3,%4,%5\n"
+               "Output: OTP packet: 5/6, priority(100), pos(10, 20, 30)");
       }
 
       if (script)

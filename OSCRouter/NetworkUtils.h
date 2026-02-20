@@ -86,6 +86,7 @@ enum class Protocol
   ksACN,
   kArtNet,
   kMIDI,
+  kOTP,
 
   kCount,
   kDefault = kOSC,

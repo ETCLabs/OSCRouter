@@ -112,6 +112,8 @@
 #include "RtMidi.h"
 #endif
 
+#include "otp/otp.h"
+
 #include <unordered_set>
 
 class EosTcp;
@@ -170,6 +172,8 @@ public:
     QString sACNIP;
     QString artNetIP;
     bool levelChangesOnly = false;
+    QString otpIP;
+    otp::ModuleTypeList otpModuleTypes = {otp::ModuleType::kPos};
     QString script;
   };
 
@@ -263,6 +267,7 @@ protected:
   virtual void UpdateLog();
   virtual void SetState(ItemState::EnumState state);
   virtual void RecvPacket(const QHostAddress &host, const char *data, int len, OSCParser &logParser, PacketLogger &packetLogger);
+  virtual void RecvPacketPSN(const QHostAddress &host, const char *data, int len, OSCParser &logParser, PacketLogger &packetLogger);
   virtual void QueuePacket(const QHostAddress &host, const char *data, int len, OSCParser &logParser, PacketLogger &packetLogger);
 };
 
@@ -398,7 +403,7 @@ private:
 
 ////////////////////////////////////////////////////////////////////////////////
 
-class RouterThread : public QThread, private OSCParserClient, private IStreamACNCliNotify
+class RouterThread : public QThread, private OSCParserClient, private IStreamACNCliNotify, private otp::Consumer::Callbacks, private otp::Producer::Callbacks
 {
 public:
   struct ArtNetSendUniverse
@@ -564,6 +569,12 @@ protected:
     MIDI_OUTPUT_LIST outputs;
   };
 
+  struct OTPI
+  {
+    otp::Consumer consumer;
+    otp::Producer producer;
+  };
+
   struct MuteAll
   {
     bool incoming = false;
@@ -583,29 +594,39 @@ protected:
   psn::psn_encoder *m_PSNEncoder = nullptr;
   QElapsedTimer m_PSNEncoderTimer;
   sACNRecv m_sACNRecv;
+  otp::Data m_OTPRecv;
 
   virtual void run();
   virtual void RecvsACN(sACN &sacn, EosUdpInThread::RECV_PORT_Q &recvPortQ);
   virtual void RecvArtNet(ArtNet &artnet, EosUdpInThread::RECV_PORT_Q &recvPortQ);
-  virtual void RecvMIDI(OSCParser &oscParser, PacketLogger &packetLogger, bool muteAllIncoming, bool muteAllOutgoing, sACN &sacn, ArtNet &artnet, MIDI &midi, ROUTES_BY_PORT &routesByPort,
+  virtual void RecvMIDI(OSCParser &oscParser, PacketLogger &packetLogger, bool muteAllIncoming, bool muteAllOutgoing, sACN &sacn, ArtNet &artnet, MIDI &midi, OTPI &otpi, ROUTES_BY_PORT &routesByPort,
                         DESTINATIONS_LIST &routingDestinationList, UDP_OUT_THREADS &udpOutThreads, TCP_SERVER_THREADS &tcpServerThreads, TCP_CLIENT_THREADS &tcpClientThreads);
-  virtual void BuildRoutes(ROUTES_BY_PORT &routesByPort, ROUTES_BY_PORT &routesBysACNUniverse, ROUTES_BY_PORT &routesByArtNetUniverse, ROUTES_BY_PORT &routesByMIDI, UDP_IN_THREADS &udpInThreads,
-                           UDP_OUT_THREADS &udpOutThreads, TCP_CLIENT_THREADS &tcpClientThreads, TCP_SERVER_THREADS &tcpServerThreads);
-  virtual void BuildsACN(ROUTES_BY_PORT &routesByPort, ROUTES_BY_PORT &routesBysACNUniverse, ROUTES_BY_PORT &routesByArtNetUniverse, ROUTES_BY_PORT &routesByMIDI, sACN &sacn);
-  virtual void BuildArtNet(ROUTES_BY_PORT &routesByPort, ROUTES_BY_PORT &routesBysACNUniverse, ROUTES_BY_PORT &routesByArtNetUniverse, ROUTES_BY_PORT &routesByMIDI, ArtNet &artnet);
+  virtual void RecvOTP(OSCParser &oscParser, PacketLogger &packetLogger, bool muteAllIncoming, bool muteAllOutgoing, sACN &sacn, ArtNet &artnet, MIDI &midi, OTPI &otpi, ROUTES_BY_PORT &routesByPort,
+                       DESTINATIONS_LIST &routingDestinationList, UDP_OUT_THREADS &udpOutThreads, TCP_SERVER_THREADS &tcpServerThreads, TCP_CLIENT_THREADS &tcpClientThreads);
+  virtual void BuildRoutes(ROUTES_BY_PORT &routesByPort, ROUTES_BY_PORT &routesBysACNUniverse, ROUTES_BY_PORT &routesByArtNetUniverse, ROUTES_BY_PORT &routesByMIDI, ROUTES_BY_PORT &routesByOTP,
+                           UDP_IN_THREADS &udpInThreads, UDP_OUT_THREADS &udpOutThreads, TCP_CLIENT_THREADS &tcpClientThreads, TCP_SERVER_THREADS &tcpServerThreads);
+  virtual void BuildsACN(ROUTES_BY_PORT &routesByPort, ROUTES_BY_PORT &routesBysACNUniverse, ROUTES_BY_PORT &routesByArtNetUniverse, ROUTES_BY_PORT &routesByMIDI, ROUTES_BY_PORT &routesByOTP,
+                         sACN &sacn);
+  virtual void BuildArtNet(ROUTES_BY_PORT &routesByPort, ROUTES_BY_PORT &routesBysACNUniverse, ROUTES_BY_PORT &routesByArtNetUniverse, ROUTES_BY_PORT &routesByMIDI, ROUTES_BY_PORT &routesByOTP,
+                           ArtNet &artnet);
   virtual void BuildMIDI(ROUTES_BY_PORT &routesByMIDI, MIDI &midi);
+  virtual void BuildOTP(ROUTES_BY_PORT &routesByPort, ROUTES_BY_PORT &routesBysACNUniverse, ROUTES_BY_PORT &routesByArtNetUniverse, ROUTES_BY_PORT &routesByMIDI, ROUTES_BY_PORT &routesByOTP,
+                        OTPI &otpi);
   virtual EosUdpOutThread *CreateUdpOutThread(const EosAddr &addr, ItemStateTable::ID itemStateTableId, UDP_OUT_THREADS &udpOutThreads);
   virtual void AddRoutingDestinations(bool isOSC, const QString &path, const sRoutesByIp &routesByIp, DESTINATIONS_LIST &destinations);
-  virtual void ProcessRecvQ(bool muteAllOutgoing, sACN &sacn, ArtNet &artnet, MIDI &midi, OSCParser &oscBundleParser, ROUTES_BY_PORT &routesByPort, DESTINATIONS_LIST &routingDestinationList,
-                            UDP_OUT_THREADS &udpOutThreads, TCP_SERVER_THREADS &tcpServerThreads, TCP_CLIENT_THREADS &tcpClientThreads, const EosAddr &addr, EosUdpInThread::RECV_Q &recvQ);
-  virtual void ProcessRecvPacket(bool muteAllOutgoing, sACN &sacn, ArtNet &artnet, MIDI &midi, ROUTES_BY_PORT &routesByPort, DESTINATIONS_LIST &routingDestinationList, UDP_OUT_THREADS &udpOutThreads,
-                                 TCP_SERVER_THREADS &tcpServerThreads, TCP_CLIENT_THREADS &tcpClientThreads, const EosAddr &addr, Protocol protocol, EosUdpInThread::sRecvPacket &recvPacket);
+  virtual void ProcessRecvQ(bool muteAllOutgoing, sACN &sacn, ArtNet &artnet, MIDI &midi, OTPI &otpi, OSCParser &oscBundleParser, ROUTES_BY_PORT &routesByPort,
+                            DESTINATIONS_LIST &routingDestinationList, UDP_OUT_THREADS &udpOutThreads, TCP_SERVER_THREADS &tcpServerThreads, TCP_CLIENT_THREADS &tcpClientThreads, const EosAddr &addr,
+                            EosUdpInThread::RECV_Q &recvQ);
+  virtual void ProcessRecvPacket(bool muteAllOutgoing, sACN &sacn, ArtNet &artnet, MIDI &midi, OTPI &otpi, ROUTES_BY_PORT &routesByPort, DESTINATIONS_LIST &routingDestinationList,
+                                 UDP_OUT_THREADS &udpOutThreads, TCP_SERVER_THREADS &tcpServerThreads, TCP_CLIENT_THREADS &tcpClientThreads, const EosAddr &addr, Protocol protocol,
+                                 EosUdpInThread::sRecvPacket &recvPacket);
   virtual bool MakeOSCPacket(ArtNet &artnet, const EosAddr &addr, Protocol protocol, const QString &srcPath, const sRouteDst &route, OSCArgument *args, size_t argsCount, EosPacket &packet);
   virtual bool MakePSNPacket(EosPacket &osc, EosPacket &psn);
   virtual bool SendsACN(sACN &sacn, ArtNet &artnet, const EosAddr &addr, Protocol protocol, const sRouteDst &routeDst, EosPacket &osc);
   virtual bool SendArtNet(ArtNet &artnet, const EosAddr &addr, Protocol protocol, const EosRouteDst &dst, EosPacket &osc);
   virtual void FlushArtNet(ArtNet &artnet);
   virtual void SendMIDI(MIDI &midi, const sRouteDst &routeDst, EosPacket &oscPacket);
+  virtual void SendOTP(OTPI &otpi, const sRouteDst &routeDst, EosPacket &oscPacket);
   virtual void ProcessTcpConnectionQ(TCP_CLIENT_THREADS &tcpClientThreads, EosTcpServerThread &tcpServer, EosTcpServerThread::CONNECTION_Q &tcpConnectionQ, bool mute);
   virtual bool ApplyTransform(OSCArgument &arg, const EosRouteDst &dst, OSCPacketWriter &packet);
   virtual void MakeSendPath(ArtNet &artnet, const EosAddr &addr, Protocol protocol, const QString &srcPath, const QString &dstPath, const OSCArgument *args, size_t argsCount, QString &sendPath);
@@ -620,6 +641,7 @@ protected:
   virtual void DestroysACN(sACN &sacn);
   virtual void DestroyArtNet(ArtNet &artnet);
   virtual void LogMIDI(bool send, const std::string &name, const std::vector<unsigned char> &message);
+  virtual void LogOTP(const std::string &name, const otp::LogMsg &msg);
 
   // OSCParserClient
   virtual void OSCParserClient_Log(const std::string &message);
@@ -633,6 +655,15 @@ protected:
   void UniverseData(const CID &source, const char *source_name, const CIPAddr &source_ip, uint2 universe, uint2 reserved, uint1 sequence, uint1 options, uint1 priority, uint1 start_code,
                     uint2 slot_count, uint1 *pdata) override;
   void UniverseBad(uint2 /*universe*/, netintid /*iface*/) override {}
+
+  // OTP Consumer Callbacks
+  void ConsumerCallback_ProducerChanged(otp::EndpointChange change, const QUuid &cid, const otp::Endpoint &producer) override;
+  void ConsumerCallback_PointChanged(otp::PointChange change, const otp::Frame &frame, const otp::Point &point) override;
+  void ConsumerCallback_Log(const otp::LogMsg &msg) override;
+
+  // OTP Producer Callbacks
+  void ProducerCallback_ConsumerChanged(otp::EndpointChange change, const QUuid &cid, const otp::Endpoint &consumer) override;
+  void ProducerCallback_Log(const otp::LogMsg &msg) override;
 
   static bool HasProtocolOutput(const ROUTES_BY_PORT &routesByPort, Protocol protocol);
   static bool HasProtocolOutput(const ROUTES_BY_PATH &routesByPath, Protocol protocol);

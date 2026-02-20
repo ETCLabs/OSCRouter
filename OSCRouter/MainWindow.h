@@ -358,6 +358,16 @@ private slots:
   void refreshMIDIDevices();
 
 private:
+  struct OTP
+  {
+    QCheckBox* pos = nullptr;
+    QCheckBox* posVelAccel = nullptr;
+    QCheckBox* rot = nullptr;
+    QCheckBox* rotVelAccel = nullptr;
+    QCheckBox* scale = nullptr;
+    QCheckBox* rf = nullptr;
+  };
+
   enum class MIDIProp
   {
     kType = 0,
@@ -380,6 +390,8 @@ private:
   QComboBox* m_sACNInterface = nullptr;
   QComboBox* m_ArtNetInterface = nullptr;
   QCheckBox* m_LevelChangesOnly = nullptr;
+  QComboBox* m_OTPInterface = nullptr;
+  std::array<QCheckBox*, static_cast<size_t>(otp::ModuleType::kCount)> m_OTPModules;
   ScriptEdit* m_Script = nullptr;
   QTableWidget* m_MIDI = nullptr;
 
@@ -466,9 +478,9 @@ private:
 
     kInState,
     kInActivity,
+    kInProtocol,
     kInIP,
     kInPort,
-    kInProtocol,
     kInPath,
     kInMin,
     kInMax,
@@ -477,9 +489,9 @@ private:
 
     kOutState,
     kOutActivity,
+    kOutProtocol,
     kOutIP,
     kOutPort,
-    kOutProtocol,
     kOutPath,
     kOutScript,
     kOutMin,
