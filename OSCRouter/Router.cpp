@@ -1617,7 +1617,7 @@ void RouterThread::BuildOTP(ROUTES_BY_PORT &routesByPort, ROUTES_BY_PORT &routes
     otpi.consumer.SetCallbacks(this);
     otpi.consumer.SetName(QLatin1String(VER_PRODUCTNAME_STR));
     otpi.consumer.SetModuleTypes(m_Settings.otpModuleTypes);
-    otpi.consumer.SetNetworkInterface(m_Settings.otpIP);
+    otpi.consumer.Init(m_Settings.otpIP);
     otpi.consumer.SetSystems(systems);
 
     otp::SystemList active_systems = otpi.consumer.GetSystems();
@@ -1634,8 +1634,7 @@ void RouterThread::BuildOTP(ROUTES_BY_PORT &routesByPort, ROUTES_BY_PORT &routes
   {
     otpi.producer.SetCallbacks(this);
     otpi.producer.SetName(QLatin1String(VER_PRODUCTNAME_STR));
-    otpi.producer.SetNetworkInterface(m_Settings.otpIP);
-    otpi.producer.Init();
+    otpi.producer.Init(m_Settings.otpIP);
   }
 }
 
@@ -3159,6 +3158,14 @@ void RouterThread::SetItemActivity(ItemStateTable::ID id)
 ////////////////////////////////////////////////////////////////////////////////
 
 void RouterThread::run()
+{
+  MainLoop();
+  UpdateLog();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+void RouterThread::MainLoop()
 {
   m_PrivateLog.AddInfo("router thread started");
   UpdateLog();

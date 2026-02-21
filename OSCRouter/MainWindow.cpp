@@ -1202,7 +1202,7 @@ void SettingsWidget::Clear()
 {
   PopulateInterfaces(m_sACNInterface, tr("Default (All Interfaces)"));
   PopulateInterfaces(m_ArtNetInterface, tr("Default (First Interface)"));
-  PopulateInterfaces(m_OTPInterface, tr("Default (First Interface)"));
+  PopulateInterfaces(m_OTPInterface, tr("Default (All Interfaces)"));
 }
 
 void SettingsWidget::Load(const QStringList& lines)

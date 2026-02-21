@@ -23,7 +23,10 @@
 #include <QtCore/QtCore>
 #include <QtNetwork/QtNetwork>
 #include <map>
+#include <unordered_map>
 #include <set>
+#include <unordered_set>
+#include <memory>
 #include <optional>
 #include <chrono>
 
@@ -234,13 +237,31 @@ struct LogMsg
   }
 };
 
-struct NetworkInterface
+struct Udp
 {
-  QHostAddress addr = QHostAddress(QHostAddress::AnyIPv4);
+  std::shared_ptr<QUdpSocket> sock;
   QNetworkInterface net;
+};
 
-  NetworkInterface(const QString& ip = QString()) { fromIP(ip); }
-  bool fromIP(const QString& ip);
+typedef uint32_t IPv4;
+typedef std::unordered_set<IPv4> IPv4List;
+typedef std::unordered_map<IPv4, Udp> IPv4UdpSocketList;
+
+struct NetInterfaces
+{
+  NetInterfaces(IPv4 net_ip = 0);
+  NetInterfaces(const QString& net_ip);
+  NetInterfaces(IPv4List& net_ips);
+  NetInterfaces(const QStringList& net_ips);
+
+  const IPv4List& getIPs() const { return ips; }
+  void initSocketList(IPv4UdpSocketList& sockets, QStringList& errors, quint16 port = 0, QUdpSocket::BindMode mode = QUdpSocket::DefaultForPlatform);
+
+  static QString toString(IPv4 net_ip);
+  static IPv4 fromString(const QString& net_ip);
+
+private:
+  IPv4List ips;
 };
 
 class Message
@@ -329,8 +350,7 @@ public:
 
   Callbacks* GetCallbacks() const { return callbacks_; }
   void SetCallbacks(Callbacks* callbacks) { callbacks_ = callbacks; }
-  const NetworkInterface& GetNetworkInterface() const { return iface_; }
-  void SetNetworkInterface(const NetworkInterface& iface) { iface_ = iface; }
+  const NetInterfaces& GetNetInterfaces() const { return nets_; }
   const EndpointList& GetProducers() const { return producers_; }
   const QString& GetName() const { return props_.name; }
   void SetName(const QString& name);
@@ -338,8 +358,9 @@ public:
   void SetModuleTypes(const ModuleTypeList& module_types);
   const QUuid& GetCID() const { return props_.cid; }
   void SetCID(const QUuid& cid);
-  SystemList GetSystems() const;
+  const SystemList& GetSystems() const { return systems_; }
   void SetSystems(const SystemSet& systems);
+  void Init(const NetInterfaces& nets);
   void Tick();
   void Log(const LogMsg& msg);
 
@@ -348,22 +369,15 @@ private:
   {
     QElapsedTimer timer;
     QByteArray datagram;
-    QUdpSocket sock;
   };
-
-  struct ConsumerSystem
-  {
-    QUdpSocket sock;
-    System sys;
-  };
-
-  typedef std::map<SystemNumber, ConsumerSystem> ConsumerSystemList;
 
   Callbacks* callbacks_ = nullptr;
-  NetworkInterface iface_;
+  NetInterfaces nets_;
+  IPv4UdpSocketList send_sockets_;
+  IPv4UdpSocketList recv_sockets_;
   Message::Props props_;
   Advert advert_;
-  ConsumerSystemList systems_;
+  SystemList systems_;
   QByteArray reusable_;
   EndpointList producers_;
 
@@ -390,8 +404,7 @@ public:
 
   Callbacks* GetCallbacks() const { return callbacks_; }
   void SetCallbacks(Callbacks* callbacks) { callbacks_ = callbacks; }
-  const NetworkInterface& GetNetworkInterface() const { return iface_; }
-  void SetNetworkInterface(const NetworkInterface& iface) { iface_ = iface; }
+  const NetInterfaces& GetNetInterfaces() const { return nets_; }
   const EndpointList& GetConsumers() const { return consumers_; }
   const ModuleTypeList& GetModuleTypes() const { return mods_; }
   const QString& GetName() const { return props_.name; }
@@ -401,18 +414,18 @@ public:
   PointChange SetPoint(const Frame& frame, const Point& point);
   bool RemovePoint(const Frame& frame);
   bool RemoveAllPoints();
-  void Init();
+  void Init(const NetInterfaces& nets);
   void Tick();
   void Log(const LogMsg& msg);
 
 private:
   Callbacks* callbacks_ = nullptr;
-  NetworkInterface iface_;
+  NetInterfaces nets_;
+  IPv4UdpSocketList send_sockets_;
+  IPv4UdpSocketList recv_sockets_;
   EndpointList consumers_;
   ModuleTypeList mods_;  // global module types all consumers are interested in
   Message::Props props_;
-  QUdpSocket send_sock_;
-  QUdpSocket recv_sock_;
   QByteArray reusable_;
   QElapsedTimer resend_;
 
@@ -423,6 +436,7 @@ private:
   void UpdateModulesTypes();
   void SendPoint(const Frame& frame, const Point& point);
   void SendPoints(const Data& data, bool full_point_set);
-  bool Send(const QByteArray& datagram, const QHostAddress& addr);
+  void Send(const QByteArray& datagram, const QHostAddress& addr);
+  void Leave();
 };
 }  // namespace otp

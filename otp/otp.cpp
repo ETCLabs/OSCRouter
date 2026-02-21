@@ -204,6 +204,91 @@ QString Endpoint::toString() const
   return str;
 }
 
+NetInterfaces::NetInterfaces(IPv4 net_ip /*= 0*/)
+{
+  if (net_ip != 0)
+    ips.insert(net_ip);
+}
+
+NetInterfaces::NetInterfaces(const QString& net_ip)
+{
+  IPv4 ip = fromString(net_ip);
+  if (ip != 0)
+    ips.insert(ip);
+}
+
+NetInterfaces::NetInterfaces(IPv4List& net_ips)
+{
+  for (IPv4List::const_iterator i = net_ips.begin(); i != net_ips.end(); ++i)
+  {
+    if (*i != 0)
+      ips.insert(*i);
+  }
+}
+
+NetInterfaces::NetInterfaces(const QStringList& net_ips)
+{
+  for (QStringList::const_iterator i = net_ips.begin(); i != net_ips.end(); ++i)
+  {
+    IPv4 ip = fromString(*i);
+    if (ip != 0)
+      ips.insert(ip);
+  }
+}
+
+void NetInterfaces::initSocketList(IPv4UdpSocketList& sockets, QStringList& errors, quint16 port /*= 0*/, QUdpSocket::BindMode mode /*= QUdpSocket::DefaultForPlatform*/)
+{
+  sockets.clear();
+  errors.clear();
+
+  QList<QNetworkInterface> ifaces = QNetworkInterface::allInterfaces();
+  if (ifaces.empty())
+    return;
+
+  for (QList<QNetworkInterface>::const_iterator iface_iter = ifaces.begin(); iface_iter != ifaces.end(); ++iface_iter)
+  {
+    const QNetworkInterface& iface = *iface_iter;
+    if (!iface.flags().testFlag(QNetworkInterface::IsUp) || !iface.flags().testFlag(QNetworkInterface::IsRunning))
+      continue;
+
+    QList<QNetworkAddressEntry> addrs = iface.addressEntries();
+    for (QList<QNetworkAddressEntry>::const_iterator addr_iter = addrs.begin(); addr_iter != addrs.end(); ++addr_iter)
+    {
+      QHostAddress addr = addr_iter->ip();
+      if (addr.protocol() != QUdpSocket::IPv4Protocol)
+        continue;
+
+      IPv4 ip = addr.toIPv4Address();
+      if (ip == 0 || !ips.empty() && ips.find(ip) == ips.end())
+        continue;
+
+      std::shared_ptr<QUdpSocket> sock = std::make_shared<QUdpSocket>();
+      if (!sock->bind(addr, port, mode))
+      {
+        errors << QStringLiteral("bind to %1 failed with error %2").arg(port).arg(sock->errorString());
+        continue;
+      }
+
+      Udp& udp = sockets[ip];
+      udp.sock = sock;
+      udp.net = iface;
+      break;
+    }
+  }
+}
+
+QString NetInterfaces::toString(IPv4 net_ip)
+{
+  return QHostAddress(net_ip).toString();
+}
+
+IPv4 NetInterfaces::fromString(const QString& net_ip)
+{
+  bool ok = false;
+  IPv4 ip = QHostAddress(net_ip).toIPv4Address(&ok);
+  return ok ? ip : 0;
+}
+
 QString Message::MulticastTransformIP(SystemNumber system)
 {
   return QLatin1String("239.159.1.") + QString::number(system);
@@ -248,37 +333,6 @@ QByteArray Message::ToProtocolString(const QString& str)
 QString Message::FromProtocolString(const QByteArray& str)
 {
   return QString::fromUtf8(str.constData());
-}
-
-bool NetworkInterface::fromIP(const QString& ip)
-{
-  addr = QHostAddress(QHostAddress::AnyIPv4);
-  net = QNetworkInterface();
-
-  if (ip.isEmpty())
-    return true;
-
-  addr = QHostAddress(ip);
-
-  QList<QNetworkInterface> ifaces = QNetworkInterface::allInterfaces();
-  for (QList<QNetworkInterface>::const_iterator iface_iter = ifaces.begin(); iface_iter != ifaces.end(); ++iface_iter)
-  {
-    const QNetworkInterface& iface = *iface_iter;
-    if (!iface.flags().testFlag(QNetworkInterface::IsUp) || !iface.flags().testFlag(QNetworkInterface::IsRunning))
-      continue;
-
-    QList<QNetworkAddressEntry> addrs = iface.addressEntries();
-    for (QList<QNetworkAddressEntry>::const_iterator addr_iter = addrs.begin(); addr_iter != addrs.end(); ++addr_iter)
-    {
-      if (addr_iter->ip() == addr)
-      {
-        net = iface;
-        return true;
-      }
-    }
-  }
-
-  return false;
 }
 
 Message::Message(const Props& props)
@@ -1007,8 +1061,34 @@ Consumer::Consumer(const QString& name /*= QString()*/, const ModuleTypeList& mo
 
 Consumer::~Consumer()
 {
-  for (ConsumerSystemList::iterator i = systems_.begin(); i != systems_.end(); ++i)
-    i->second.sock.leaveMulticastGroup(QHostAddress(Message::MulticastTransformIP(i->first)));
+  SetSystems({});
+}
+
+void Consumer::Init(const NetInterfaces& nets)
+{
+  // store existing systems
+  SystemSet old_systems;
+  for (SystemList::const_iterator i = systems_.begin(); i != systems_.end(); ++i)
+    old_systems.insert(i->first);
+
+  // clear systems
+  SetSystems({});
+
+  nets_ = nets;
+
+  // init send sockets
+  QStringList errors;
+  nets_.initSocketList(send_sockets_, errors);
+  for (QStringList::const_iterator i = errors.begin(); i != errors.end(); ++i)
+    Log(LogMsg(QtCriticalMsg, *i));
+
+  // init recv sockets
+  nets_.initSocketList(recv_sockets_, errors, kPort, QUdpSocket::ShareAddress | QUdpSocket::ReuseAddressHint);
+  for (QStringList::const_iterator i = errors.begin(); i != errors.end(); ++i)
+    Log(LogMsg(QtCriticalMsg, *i));
+
+  // restore old systems
+  SetSystems(old_systems);
 }
 
 void Consumer::SetName(const QString& name)
@@ -1038,14 +1118,6 @@ void Consumer::SetCID(const QUuid& cid)
   UpdateAdvertDatagram();
 }
 
-SystemList Consumer::GetSystems() const
-{
-  SystemList systems;
-  for (ConsumerSystemList::const_iterator i = systems_.begin(); i != systems_.end(); ++i)
-    systems.insert(std::make_pair(i->first, System()));
-  return systems;
-}
-
 void Consumer::SetSystems(const SystemSet& systems)
 {
   // add new systems
@@ -1056,27 +1128,27 @@ void Consumer::SetSystems(const SystemSet& systems)
       continue;  // system already exists
 
     // add new system
-    ConsumerSystem& new_sys = systems_[number];
+    systems_[number];
 
-    if (!new_sys.sock.bind(iface_.addr, kPort, QUdpSocket::ShareAddress | QUdpSocket::ReuseAddressHint))
+    QString multicast_ip = Message::MulticastTransformIP(number);
+    QHostAddress addr(multicast_ip);
+    for (IPv4UdpSocketList::const_iterator sock_iter = recv_sockets_.begin(); sock_iter != recv_sockets_.end(); ++sock_iter)
     {
-      Log(LogMsg(QtCriticalMsg, QStringLiteral("listener bind to %1 failed with error %2").arg(kPort).arg(new_sys.sock.errorString())));
-      continue;
+      const Udp& udp = sock_iter->second;
+      QString net_ip = NetInterfaces::toString(sock_iter->first);
+
+      if (udp.sock->joinMulticastGroup(addr, udp.net))
+        Log(LogMsg(QtInfoMsg, QStringLiteral("interface %1 listening on multicast group %2:%3").arg(net_ip).arg(multicast_ip).arg(kPort)));
+      else
+        Log(LogMsg(QtCriticalMsg, QStringLiteral("interface %1 listen on multicast group %2 failed with error %3").arg(net_ip).arg(multicast_ip).arg(udp.sock->errorString())));
+
+      udp.sock->setSocketOption(QAbstractSocket::MulticastLoopbackOption, 1);
+      udp.sock->setMulticastInterface(udp.net);
     }
-
-    QString ip = Message::MulticastTransformIP(number);
-    QHostAddress addr(ip);
-    if (new_sys.sock.joinMulticastGroup(addr, iface_.net))
-      Log(LogMsg(QtInfoMsg, QStringLiteral("listening on multicast group %1:%2").arg(ip).arg(kPort)));
-    else
-      Log(LogMsg(QtCriticalMsg, QStringLiteral("listen on multicast group %1 failed with error %2").arg(ip).arg(new_sys.sock.errorString())));
-
-    new_sys.sock.setSocketOption(QAbstractSocket::MulticastLoopbackOption, 1);
-    new_sys.sock.setMulticastInterface(iface_.net);
   }
 
   // remove old systems
-  for (ConsumerSystemList::iterator existing_iter = systems_.begin(); existing_iter != systems_.end();)
+  for (SystemList::iterator existing_iter = systems_.begin(); existing_iter != systems_.end();)
   {
     SystemNumber number = existing_iter->first;
     if (systems.find(number) != systems.end())
@@ -1085,10 +1157,17 @@ void Consumer::SetSystems(const SystemSet& systems)
       continue;  // keep system
     }
 
-    ConsumerSystem& existing_sys = existing_iter->second;
-    QString ip = Message::MulticastTransformIP(number);
-    existing_sys.sock.leaveMulticastGroup(QHostAddress(ip));
-    Log(LogMsg(QtInfoMsg, QStringLiteral("leaving multicast group %1:%2").arg(ip).arg(kPort)));
+    QString multicast_ip = Message::MulticastTransformIP(number);
+    QHostAddress addr(multicast_ip);
+    for (IPv4UdpSocketList::const_iterator sock_iter = recv_sockets_.begin(); sock_iter != recv_sockets_.end(); ++sock_iter)
+    {
+      const Udp& udp = sock_iter->second;
+      QString net_ip = NetInterfaces::toString(sock_iter->first);
+
+      udp.sock->leaveMulticastGroup(addr, udp.net);
+      Log(LogMsg(QtInfoMsg, QStringLiteral("interface %1 leaving multicast group %2:%3").arg(net_ip).arg(multicast_ip).arg(kPort)));
+    }
+
     systems_.erase(existing_iter++);
   }
 }
@@ -1102,18 +1181,21 @@ void Consumer::Tick()
 
 void Consumer::TickAdvert()
 {
-  if (systems_.empty() || advert_.datagram.isEmpty() || (advert_.timer.isValid() && advert_.timer.elapsed() < kAdvertRate))
+  if (send_sockets_.empty() || systems_.empty() || advert_.datagram.isEmpty() || (advert_.timer.isValid() && advert_.timer.elapsed() < kAdvertRate))
     return;
 
-  if (advert_.sock.state() != QUdpSocket::BoundState)
+  QString multicast_ip = Message::MulticastAdvertIP();
+  QHostAddress addr(multicast_ip);
+  for (IPv4UdpSocketList::const_iterator sock_iter = send_sockets_.begin(); sock_iter != send_sockets_.end(); ++sock_iter)
   {
-    if (!advert_.sock.bind(iface_.addr))
-      Log(LogMsg(QtCriticalMsg, QStringLiteral("send advert bind to %1 failed with error %2").arg(kPort).arg(advert_.sock.errorString())));
-  }
+    const Udp& udp = sock_iter->second;
 
-  QString ip = Message::MulticastAdvertIP();
-  if (advert_.sock.writeDatagram(advert_.datagram, QHostAddress(ip), kPort) < 0)
-    Log(LogMsg(QtCriticalMsg, QStringLiteral("send advert to %1:%2 failed with error %3").arg(ip).arg(kPort).arg(advert_.sock.errorString())));
+    if (udp.sock->writeDatagram(advert_.datagram, addr, kPort) < 0)
+    {
+      Log(LogMsg(QtCriticalMsg,
+                 QStringLiteral("interface %1 send advert to %2:%3 failed with error %4").arg(NetInterfaces::toString(sock_iter->first)).arg(multicast_ip).arg(kPort).arg(udp.sock->errorString())));
+    }
+  }
 
   advert_.timer.start();
 }
@@ -1147,22 +1229,22 @@ void Consumer::TickProducers()
 
 void Consumer::TickTransform()
 {
-  for (ConsumerSystemList::iterator i = systems_.begin(); i != systems_.end(); ++i)
+  for (IPv4UdpSocketList::const_iterator sock_iter = recv_sockets_.begin(); sock_iter != recv_sockets_.end(); ++sock_iter)
   {
-    ConsumerSystem& sys = i->second;
+    const Udp& udp = sock_iter->second;
 
     for (;;)
     {
-      if (!sys.sock.waitForReadyRead(0))
+      if (!udp.sock->waitForReadyRead(0))
         break;
 
-      qint64 size = sys.sock.pendingDatagramSize();
+      qint64 size = udp.sock->pendingDatagramSize();
       if (size < 1)
         break;
 
       reusable_.resize(size);
       QHostAddress addr;
-      qint64 size_read = sys.sock.readDatagram(reusable_.data(), reusable_.size(), &addr);
+      qint64 size_read = udp.sock->readDatagram(reusable_.data(), reusable_.size(), &addr);
       if (size_read < 1)
         break;
 
@@ -1208,11 +1290,11 @@ void Consumer::MergeTransform(const Message& message)
     Frame frame;
     frame.system = new_system_iter->first;
 
-    ConsumerSystemList::iterator existing_system_iter = systems_.find(frame.system);
+    SystemList::iterator existing_system_iter = systems_.find(frame.system);
     if (existing_system_iter == systems_.end())
       continue;  // no such system
 
-    System& existing_system = existing_system_iter->second.sys;
+    System& existing_system = existing_system_iter->second;
     GroupList& existing_groups = existing_system.groups;
     const System& new_system = new_system_iter->second;
     const GroupList& new_groups = new_system.groups;
@@ -1298,8 +1380,55 @@ Producer::Producer(const QString& name /*= QString()*/, const QUuid& cid /*= QUu
 
 Producer::~Producer()
 {
-  if (recv_sock_.state() == QUdpSocket::BoundState)
-    recv_sock_.leaveMulticastGroup(QHostAddress(Message::MulticastAdvertIP()));
+  Leave();
+}
+
+void Producer::Leave()
+{
+  QString multicast_ip = Message::MulticastAdvertIP();
+  QHostAddress addr(multicast_ip);
+  for (IPv4UdpSocketList::const_iterator i = recv_sockets_.begin(); i != recv_sockets_.end(); ++i)
+  {
+    const Udp& udp = i->second;
+    QString net_ip = NetInterfaces::toString(i->first);
+
+    udp.sock->leaveMulticastGroup(addr, udp.net);
+    Log(LogMsg(QtInfoMsg, QStringLiteral("interface %1 leaving multicast group %2:%3").arg(net_ip).arg(multicast_ip).arg(kPort)));
+  }
+}
+
+void Producer::Init(const NetInterfaces& nets)
+{
+  Leave();
+
+  nets_ = nets;
+
+  // init send sockets
+  QStringList errors;
+  nets_.initSocketList(send_sockets_, errors);
+  for (QStringList::const_iterator i = errors.begin(); i != errors.end(); ++i)
+    Log(LogMsg(QtCriticalMsg, *i));
+
+  // init recv sockets
+  nets_.initSocketList(recv_sockets_, errors, kPort, QUdpSocket::ShareAddress | QUdpSocket::ReuseAddressHint);
+  for (QStringList::const_iterator i = errors.begin(); i != errors.end(); ++i)
+    Log(LogMsg(QtCriticalMsg, *i));
+
+  QString multicast_ip = Message::MulticastAdvertIP();
+  QHostAddress addr(multicast_ip);
+  for (IPv4UdpSocketList::const_iterator i = recv_sockets_.begin(); i != recv_sockets_.end(); ++i)
+  {
+    const Udp& udp = i->second;
+    QString net_ip = NetInterfaces::toString(i->first);
+
+    if (udp.sock->joinMulticastGroup(addr, udp.net))
+      Log(LogMsg(QtInfoMsg, QStringLiteral("interface %1 listening on multicast group %2:%3").arg(net_ip).arg(multicast_ip).arg(kPort)));
+    else
+      Log(LogMsg(QtCriticalMsg, QStringLiteral("interface %1 listen on multicast group %2 failed with error %3").arg(net_ip).arg(multicast_ip).arg(udp.sock->errorString())));
+
+    udp.sock->setSocketOption(QAbstractSocket::MulticastLoopbackOption, 1);
+    udp.sock->setMulticastInterface(udp.net);
+  }
 }
 
 PointChange Producer::SetPoint(const Frame& frame, const Point& point)
@@ -1388,33 +1517,6 @@ bool Producer::RemoveAllPoints()
   return true;
 }
 
-void Producer::Init()
-{
-  props_.data = Data();
-
-  if (recv_sock_.state() == QUdpSocket::BoundState)
-    return;
-
-  if (!recv_sock_.bind(iface_.addr, kPort, QUdpSocket::ShareAddress | QUdpSocket::ReuseAddressHint))
-  {
-    Log(LogMsg(QtCriticalMsg, QStringLiteral("bind to %1 failed with error %2").arg(kPort).arg(recv_sock_.errorString())));
-    return;
-  }
-
-  QString ip = Message::MulticastAdvertIP();
-  QHostAddress addr(ip);
-  if (!recv_sock_.joinMulticastGroup(addr, iface_.net))
-  {
-    Log(LogMsg(QtCriticalMsg, QStringLiteral("listen on multicast group %1 failed with error %2").arg(ip).arg(recv_sock_.errorString())));
-    return;
-  }
-
-  recv_sock_.setSocketOption(QAbstractSocket::MulticastLoopbackOption, 1);
-  recv_sock_.setMulticastInterface(iface_.net);
-
-  Log(LogMsg(QtInfoMsg, QStringLiteral("listening on multicast group %1:%2").arg(ip).arg(kPort)));
-}
-
 void Producer::Tick()
 {
   TickAdvert();
@@ -1424,25 +1526,30 @@ void Producer::Tick()
 
 void Producer::TickAdvert()
 {
-  for (;;)
+  for (IPv4UdpSocketList::const_iterator i = recv_sockets_.begin(); i != recv_sockets_.end(); ++i)
   {
-    if (!recv_sock_.waitForReadyRead(0))
-      break;
+    const Udp& udp = i->second;
 
-    qint64 size = recv_sock_.pendingDatagramSize();
-    if (size < 1)
-      break;
+    for (;;)
+    {
+      if (!udp.sock->waitForReadyRead(0))
+        break;
 
-    reusable_.resize(size);
-    QHostAddress addr;
-    qint64 size_read = recv_sock_.readDatagram(reusable_.data(), reusable_.size(), &addr);
-    if (size_read < 1)
-      break;
+      qint64 size = udp.sock->pendingDatagramSize();
+      if (size < 1)
+        break;
 
-    reusable_.resize(size_read);
-    Message request;
-    if (request.FromDatagram(reusable_))
-      HandleAdvert(request, addr);
+      reusable_.resize(size);
+      QHostAddress addr;
+      qint64 size_read = udp.sock->readDatagram(reusable_.data(), reusable_.size(), &addr);
+      if (size_read < 1)
+        break;
+
+      reusable_.resize(size_read);
+      Message request;
+      if (request.FromDatagram(reusable_))
+        HandleAdvert(request, addr);
+    }
   }
 }
 
@@ -1636,20 +1743,14 @@ void Producer::SendPoints(const Data& data, bool full_point_set)
   }
 }
 
-bool Producer::Send(const QByteArray& datagram, const QHostAddress& addr)
+void Producer::Send(const QByteArray& datagram, const QHostAddress& addr)
 {
-  if (send_sock_.state() != QUdpSocket::BoundState)
+  for (IPv4UdpSocketList::const_iterator i = recv_sockets_.begin(); i != recv_sockets_.end(); ++i)
   {
-    if (!send_sock_.bind(iface_.addr))
-      Log(LogMsg(QtCriticalMsg, QStringLiteral("send bind to %1 failed with error %2").arg(kPort).arg(send_sock_.errorString())));
-  }
+    const Udp& udp = i->second;
 
-  if (send_sock_.writeDatagram(datagram, addr, kPort) < 0)
-  {
-    Log(LogMsg(QtCriticalMsg, QStringLiteral("send to %1:%2 failed with error %3").arg(addr.toString()).arg(kPort).arg(send_sock_.errorString())));
-    return false;
+    if (udp.sock->writeDatagram(datagram, addr, kPort) < 0)
+      Log(LogMsg(QtCriticalMsg, QStringLiteral("interface %1 send to %2:%3 failed with error %4").arg(NetInterfaces::toString(i->first)).arg(addr.toString()).arg(kPort).arg(udp.sock->errorString())));
   }
-
-  return true;
 }
 }  // namespace otp

@@ -31,7 +31,7 @@ class QConsumer : public QObject, private Consumer::Callbacks
 public:
   QConsumer(QObject* parent = nullptr);
 
-  Consumer& start(const QString& name, const ModuleTypeList& module_types, const SystemSet& systems, const otp::NetworkInterface& iface, const QUuid& cid = QUuid::createUuid());
+  Consumer& start(const QString& name, const ModuleTypeList& module_types, const SystemSet& systems, const otp::NetInterfaces& nets = otp::NetInterfaces(), const QUuid& cid = QUuid::createUuid());
   void stop();
   Consumer* obj() const { return consumer_; }
 
@@ -65,7 +65,7 @@ class QProducer : public QObject, private Producer::Callbacks
 public:
   QProducer(QObject* parent = nullptr);
 
-  Producer& start(const QString& name, const otp::NetworkInterface& iface, const QUuid& cid = QUuid::createUuid());
+  Producer& start(const QString& name, const otp::NetInterfaces& nets = otp::NetInterfaces(), const QUuid& cid = QUuid::createUuid());
   void stop();
   Producer* obj() const { return producer_; }
 

@@ -23,18 +23,16 @@
 OTPExample::OTPExample(QObject* parent /*= nullptr*/)
   : QObject(parent)
 {
-  QString iface("192.168.50.243");
-
   otp::QConsumer* consumer = new otp::QConsumer(this);
   connect(consumer, &otp::QConsumer::producerAppeared, this, &OTPExample::onProducerAppeared);
   connect(consumer, &otp::QConsumer::pointChanged, this, &OTPExample::onPointChanged);
   connect(consumer, &otp::QConsumer::log, this, &OTPExample::onLog);
-  consumer->start("OTPExample-Consumer", {otp::ModuleType::kPos}, /*systems*/ {1, 4}, iface);
+  consumer->start("OTPExample-Consumer", {otp::ModuleType::kPos}, /*systems*/ {1, 4});
 
   producer_ = new otp::QProducer(this);
   connect(producer_, &otp::QProducer::consumerAppeared, this, &OTPExample::onConsumerAppeared);
   connect(producer_, &otp::QProducer::log, this, &OTPExample::onLog);
-  producer_->start("OTPExample-Producer", iface);
+  producer_->start("OTPExample-Producer");
 
   QTimer* timer = new QTimer(this);
   connect(timer, &QTimer::timeout, this, &OTPExample::movePoints);

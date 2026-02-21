@@ -29,13 +29,14 @@ QConsumer::QConsumer(QObject* parent /*= nullptr*/)
   connect(&ticker_, &QTimer::timeout, this, &QConsumer::tick);
 }
 
-Consumer& QConsumer::start(const QString& name, const ModuleTypeList& module_types, const SystemSet& systems, const otp::NetworkInterface& iface, const QUuid& cid /*= QUuid::createUuid()*/)
+Consumer& QConsumer::start(const QString& name, const ModuleTypeList& module_types, const SystemSet& systems, const otp::NetInterfaces& nets /*= otp::NetInterfaces()*/,
+                           const QUuid& cid /*= QUuid::createUuid()*/)
 {
   stop();
 
   consumer_ = new Consumer(name, module_types, cid);
   consumer_->SetCallbacks(this);
-  consumer_->SetNetworkInterface(iface);
+  consumer_->Init(nets);
   consumer_->SetSystems(systems);
   tick();
   return *consumer_;
@@ -93,14 +94,13 @@ QProducer::QProducer(QObject* parent /*= nullptr*/)
   connect(&ticker_, &QTimer::timeout, this, &QProducer::tick);
 }
 
-Producer& QProducer::start(const QString& name, const otp::NetworkInterface& iface, const QUuid& cid /*= QUuid::createUuid()*/)
+Producer& QProducer::start(const QString& name, const otp::NetInterfaces& nets /*= otp::NetInterfaces()*/, const QUuid& cid /*= QUuid::createUuid()*/)
 {
   stop();
 
   producer_ = new Producer(name, cid);
   producer_->SetCallbacks(this);
-  producer_->SetNetworkInterface(iface);
-  producer_->Init();
+  producer_->Init(nets);
   tick();
   return *producer_;
 }
