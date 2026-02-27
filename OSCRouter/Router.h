@@ -238,7 +238,7 @@ public:
   EosUdpInThread();
   virtual ~EosUdpInThread();
 
-  virtual void Start(const EosAddr &addr, QString multicastIP, Protocol protocol, ItemStateTable::ID itemStateTableId, unsigned int reconnectDelayMS, bool mute);
+  virtual void Start(const EosAddr &addr, QString multicastInterfaceIP, Protocol protocol, ItemStateTable::ID itemStateTableId, unsigned int reconnectDelayMS, bool mute);
   virtual void Stop();
   const EosAddr &GetAddr() const { return m_Addr; }
   Protocol GetProtocol() const { return m_Protocol; }
@@ -249,7 +249,7 @@ public:
 
 protected:
   EosAddr m_Addr;
-  QString m_MulticastIP;
+  QString m_MulticastInterfaceIP;
   Protocol m_Protocol = Protocol::kDefault;
   ItemStateTable::ID m_ItemStateTableId;
   ItemState::EnumState m_State;
@@ -279,7 +279,7 @@ public:
   EosUdpOutThread();
   virtual ~EosUdpOutThread();
 
-  virtual void Start(const EosAddr &addr, ItemStateTable::ID itemStateTableId, unsigned int reconnectDelayMS);
+  virtual void Start(const EosAddr &addr, QString multicastInterfaceIP, ItemStateTable::ID itemStateTableId, unsigned int reconnectDelayMS);
   virtual void Stop();
   const EosAddr &GetAddr() const { return m_Addr; }
   ItemStateTable::ID GetItemStateTableId() const { return m_ItemStateTableId; }
@@ -289,6 +289,7 @@ public:
 
 protected:
   EosAddr m_Addr;
+  QString m_MulticastInterfaceIP;
   ItemStateTable::ID m_ItemStateTableId;
   ItemState::EnumState m_State;
   unsigned int m_ReconnectDelay;
@@ -613,7 +614,7 @@ protected:
   virtual void BuildMIDI(ROUTES_BY_PORT &routesByMIDI, MIDI &midi);
   virtual void BuildOTP(ROUTES_BY_PORT &routesByPort, ROUTES_BY_PORT &routesBysACNUniverse, ROUTES_BY_PORT &routesByArtNetUniverse, ROUTES_BY_PORT &routesByMIDI, ROUTES_BY_PORT &routesByOTP,
                         OTPI &otpi);
-  virtual EosUdpOutThread *CreateUdpOutThread(const EosAddr &addr, ItemStateTable::ID itemStateTableId, UDP_OUT_THREADS &udpOutThreads);
+  virtual EosUdpOutThread *CreateUdpOutThread(const EosAddr &addr, QString multicastInterfaceIP, ItemStateTable::ID itemStateTableId, UDP_OUT_THREADS &udpOutThreads);
   virtual void AddRoutingDestinations(bool isOSC, const QString &path, const sRoutesByIp &routesByIp, DESTINATIONS_LIST &destinations);
   virtual void ProcessRecvQ(bool muteAllOutgoing, sACN &sacn, ArtNet &artnet, MIDI &midi, OTPI &otpi, OSCParser &oscBundleParser, ROUTES_BY_PORT &routesByPort,
                             DESTINATIONS_LIST &routingDestinationList, UDP_OUT_THREADS &udpOutThreads, TCP_SERVER_THREADS &tcpServerThreads, TCP_CLIENT_THREADS &tcpClientThreads, const EosAddr &addr,

@@ -136,7 +136,7 @@ struct EosRouteSrc
   bool operator!=(const EosRouteSrc &other) const;
   bool operator<(const EosRouteSrc &other) const;
   EosAddr addr;
-  QString multicastIP;
+  QString multicastInterfaceIP;
   Protocol protocol = Protocol::kDefault;
   QString path;
 };
@@ -164,6 +164,7 @@ struct EosRouteDst
   bool operator!=(const EosRouteDst &other) const { return !((*this) == other); }
 
   EosAddr addr;
+  QString multicastInterfaceIP;
   Protocol protocol = Protocol::kDefault;
   QString path;
   bool script = false;

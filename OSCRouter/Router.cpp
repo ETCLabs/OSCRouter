@@ -113,14 +113,16 @@ EosUdpInThread::~EosUdpInThread()
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void EosUdpInThread::Start(const EosAddr &addr, QString multicastIP, Protocol protocol, ItemStateTable::ID itemStateTableId, unsigned int reconnectDelayMS, bool mute)
+void EosUdpInThread::Start(const EosAddr &addr, QString multicastInterfaceIP, Protocol protocol, ItemStateTable::ID itemStateTableId, unsigned int reconnectDelayMS, bool mute)
 {
   Stop();
 
   m_Addr = addr;
   if (m_Addr.ip.isEmpty())
     m_Addr.ip = QLatin1String("0.0.0.0");
-  m_MulticastIP = multicastIP;
+  m_MulticastInterfaceIP = multicastInterfaceIP;
+  if (m_MulticastInterfaceIP.isEmpty() && QHostAddress(m_Addr.ip).isMulticast())
+    m_MulticastInterfaceIP = QLatin1String("0.0.0.0");
   m_Protocol = protocol;
   m_ItemStateTableId = itemStateTableId;
   m_ReconnectDelay = reconnectDelayMS;
@@ -200,6 +202,7 @@ void EosUdpInThread::RecvPacketPSN(const QHostAddress &host, const char *data, i
 
     std::string completePath = path;
     OSCPacketWriter completeOSC;
+    int count = 0;
 
     if (tracker.is_pos_set())
     {
@@ -216,7 +219,10 @@ void EosUdpInThread::RecvPacketPSN(const QHostAddress &host, const char *data, i
       if (packet)
       {
         if (size > 0)
+        {
           QueuePacket(host, packet, static_cast<int>(size), logParser, packetLogger);
+          ++count;
+        }
         delete[] packet;
       }
     }
@@ -236,7 +242,10 @@ void EosUdpInThread::RecvPacketPSN(const QHostAddress &host, const char *data, i
       if (packet)
       {
         if (size > 0)
+        {
           QueuePacket(host, packet, static_cast<int>(size), logParser, packetLogger);
+          ++count;
+        }
         delete[] packet;
       }
     }
@@ -256,7 +265,10 @@ void EosUdpInThread::RecvPacketPSN(const QHostAddress &host, const char *data, i
       if (packet)
       {
         if (size > 0)
+        {
           QueuePacket(host, packet, static_cast<int>(size), logParser, packetLogger);
+          ++count;
+        }
         delete[] packet;
       }
     }
@@ -276,7 +288,10 @@ void EosUdpInThread::RecvPacketPSN(const QHostAddress &host, const char *data, i
       if (packet)
       {
         if (size > 0)
+        {
           QueuePacket(host, packet, static_cast<int>(size), logParser, packetLogger);
+          ++count;
+        }
         delete[] packet;
       }
     }
@@ -296,7 +311,10 @@ void EosUdpInThread::RecvPacketPSN(const QHostAddress &host, const char *data, i
       if (packet)
       {
         if (size > 0)
+        {
           QueuePacket(host, packet, static_cast<int>(size), logParser, packetLogger);
+          ++count;
+        }
         delete[] packet;
       }
     }
@@ -312,7 +330,10 @@ void EosUdpInThread::RecvPacketPSN(const QHostAddress &host, const char *data, i
       if (packet)
       {
         if (size > 0)
+        {
           QueuePacket(host, packet, static_cast<int>(size), logParser, packetLogger);
+          ++count;
+        }
         delete[] packet;
       }
     }
@@ -328,12 +349,15 @@ void EosUdpInThread::RecvPacketPSN(const QHostAddress &host, const char *data, i
       if (packet)
       {
         if (size > 0)
+        {
           QueuePacket(host, packet, static_cast<int>(size), logParser, packetLogger);
+          ++count;
+        }
         delete[] packet;
       }
     }
 
-    if (!completeOSC.empty())
+    if (count > 1 && !completeOSC.empty())
     {
       completeOSC.SetPath(completePath);
       size_t size = 0;
@@ -380,7 +404,7 @@ void EosUdpInThread::run()
     SetState(ItemState::STATE_CONNECTING);
 
     EosUdpIn *udpIn = EosUdpIn::Create();
-    if (udpIn->Initialize(m_PrivateLog, m_Addr.ip.toUtf8().constData(), m_Addr.port, m_MulticastIP.isEmpty() ? nullptr : m_MulticastIP.toUtf8().constData()))
+    if (udpIn->Initialize(m_PrivateLog, m_Addr.ip.toUtf8().constData(), m_Addr.port, m_MulticastInterfaceIP.isEmpty() ? nullptr : m_MulticastInterfaceIP.toUtf8().constData()))
     {
       SetState(ItemState::STATE_CONNECTED);
 
@@ -396,7 +420,12 @@ void EosUdpInThread::run()
         int addrSize = static_cast<int>(sizeof(addr));
         const char *data = udpIn->RecvPacket(m_PrivateLog, 100, 0, len, &addr, &addrSize);
         if (!m_Mute && data && len > 0)
-          RecvPacket(QHostAddress(reinterpret_cast<const sockaddr *>(&addr)), data, len, logParser, packetLogger);
+        {
+          if (m_Addr.ip.isEmpty() || m_MulticastInterfaceIP.isEmpty())
+            RecvPacket(QHostAddress(reinterpret_cast<const sockaddr *>(&addr)), data, len, logParser, packetLogger);
+          else
+            RecvPacket(QHostAddress(m_Addr.ip), data, len, logParser, packetLogger);  // route as if we received this from the multicast IP directly
+        }
 
         UpdateLog();
 
@@ -458,11 +487,16 @@ EosUdpOutThread::~EosUdpOutThread()
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void EosUdpOutThread::Start(const EosAddr &addr, ItemStateTable::ID itemStateTableId, unsigned int reconnectDelayMS)
+void EosUdpOutThread::Start(const EosAddr &addr, QString multicastInterfaceIP, ItemStateTable::ID itemStateTableId, unsigned int reconnectDelayMS)
 {
   Stop();
 
   m_Addr = addr;
+  if (m_Addr.ip.isEmpty())
+    m_Addr.ip = QLatin1String("0.0.0.0");
+  m_MulticastInterfaceIP = multicastInterfaceIP;
+  if (m_MulticastInterfaceIP.isEmpty() && QHostAddress(m_Addr.ip).isMulticast())
+    m_MulticastInterfaceIP = QLatin1String("0.0.0.0");
   m_ItemStateTableId = itemStateTableId;
   m_ReconnectDelay = reconnectDelayMS;
   m_Run = true;
@@ -547,7 +581,7 @@ void EosUdpOutThread::run()
     SetState(ItemState::STATE_CONNECTING);
 
     EosUdpOut *udpOut = EosUdpOut::Create();
-    if (udpOut->Initialize(m_PrivateLog, m_Addr.ip.toUtf8().constData(), m_Addr.port, QHostAddress(m_Addr.ip).isMulticast()))
+    if (udpOut->Initialize(m_PrivateLog, m_Addr.ip.toUtf8().constData(), m_Addr.port, m_MulticastInterfaceIP.isEmpty() ? nullptr : m_MulticastInterfaceIP.toUtf8().constData()))
     {
       SetState(ItemState::STATE_CONNECTED);
 
@@ -1165,13 +1199,13 @@ void RouterThread::BuildRoutes(ROUTES_BY_PORT &routesByPort, ROUTES_BY_PORT &rou
     {
       EosUdpInThread *thread = new EosUdpInThread();
       udpInThreads[route.src.addr] = thread;
-      thread->Start(route.src.addr, route.src.multicastIP, route.src.protocol, route.srcItemStateTableId, m_ReconnectDelay, mute);
+      thread->Start(route.src.addr, route.src.multicastInterfaceIP, route.src.protocol, route.srcItemStateTableId, m_ReconnectDelay, mute);
     }
 
     // create udp out thread if known dst, and not an explicit tcp client
     if (route.dst.protocol != Protocol::ksACN && route.dst.protocol != Protocol::kArtNet && route.dst.protocol != Protocol::kMIDI && route.dst.protocol != Protocol::kOTP &&
         tcpClientThreads.find(route.dst.addr) == tcpClientThreads.end())
-      CreateUdpOutThread(route.dst.addr, route.dstItemStateTableId, udpOutThreads);
+      CreateUdpOutThread(route.dst.addr, route.dst.multicastInterfaceIP, route.dstItemStateTableId, udpOutThreads);
 
     // add entry to main routing table...
 
@@ -1640,16 +1674,16 @@ void RouterThread::BuildOTP(ROUTES_BY_PORT &routesByPort, ROUTES_BY_PORT &routes
 
 ////////////////////////////////////////////////////////////////////////////////
 
-EosUdpOutThread *RouterThread::CreateUdpOutThread(const EosAddr &addr, ItemStateTable::ID itemStateTableId, UDP_OUT_THREADS &udpOutThreads)
+EosUdpOutThread *RouterThread::CreateUdpOutThread(const EosAddr &addr, QString multicastInterfaceIP, ItemStateTable::ID itemStateTableId, UDP_OUT_THREADS &udpOutThreads)
 {
-  if (!addr.ip.isEmpty() && addr.port != 0)
+  if (addr.port != 0 && !addr.ip.isEmpty())
   {
     UDP_OUT_THREADS::iterator i = udpOutThreads.find(addr);
     if (i == udpOutThreads.end())
     {
       EosUdpOutThread *thread = new EosUdpOutThread();
       udpOutThreads[addr] = thread;
-      thread->Start(addr, itemStateTableId, m_ReconnectDelay);
+      thread->Start(addr, multicastInterfaceIP, itemStateTableId, m_ReconnectDelay);
       return thread;
     }
     else
@@ -1840,7 +1874,7 @@ void RouterThread::ProcessRecvPacket(bool muteAllOutgoing, sACN &sacn, ArtNet &a
             EosPacket psnPacket;
             if (MakePSNPacket(oscPacket, psnPacket))
             {
-              EosUdpOutThread *thread = CreateUdpOutThread(dstAddr, routeDst.dstItemStateTableId, udpOutThreads);
+              EosUdpOutThread *thread = CreateUdpOutThread(dstAddr, routeDst.dst.multicastInterfaceIP, routeDst.dstItemStateTableId, udpOutThreads);
               if (thread && thread->Send(psnPacket))
                 SetItemActivity(routeDst.dstItemStateTableId);
             }
@@ -1865,14 +1899,14 @@ void RouterThread::ProcessRecvPacket(bool muteAllOutgoing, sACN &sacn, ArtNet &a
           }
           else if (oscPacket.GetDataConst() && oscPacket.GetSize() > 0)
           {
-            EosUdpOutThread *thread = CreateUdpOutThread(dstAddr, routeDst.dstItemStateTableId, udpOutThreads);
+            EosUdpOutThread *thread = CreateUdpOutThread(dstAddr, routeDst.dst.multicastInterfaceIP, routeDst.dstItemStateTableId, udpOutThreads);
             if (thread && thread->Send(oscPacket))
               SetItemActivity(routeDst.dstItemStateTableId);
           }
         }
         else
         {
-          EosUdpOutThread *thread = CreateUdpOutThread(dstAddr, routeDst.dstItemStateTableId, udpOutThreads);
+          EosUdpOutThread *thread = CreateUdpOutThread(dstAddr, routeDst.dst.multicastInterfaceIP, routeDst.dstItemStateTableId, udpOutThreads);
           if (thread && thread->Send(recvPacket.packet))
             SetItemActivity(routeDst.dstItemStateTableId);
         }

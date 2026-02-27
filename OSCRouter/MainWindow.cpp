@@ -1746,14 +1746,14 @@ void RoutingWidget::AddRow(size_t id, bool remove, const QString& label, const R
   AddCol(col++, row.inActivity, /*fixed*/ true);
 
   row.inProtocol = new ProtocolComboBox(id, route.src.protocol, m_Cols->widget(col));
-  connect(row.inProtocol, &ProtocolComboBox::protocolChanged, this, &RoutingWidget::onProtocolChanged);
+  connect(row.inProtocol, &ProtocolComboBox::protocolChanged, this, &RoutingWidget::onInProtocolChanged);
   AddCol(col++, row.inProtocol, /*fixed*/ true);
 
   row.inIP = new LineEdit(m_Cols->widget(col));
-  if (route.src.multicastIP.isEmpty())
+  if (route.src.multicastInterfaceIP.isEmpty())
     row.inIP->setText(route.src.addr.ip);
   else
-    row.inIP->setText(route.src.addr.ip + QLatin1Char(',') + route.src.multicastIP);
+    row.inIP->setText(route.src.addr.ip + QLatin1Char(',') + route.src.multicastInterfaceIP);
   AddCol(col++, row.inIP);
 
   row.inPort = new LineEdit(m_Cols->widget(col));
@@ -1806,11 +1806,14 @@ void RoutingWidget::AddRow(size_t id, bool remove, const QString& label, const R
   AddCol(col++, row.outActivity, /*fixed*/ true);
 
   row.outProtocol = new ProtocolComboBox(id, route.dst.protocol, m_Cols->widget(col));
-  connect(row.outProtocol, &ProtocolComboBox::protocolChanged, this, &RoutingWidget::onProtocolChanged);
+  connect(row.outProtocol, &ProtocolComboBox::protocolChanged, this, &RoutingWidget::onOutProtocolChanged);
   AddCol(col++, row.outProtocol, /*fixed*/ true);
 
   row.outIP = new LineEdit(m_Cols->widget(col));
-  row.outIP->setText(route.dst.addr.ip);
+  if (route.dst.multicastInterfaceIP.isEmpty())
+    row.outIP->setText(route.dst.addr.ip);
+  else
+    row.outIP->setText(route.dst.addr.ip + QLatin1Char(',') + route.dst.multicastInterfaceIP);
   AddCol(col++, row.outIP);
 
   row.outPort = new LineEdit(m_Cols->widget(col));
@@ -1858,7 +1861,8 @@ void RoutingWidget::AddRow(size_t id, bool remove, const QString& label, const R
 
   m_Rows.push_back(row);
 
-  onProtocolChanged(m_Rows.size() - 1, Protocol::kInvalid);
+  onInProtocolChanged(m_Rows.size() - 1, Protocol::kInvalid);
+  onOutProtocolChanged(m_Rows.size() - 1, Protocol::kInvalid);
 }
 
 void RoutingWidget::AddCol(int index, QWidget* w, bool fixed /*= false*/, bool fixedHeight /*= false*/)
@@ -1942,7 +1946,7 @@ void RoutingWidget::LoadLine(const QString& line, Router::ROUTES& routes, ItemSt
     }
 
     if (items.size() > 12)
-      route.src.multicastIP = items[12];
+      route.src.multicastInterfaceIP = items[12];
 
     if (items.size() > 13)
       route.src.protocol = ProtocolComboBox::SanitizedProtocol(items[13].toInt());
@@ -1955,6 +1959,9 @@ void RoutingWidget::LoadLine(const QString& line, Router::ROUTES& routes, ItemSt
 
     if (items.size() > 16)
       route.mute = (items[16].toInt() == 0);
+
+    if (items.size() > 17)
+      route.dst.multicastInterfaceIP = items[17];
 
     routes.push_back(route);
   }
@@ -1998,11 +2005,12 @@ void RoutingWidget::Save(QTextStream& stream)
     stream << QStringLiteral(",%1").arg(outMinStr);
     stream << QStringLiteral(",%1").arg(outMaxStr);
     stream << QStringLiteral(",%1").arg(route.dst.script ? FileUtils::QuotedString(route.dst.scriptText) : QString());
-    stream << QStringLiteral(",%1").arg(FileUtils::QuotedString(route.src.multicastIP));
+    stream << QStringLiteral(",%1").arg(FileUtils::QuotedString(route.src.multicastInterfaceIP));
     stream << QStringLiteral(",%1").arg(static_cast<int>(route.src.protocol));
     stream << QStringLiteral(",%1").arg(static_cast<int>(route.dst.protocol));
     stream << QStringLiteral(",%1").arg(route.enable ? 1 : 0);
     stream << QStringLiteral(",%1").arg(route.mute ? 0 : 1);
+    stream << QStringLiteral(",%1").arg(FileUtils::QuotedString(route.dst.multicastInterfaceIP));
     stream << QLatin1Char('\n');
   }
 }
@@ -2039,14 +2047,22 @@ void RoutingWidget::SaveRoutes(Router::ROUTES& routes, ItemStateTable& itemState
     if (ips.size() > 1)
     {
       route.src.addr.ip = ips[0].trimmed();
-      route.src.multicastIP = ips[1].trimmed();
+      route.src.multicastInterfaceIP = ips[1].trimmed();
     }
     else
       route.src.addr.ip = row.inIP->text();
 
     route.src.path = row.inPath->text();
 
-    route.dst.addr.ip = row.outIP->text();
+    ips = row.outIP->text().split(QLatin1Char(','));
+    if (ips.size() > 1)
+    {
+      route.dst.addr.ip = ips[0].trimmed();
+      route.dst.multicastInterfaceIP = ips[1].trimmed();
+    }
+    else
+      route.dst.addr.ip = row.outIP->text();
+
     route.dst.protocol = row.outProtocol->GetProtocol();
     route.dst.addr.port = row.outPort->text().toUShort();
     route.dst.path = row.outPath->text();
@@ -2348,7 +2364,7 @@ void RoutingWidget::onAddRemoveClicked(size_t id)
   LoadRoutes(routes, itemStateTable);
 }
 
-void RoutingWidget::onProtocolChanged(size_t row, Protocol /*protocol*/)
+void RoutingWidget::onInProtocolChanged(size_t row, Protocol protocol)
 {
   if (row >= m_Rows.size())
     return;
@@ -2365,11 +2381,22 @@ void RoutingWidget::onProtocolChanged(size_t row, Protocol /*protocol*/)
 
   if (inProtocol == Protocol::kPSN)
   {
-    if (r.inIP->text().isEmpty())
-      r.inIP->setText(QLatin1String(",") + Router::GetDefaultPSNIP());
-    if (r.inPort->text().isEmpty())
+    bool postLoad = (protocol == Protocol::kInvalid);
+    if (!postLoad || r.inIP->text().isEmpty())
+      r.inIP->setText(Router::GetDefaultPSNIP());
+    if (!postLoad || r.inPort->text().isEmpty())
       r.inPort->setText(QString::number(Router::GetDefaultPSNPort()));
   }
+}
+
+void RoutingWidget::onOutProtocolChanged(size_t row, Protocol protocol)
+{
+  if (row >= m_Rows.size())
+    return;
+
+  const Row& r = m_Rows[row];
+  Protocol inProtocol = r.inProtocol->GetProtocol();
+  Protocol outProtocol = r.outProtocol->GetProtocol();
 
   r.outIP->setEnabled(r.enable->isChecked() && outProtocol != Protocol::kMIDI && outProtocol != Protocol::kOTP);
   r.outIP->setToolTip(GetHelpText(Col::kOutIP, inProtocol, outProtocol, /*script*/ false));
@@ -2379,9 +2406,10 @@ void RoutingWidget::onProtocolChanged(size_t row, Protocol /*protocol*/)
 
   if (outProtocol == Protocol::kPSN)
   {
-    if (r.outIP->text().isEmpty())
-      r.outIP->setText(QLatin1String(",") + Router::GetDefaultPSNIP());
-    if (r.outPort->text().isEmpty())
+    bool postLoad = (protocol == Protocol::kInvalid);
+    if (!postLoad || r.outIP->text().isEmpty())
+      r.outIP->setText(Router::GetDefaultPSNIP());
+    if (!postLoad || r.outPort->text().isEmpty())
       r.outPort->setText(QString::number(Router::GetDefaultPSNPort()));
   }
 }
@@ -2491,8 +2519,8 @@ QString RoutingWidget::GetHelpText(Col col, Protocol inProtocol, Protocol outPro
                "\n"
                "Leave blank to route packets received from any IP address\n"
                "\n"
-               "For multicast, use 2 comma separated IP addresses\n"
-               "(the first may be blank)");
+               "Multicast Format: x.x.x.x,y.y.y.y\n"
+               "(where x.x.x.x is the multicast group and y.y.y.y is the interface)");
       }
     }
     break;
@@ -2617,8 +2645,12 @@ QString RoutingWidget::GetHelpText(Col col, Protocol inProtocol, Protocol outPro
       else
       {
         text =
-            tr("Route received packets to this IP address\n\n"
-               "Leave blank to route packets to the same IP address they were sent from");
+            tr("Route received packets to this IP address\n"
+               "\n"
+               "Leave blank to route packets to the same IP address they were sent from\n"
+               "\n"
+               "Multicast Format: x.x.x.x,y.y.y.y\n"
+               "(where x.x.x.x is the multicast group and y.y.y.y is the interface)");
       }
     }
     break;
