@@ -259,11 +259,11 @@ void NetInterfaces::initSocketList(IPv4UdpSocketList& sockets, QStringList& erro
         continue;
 
       IPv4 ip = addr.toIPv4Address();
-      if (ip == 0 || !ips.empty() && ips.find(ip) == ips.end())
+      if (ip == 0 || (!ips.empty() && ips.find(ip) == ips.end()))
         continue;
 
       std::shared_ptr<QUdpSocket> sock = std::make_shared<QUdpSocket>();
-      if (!sock->bind(addr, port, mode))
+      if (!sock->bind((port == 0) ? addr : QHostAddress::AnyIPv4, port, mode))
       {
         errors << QStringLiteral("bind to %1 failed with error %2").arg(port).arg(sock->errorString());
         continue;
