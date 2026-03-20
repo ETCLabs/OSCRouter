@@ -1667,7 +1667,7 @@ QString RoutingWidget::HeaderForCol(Col col)
     case Col::kOutPort: return tr("Port");
 
     case Col::kInTCP:
-    case Col::kOutTCP: return tr("Protocol");
+    case Col::kOutTCP: return tr("Proto");
 
     case Col::kInPath:
     case Col::kOutPath: return tr("Path");
@@ -2144,8 +2144,8 @@ bool RoutingWidget::RouteUsesTcp(const Router::CONNECTIONS& connections, const E
 
 void RoutingWidget::UpdateTcpIndicators()
 {
-  const QString tcpStyle = QStringLiteral("QLabel { background-color: rgb(29, 92, 58); color: white; border-radius: 9px; padding: 1px 6px; }");
-  const QString udpStyle = QStringLiteral("QLabel { background-color: rgb(56, 76, 102); color: white; border-radius: 9px; padding: 1px 6px; }");
+  const QString tcpStyle = QStringLiteral("QLabel { background-color: rgb(29, 92, 58); color: white; border-radius: 7px; padding: 0px 4px; }");
+  const QString udpStyle = QStringLiteral("QLabel { background-color: rgb(56, 76, 102); color: white; border-radius: 7px; padding: 0px 4px; }");
 
   for (size_t i = 0; i < m_Rows.size(); ++i)
   {
