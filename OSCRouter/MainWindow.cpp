@@ -941,7 +941,7 @@ void TcpWidget::SaveConnections(Router::CONNECTIONS& connections, ItemStateTable
       row.itemStateTableId = connection.itemStateTableId;
     }
     else
-      connection.itemStateTableId = row.itemStateTableId = ItemStateTable::sm_Invalid_Id;
+      connection.itemStateTableId = ItemStateTable::sm_Invalid_Id;
 
     connections.push_back(connection);
   }
@@ -1666,6 +1666,9 @@ QString RoutingWidget::HeaderForCol(Col col)
     case Col::kInPort:
     case Col::kOutPort: return tr("Port");
 
+    case Col::kInTCP:
+    case Col::kOutTCP: return tr("Protocol");
+
     case Col::kInPath:
     case Col::kOutPath: return tr("Path");
 
@@ -1708,6 +1711,13 @@ void RoutingWidget::LoadRoutes(const Router::ROUTES& routes, const ItemStateTabl
   UpdateLayout();
   UpdateEnableState();
   UpdateMuteState();
+  UpdateTcpIndicators();
+}
+
+void RoutingWidget::SetTcpConnections(const Router::CONNECTIONS& connections)
+{
+  m_TcpConnections = connections;
+  UpdateTcpIndicators();
 }
 
 void RoutingWidget::AddRow(size_t id, bool remove, const QString& label, const Router::sRoute& route)
@@ -1760,6 +1770,11 @@ void RoutingWidget::AddRow(size_t id, bool remove, const QString& label, const R
   row.inPort->setText(ValidPort(route.src.protocol, route.src.addr.port) ? QString::number(route.src.addr.port) : QString());
   AddCol(col++, row.inPort);
 
+  row.inTCP = new QLabel(tr("UDP"), m_Cols->widget(col));
+  row.inTCP->setAlignment(Qt::AlignCenter);
+  row.inTCP->setToolTip(tr("Incoming transport for this endpoint."));
+  AddCol(col++, row.inTCP, /*fixed*/ true);
+
   row.inPath = new LineEdit(m_Cols->widget(col));
   row.inPath->setText(route.src.path);
   int fh = row.inPath->sizeHint().height();
@@ -1767,6 +1782,7 @@ void RoutingWidget::AddRow(size_t id, bool remove, const QString& label, const R
   row.mute->setFixedHeight(fh);
   row.inState->setFixedHeight(fh);
   row.inActivity->setFixedHeight(fh);
+  row.inTCP->setFixedHeight(fh);
   AddCol(col++, row.inPath);
 
   row.inMin = new LineEdit(m_Cols->widget(col));
@@ -1820,11 +1836,17 @@ void RoutingWidget::AddRow(size_t id, bool remove, const QString& label, const R
   row.outPort->setText(ValidPort(route.dst.protocol, route.dst.addr.port) ? QString::number(route.dst.addr.port) : QString());
   AddCol(col++, row.outPort);
 
+  row.outTCP = new QLabel(tr("UDP"), m_Cols->widget(col));
+  row.outTCP->setAlignment(Qt::AlignCenter);
+  row.outTCP->setToolTip(tr("Outgoing transport for this endpoint."));
+  AddCol(col++, row.outTCP, /*fixed*/ true);
+
   row.outPath = new LineEdit(m_Cols->widget(col));
   row.outPath->setText(route.dst.path);
   fh = row.outPath->sizeHint().height();
   row.outState->setFixedHeight(fh);
   row.outActivity->setFixedHeight(fh);
+  row.outTCP->setFixedHeight(fh);
 
   row.outScriptText = new ScriptEdit(m_Cols->widget(col));
   row.outScriptText->hide();
@@ -2105,6 +2127,53 @@ void RoutingWidget::UpdateItemState(const ItemStateTable& itemStateTable)
   }
 }
 
+bool RoutingWidget::RouteUsesTcp(const Router::CONNECTIONS& connections, const EosAddr& addr, bool output)
+{
+  if (addr.port == 0)
+    return false;
+
+  for (Router::CONNECTIONS::const_iterator i = connections.begin(); i != connections.end(); ++i)
+  {
+    const Router::sConnection& connection = *i;
+    if (connection.addr == addr && (!output || !connection.server))
+      return true;
+  }
+
+  return false;
+}
+
+void RoutingWidget::UpdateTcpIndicators()
+{
+  const QString tcpStyle = QStringLiteral("QLabel { background-color: rgb(29, 92, 58); color: white; border-radius: 9px; padding: 1px 6px; }");
+  const QString udpStyle = QStringLiteral("QLabel { background-color: rgb(56, 76, 102); color: white; border-radius: 9px; padding: 1px 6px; }");
+
+  for (size_t i = 0; i < m_Rows.size(); ++i)
+  {
+    Row& row = m_Rows[i];
+
+    EosAddr inAddr;
+    inAddr.port = row.inPort->text().toUShort();
+    inAddr.ip = row.inIP->text().split(QLatin1Char(',')).value(0).trimmed();
+    bool inTcp = (row.inProtocol->GetProtocol() == Protocol::kOSC && RouteUsesTcp(m_TcpConnections, inAddr, /*output*/ false));
+    row.inTCP->setText(inTcp ? tr("TCP") : tr("UDP"));
+    row.inTCP->setStyleSheet(inTcp ? tcpStyle : udpStyle);
+    row.inTCP->setToolTip(inTcp ? tr("This incoming endpoint matches a configured TCP connection.") : tr("This incoming endpoint is routed over UDP."));
+
+    EosAddr outAddr;
+    outAddr.port = row.outPort->text().toUShort();
+    outAddr.ip = row.outIP->text().split(QLatin1Char(',')).value(0).trimmed();
+    bool outTcp = (row.outProtocol->GetProtocol() == Protocol::kOSC && RouteUsesTcp(m_TcpConnections, outAddr, /*output*/ true));
+    row.outTCP->setText(outTcp ? tr("TCP") : tr("UDP"));
+    row.outTCP->setStyleSheet(outTcp ? tcpStyle : udpStyle);
+    row.outTCP->setToolTip(outTcp ? tr("This outgoing endpoint matches a configured TCP connection.") : tr("This outgoing endpoint is routed over UDP."));
+  }
+
+  for (int i = 0; i < static_cast<int>(Col::kCount); ++i)
+    m_RoutingCols[i]->ResetCachedSizeHints();
+
+  UpdateLayout();
+}
+
 void RoutingWidget::UpdateItemState(const ItemState* itemState, Indicator& stateIndicator, Indicator& activityIndicator)
 {
   if (!(itemState && itemState->dirty))
@@ -2263,6 +2332,7 @@ void RoutingWidget::UpdateEnableState()
     row.label->setEnabled(e);
     row.inIP->setEnabled(e && protocol != Protocol::kMIDI && protocol != Protocol::kOTP);
     row.inPort->setEnabled(e);
+    row.inTCP->setEnabled(e);
     row.inProtocol->setEnabled(e);
     row.inPath->setEnabled(e && protocol != Protocol::ksACN && protocol != Protocol::kArtNet);
     row.inMin->setEnabled(e);
@@ -2274,6 +2344,7 @@ void RoutingWidget::UpdateEnableState()
 
     row.outIP->setEnabled(e && protocol != Protocol::kMIDI && protocol != Protocol::kOTP);
     row.outPort->setEnabled(e);
+    row.outTCP->setEnabled(e);
     row.outProtocol->setEnabled(e);
     row.outPath->setEnabled(e);
     row.outScriptText->setEnabled(e);
@@ -2301,6 +2372,7 @@ void RoutingWidget::UpdateMuteState()
 
     SetMuted(row.inIP, mute);
     SetMuted(row.inPort, mute);
+    SetMuted(row.inTCP, mute);
     SetMuted(row.inProtocol, mute);
     SetMuted(row.inPath, mute);
     SetMuted(row.inMin, mute);
@@ -2310,6 +2382,7 @@ void RoutingWidget::UpdateMuteState()
 
     SetMuted(row.outIP, mute);
     SetMuted(row.outPort, mute);
+    SetMuted(row.outTCP, mute);
     SetMuted(row.outProtocol, mute);
     SetMuted(row.outPath, mute);
     SetMuted(row.outMin, mute);
@@ -2387,6 +2460,8 @@ void RoutingWidget::onInProtocolChanged(size_t row, Protocol protocol)
     if (!postLoad || r.inPort->text().isEmpty())
       r.inPort->setText(QString::number(Router::GetDefaultPSNPort()));
   }
+
+  UpdateTcpIndicators();
 }
 
 void RoutingWidget::onOutProtocolChanged(size_t row, Protocol protocol)
@@ -2412,6 +2487,8 @@ void RoutingWidget::onOutProtocolChanged(size_t row, Protocol protocol)
     if (!postLoad || r.outPort->text().isEmpty())
       r.outPort->setText(QString::number(Router::GetDefaultPSNPort()));
   }
+
+  UpdateTcpIndicators();
 }
 
 void RoutingWidget::onHeaderHelpClicked(size_t id)
@@ -3075,6 +3152,7 @@ MainWindow::MainWindow(EosPlatform* platform, QWidget* parent /*=0*/, Qt::Window
 
   m_RoutingWidget->LoadRoutes(Router::ROUTES(), ItemStateTable());
   m_TcpWidget->LoadConnections(Router::CONNECTIONS());
+  m_RoutingWidget->SetTcpConnections(Router::CONNECTIONS());
   m_SettingsWidget->LoadSettings(Router::Settings());
 
   RestoreLastFile();
@@ -3258,6 +3336,9 @@ bool MainWindow::Load(const QString& path)
   m_SettingsWidget->Load(lines);
   m_RoutingWidget->Load(lines);
   m_TcpWidget->Load(lines);
+  Router::CONNECTIONS connections;
+  m_TcpWidget->SaveConnections(connections, /*itemStateTable*/ nullptr);
+  m_RoutingWidget->SetTcpConnections(connections);
 
   SaveToBuffer(m_FileContents);
   SetUnsaved(false);
@@ -3352,6 +3433,10 @@ void MainWindow::SyncRouterThread(bool logsOnly)
 
   if (!logsOnly)
   {
+    Router::CONNECTIONS connections;
+    m_TcpWidget->SaveConnections(connections, /*itemStateTable*/ nullptr);
+    m_RoutingWidget->SetTcpConnections(connections);
+
     if (m_ItemStateTable.GetDirty())
     {
       m_RoutingWidget->UpdateItemState(m_ItemStateTable);
@@ -3380,6 +3465,7 @@ void MainWindow::onNewFile()
 
   m_RoutingWidget->LoadRoutes(Router::ROUTES(), ItemStateTable());
   m_TcpWidget->LoadConnections(Router::CONNECTIONS());
+  m_RoutingWidget->SetTcpConnections(Router::CONNECTIONS());
   m_SettingsWidget->LoadSettings(Router::Settings());
   m_FilePath.clear();
   m_Settings.setValue(SETTING_LAST_FILE, m_FilePath);
@@ -3615,6 +3701,7 @@ void MainWindow::onStartClicked(bool /*checked*/)
   Router::CONNECTIONS connections;
   m_TcpWidget->SaveConnections(connections, /*itemStateTable*/ 0);
   m_TcpWidget->LoadConnections(connections);
+  m_RoutingWidget->SetTcpConnections(connections);
 
   Router::Settings settings;
   m_SettingsWidget->SaveSettings(settings);

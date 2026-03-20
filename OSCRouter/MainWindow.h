@@ -438,6 +438,7 @@ public:
 
   QSize sizeHint() const { return QSize(1000, 1000); }
   void Clear();
+  void SetTcpConnections(const Router::CONNECTIONS& connections);
   void Load(const QStringList& lines);
   void LoadRoutes(const Router::ROUTES& routes, const ItemStateTable& itemStateTable);
   void Save(QTextStream& stream);
@@ -482,6 +483,7 @@ private:
     kInProtocol,
     kInIP,
     kInPort,
+    kInTCP,
     kInPath,
     kInMin,
     kInMax,
@@ -493,6 +495,7 @@ private:
     kOutProtocol,
     kOutIP,
     kOutPort,
+    kOutTCP,
     kOutPath,
     kOutScript,
     kOutMin,
@@ -520,6 +523,7 @@ private:
     Indicator* inActivity = nullptr;
     LineEdit* inIP = nullptr;
     LineEdit* inPort = nullptr;
+    QLabel* inTCP = nullptr;
     ProtocolComboBox* inProtocol = nullptr;
     LineEdit* inPath = nullptr;
     LineEdit* inMin = nullptr;
@@ -530,6 +534,7 @@ private:
     Indicator* outActivity = nullptr;
     LineEdit* outIP = nullptr;
     LineEdit* outPort = nullptr;
+    QLabel* outTCP = nullptr;
     ProtocolComboBox* outProtocol = nullptr;
     LineEdit* outPath = nullptr;
     ScriptEdit* outScriptText = nullptr;
@@ -549,6 +554,7 @@ private:
   typedef std::map<EosAddr, ItemStateTable::ID> AddrStates;
 
   Rows m_Rows;
+  Router::CONNECTIONS m_TcpConnections;
   Header m_Incoming;
   Header m_Outgoing;
   QWidget* m_Headers[static_cast<int>(Col::kCount)];
@@ -563,6 +569,7 @@ private:
   void AddCol(int index, QWidget* w, bool fixed = false, bool fixedHeight = false);
   void AddCol(int index, const RoutingCol::Widgets& w, bool fixed = false, bool fixedHeight = false);
   void UpdateItemState(const ItemState* itemState, Indicator& stateIndicator, Indicator& activityIndicator);
+  void UpdateTcpIndicators();
   void UpdateLayout();
   QRect RectForCol(Col col) const;
   void UpdateEnableState();
@@ -570,6 +577,7 @@ private:
 
   static QString HeaderForCol(Col col);
   static bool HasRoute(const Router::ROUTES& routes, const EosRouteSrc& src, const EosRouteDst& dst);
+  static bool RouteUsesTcp(const Router::CONNECTIONS& connections, const EosAddr& addr, bool output);
   static QString GetHelpText(Col col, Protocol inProtocol, Protocol outProtocol, bool script);
 };
 
