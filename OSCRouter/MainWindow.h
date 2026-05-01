@@ -279,6 +279,9 @@ public:
   void SaveConnections(Router::CONNECTIONS& connections, ItemStateTable* itemStateTable);
   void UpdateItemState(const ItemStateTable& itemStateTable);
 
+signals:
+  void refreshTcpBadges();
+
 protected:
   void resizeEvent(QResizeEvent* event) override;
   void showEvent(QShowEvent* event) override;

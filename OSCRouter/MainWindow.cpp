@@ -845,6 +845,7 @@ void TcpWidget::AddRow(size_t id, bool remove, const Router::sConnection& connec
   row.ip = new LineEdit(m_Cols->widget(col));
   row.ip->setToolTip(tr("Server: local network interface for TCP server to run on\n\nClient: IP address of TCP server to connect to"));
   row.ip->setText(connection.addr.ip);
+  connect(row.ip, &LineEdit::editingFinished, this, &TcpWidget::refreshTcpBadges);
   int fh = row.ip->sizeHint().height();
   row.state->setFixedHeight(fh);
   row.activity->setFixedHeight(fh);
@@ -853,6 +854,7 @@ void TcpWidget::AddRow(size_t id, bool remove, const Router::sConnection& connec
   row.port = new LineEdit(m_Cols->widget(col));
   row.port->setToolTip(tr("Server: local network interface for TCP server to run on\n\nClient: IP address of TCP server to connect to"));
   row.port->setText((connection.addr.port == 0) ? QString() : QString::number(connection.addr.port));
+  connect(row.port, &LineEdit::editingFinished, this, &TcpWidget::refreshTcpBadges);
   AddCol(col++, row.port);
 
   row.addRemove = new RoutingButton(remove ? QLatin1String("-") : QLatin1String("+"), id, m_Cols->widget(col));
@@ -3072,6 +3074,7 @@ MainWindow::MainWindow(EosPlatform* platform, QWidget* parent /*=0*/, Qt::Window
   tabs->addTab(m_RoutingWidget, tr("Routes"));
 
   m_TcpWidget = new TcpWidget(tabs);
+  connect(m_TcpWidget, &TcpWidget::refreshTcpBadges, this, &MainWindow::refreshTcpBadges);
   tabs->addTab(m_TcpWidget, tr("TCP"));
 
   m_SettingsWidget = new SettingsWidget(m_Settings, tabs);
