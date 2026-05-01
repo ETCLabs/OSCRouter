@@ -1829,8 +1829,7 @@ void RouterThread::ProcessRecvPacket(bool muteAllOutgoing, sACN &sacn, ArtNet &a
         // send UDP or TCP?
         bool tcp = false;
         EosTcpClientThread *tcpClient = nullptr;
-        if (routeDst.dst.protocol != Protocol::kPSN && routeDst.dst.protocol != Protocol::ksACN && routeDst.dst.protocol != Protocol::kArtNet && routeDst.dst.protocol != Protocol::kMIDI &&
-            routeDst.dst.protocol != Protocol::kOTP)
+        if (routeDst.dst.protocol == Protocol::kOSC)
         {
           TCP_CLIENT_THREADS::const_iterator k = tcpClientThreads.find(dstAddr);
           if (k != tcpClientThreads.end())
