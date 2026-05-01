@@ -35,7 +35,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 
-#define SETTING_LOG_DEPTH "LogDepth"
+#define SETTING_LOG_DEPTH "UIDepth"
 #define SETTING_FILE_DEPTH "FileDepth"
 #define SETTING_LAST_FILE "LastFile"
 #define SETTING_RECONNECT_DELAY "ReconnectDelay"
@@ -2967,7 +2967,7 @@ MainWindow::MainWindow(EosPlatform* platform, QWidget* parent /*=0*/, Qt::Window
                     "QSplitter::handle:hover {background: #08ffffff;}"
                     "QSplitter {background: transparent;}"));
 
-  int logDepth = m_Settings.value(SETTING_LOG_DEPTH, 200).toInt();
+  int logDepth = m_Settings.value(SETTING_LOG_DEPTH, 10000).toInt();
   if (logDepth < 1)
     logDepth = 1;
   m_Settings.setValue(SETTING_LOG_DEPTH, logDepth);
