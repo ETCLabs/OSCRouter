@@ -790,9 +790,9 @@ void EosTcpClientThread::run()
       OSCParser logParser;
       logParser.SetRoot(new OSCMethod());
       PacketLogger inPacketLogger(EosLog::LOG_MSG_TYPE_RECV, m_PrivateLog);
-      inPacketLogger.SetPrefix(QString("TCP IN  [%1:%2] ").arg(m_Addr.ip).arg(m_Addr.port).toUtf8().constData());
+      inPacketLogger.SetPrefix(QString("TCP IN   [%1:%2] ").arg(m_Addr.ip).arg(m_Addr.port).toUtf8().constData());
       PacketLogger outPacketLogger(EosLog::LOG_MSG_TYPE_SEND, m_PrivateLog);
-      outPacketLogger.SetPrefix(QString("TCP OUT [%1:%2] ").arg(m_Addr.ip).arg(m_Addr.port).toUtf8().constData());
+      outPacketLogger.SetPrefix(QString("TCP OUT  [%1:%2] ").arg(m_Addr.ip).arg(m_Addr.port).toUtf8().constData());
 
       // connect
       if (m_Run && tcp->GetConnectState() == EosTcp::CONNECT_IN_PROGRESS)
@@ -2863,7 +2863,7 @@ void RouterThread::SendOTP(OTPI &otpi, const sRouteDst &routeDst, EosPacket &osc
   if (result == otp::PointChange::kSystemAppeared)
     SetItemState(routeDst.dstItemStateTableId, ItemState::STATE_CONNECTED);
 
-  QString log = QStringLiteral("OTP OUT [%1] %2/%3/%4 ").arg(frame.system).arg(frame.group).arg(frame.point).arg(point.priority) + point.modules.toString();
+  QString log = QStringLiteral("OTP OUT  [%1] %2/%3/%4 ").arg(frame.system).arg(frame.group).arg(frame.point).arg(point.priority) + point.modules.toString();
   m_PrivateLog.Add(EosLog::LOG_MSG_TYPE_SEND, log.toStdString());
 
   SetItemActivity(routeDst.dstItemStateTableId);
@@ -3798,7 +3798,7 @@ void RouterThread::RecvOTP(OSCParser &oscParser, PacketLogger &packetLogger, boo
   }
 
   EosAddr addr;
-  packetLogger.SetPrefix("OTP IN  ");
+  packetLogger.SetPrefix("OTP IN   ");
 
   for (otp::SystemList::const_iterator sysIter = m_OTPRecv.systems.begin(); sysIter != m_OTPRecv.systems.end(); ++sysIter)
   {
