@@ -68,6 +68,7 @@ public:
   virtual void SetColor(const QColor& color);
   virtual void Activate(unsigned int timeoutMS);
   virtual void Deactivate();
+  virtual void SetTcpBadge(bool b);
   QSize sizeHint() const override { return QSize(20, 20); }
 
 private slots:
@@ -81,6 +82,7 @@ protected:
   unsigned int m_Timeout;
   EosTimer m_Timer;
   qreal m_Opacity;
+  bool m_TcpBadge;
 
   virtual void resizeEvent(QResizeEvent* event);
   virtual void paintEvent(QPaintEvent* event);
@@ -442,7 +444,7 @@ public:
   void LoadRoutes(const Router::ROUTES& routes, const ItemStateTable& itemStateTable);
   void Save(QTextStream& stream);
   void SaveRoutes(Router::ROUTES& routes, ItemStateTable& itemStateTable);
-  void UpdateItemState(const ItemStateTable& itemStateTable);
+  void UpdateItemState(const ItemStateTable& itemStateTable, bool tcpBadge = false);
   void SetGlobals(ScriptEdit* globals) { m_Globals = globals; }
 
   static void StringToTransform(const QString& str, EosRouteDst::sTransform& transform);
@@ -452,6 +454,7 @@ public:
 signals:
   void muteToggled(size_t id, bool checked);
   void muteRouteToggled(size_t id, bool checked);
+  void refreshTcpBadges();
 
 private slots:
   void updateHeaders();
@@ -562,7 +565,7 @@ private:
   void AddRow(size_t id, bool remove, const QString& label, const Router::sRoute& route);
   void AddCol(int index, QWidget* w, bool fixed = false, bool fixedHeight = false);
   void AddCol(int index, const RoutingCol::Widgets& w, bool fixed = false, bool fixedHeight = false);
-  void UpdateItemState(const ItemState* itemState, Indicator& stateIndicator, Indicator& activityIndicator);
+  void UpdateItemState(const ItemState* itemState, Indicator& stateIndicator, Indicator& activityIndicator, bool tcpBadge);
   void UpdateLayout();
   QRect RectForCol(Col col) const;
   void UpdateEnableState();
@@ -604,6 +607,7 @@ private slots:
   void onStopClicked(bool checked);
   void onMuteToggled(bool incoming, bool checked);
   void onMuteRouteToggled(size_t id, bool checked);
+  void refreshTcpBadges();
 
 private:
   EosLog m_Log;

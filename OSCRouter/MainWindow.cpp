@@ -122,6 +122,7 @@ Indicator::Indicator(QWidget* parent /*= nullptr*/)
   , m_UpdateTimer(0)
   , m_Timeout(0)
   , m_Opacity(0)
+  , m_TcpBadge(false)
 {
 }
 
@@ -157,6 +158,15 @@ void Indicator::Deactivate()
   SetOpacity(0);
 }
 
+void Indicator::SetTcpBadge(bool b)
+{
+  if (m_TcpBadge != b)
+  {
+    m_TcpBadge = b;
+    UpdateIcon();
+  }
+}
+
 void Indicator::SetOpacity(const qreal& opacity)
 {
   if (m_Opacity != opacity)
@@ -183,27 +193,27 @@ void Indicator::resizeEvent(QResizeEvent* event)
 
 void Indicator::paintEvent(QPaintEvent* /*event*/)
 {
-  if (!m_IconOutline.isNull() && !m_IconFill.isNull())
+  if (m_IconOutline.isNull())
+    return;
+
+  qreal dpr = devicePixelRatioF();
+  if (dpr > 0 && !qFuzzyCompare(m_IconOutline.devicePixelRatioF(), dpr))
+    UpdateIcon();
+
+  QPainter painter(this);
+
+  QSize iconSize = m_IconOutline.size();
+  if (dpr > 0)
+    iconSize /= dpr;
+
+  if (m_Opacity > 0 && !m_IconFill.isNull())
   {
-    qreal dpr = devicePixelRatioF();
-    if (dpr > 0 && !qFuzzyCompare(m_IconOutline.devicePixelRatioF(), dpr))
-      UpdateIcon();
-
-    QPainter painter(this);
-
-    QSize iconSize = m_IconOutline.size();
-    if (dpr > 0)
-      iconSize /= dpr;
-
-    if (m_Opacity > 0)
-    {
-      painter.setOpacity(m_Opacity);
-      painter.drawImage((width() - iconSize.width()) * 0.5, (height() - iconSize.height()) * 0.5, m_IconFill);
-      painter.setOpacity(1.0);
-    }
-
-    painter.drawImage((width() - iconSize.width()) * 0.5, (height() - iconSize.height()) * 0.5, m_IconOutline);
+    painter.setOpacity(m_Opacity);
+    painter.drawImage((width() - iconSize.width()) * 0.5, (height() - iconSize.height()) * 0.5, m_IconFill);
+    painter.setOpacity(1.0);
   }
+
+  painter.drawImage((width() - iconSize.width()) * 0.5, (height() - iconSize.height()) * 0.5, m_IconOutline);
 }
 
 void Indicator::UpdateIcon()
@@ -230,43 +240,69 @@ void Indicator::UpdateIcon()
       QPainter painter;
       if (painter.begin(&m_IconOutline))
       {
-        QRectF glowRect = m_IconOutline.rect();
-        QRectF solidRect = glowRect.adjusted(6, 6, -6, -6);
-
-        painter.setRenderHint(QPainter::Antialiasing);
-        painter.setPen(QPen(m_Color, 1.5));
-        painter.setBrush(Qt::NoBrush);
-        painter.drawEllipse(solidRect);
-        painter.end();
-
-        m_IconOutline.setDevicePixelRatio(dpr);
-
-        m_IconFill = QImage(size, size, QImage::Format_ARGB32);
-        m_IconFill.fill(0);
-        if (painter.begin(&m_IconFill))
+        if (m_TcpBadge)
         {
+          QFont fnt = font();
+          fnt.setPixelSize(qRound(m_IconOutline.height() / 2.0));
+          fnt.setBold(true);
+          painter.setFont(fnt);
           painter.setRenderHint(QPainter::Antialiasing);
+          painter.setPen(m_Color.darker(250));
+          QRectF br;
+          painter.drawText(m_IconOutline.rect(), Qt::AlignCenter, tr("TCP"), &br);
+          painter.setCompositionMode(QPainter::CompositionMode_DestinationOver);
           painter.setPen(Qt::NoPen);
-
-          QRadialGradient grad(glowRect.center(), glowRect.width() / 2.0);
-          QColor gradColor = m_Color;
-          gradColor.setAlpha(160);
-          grad.setColorAt(0, m_Color);
-          gradColor.setAlpha(0);
-          grad.setColorAt(1, gradColor);
-          painter.setBrush(grad);
-          painter.drawEllipse(glowRect);
-
           painter.setBrush(m_Color);
-          painter.drawEllipse(solidRect);
+          br.adjust(0, -1, 0, 1);
+          br.setLeft(0);
+          br.setWidth(m_IconOutline.width());
+          painter.drawRoundedRect(br, 4, 4);
           painter.end();
 
-          m_IconFill.setDevicePixelRatio(dpr);
+          m_IconOutline.setDevicePixelRatio(dpr);
         }
         else
         {
-          m_IconOutline = QImage();
-          m_IconFill = QImage();
+          QRectF glowRect = m_IconOutline.rect();
+          QRectF solidRect = glowRect.adjusted(6, 6, -6, -6);
+
+          painter.setRenderHint(QPainter::Antialiasing);
+          painter.setPen(QPen(m_Color, 1.5));
+          painter.setBrush(Qt::NoBrush);
+          painter.drawEllipse(solidRect);
+          painter.end();
+
+          m_IconOutline.setDevicePixelRatio(dpr);
+
+          m_IconFill = QImage(size, size, QImage::Format_ARGB32);
+          m_IconFill.setDevicePixelRatio(1);
+          m_IconFill.fill(0);
+
+          if (painter.begin(&m_IconFill))
+          {
+            painter.setRenderHint(QPainter::Antialiasing);
+            painter.setPen(Qt::NoPen);
+
+            QRadialGradient grad(glowRect.center(), glowRect.width() / 2.0);
+            QColor gradColor = m_Color;
+            gradColor.setAlpha(160);
+            grad.setColorAt(0, m_Color);
+            gradColor.setAlpha(0);
+            grad.setColorAt(1, gradColor);
+            painter.setBrush(grad);
+            painter.drawEllipse(glowRect);
+
+            painter.setBrush(m_Color);
+            painter.drawEllipse(solidRect);
+            painter.end();
+
+            m_IconFill.setDevicePixelRatio(dpr);
+          }
+          else
+          {
+            m_IconOutline = QImage();
+            m_IconFill = QImage();
+          }
         }
       }
       else
@@ -974,12 +1010,12 @@ void TcpWidget::UpdateItemState(const ItemStateTable& itemStateTable)
       ItemState::GetStateName(itemState->state, name);
       row.state->setToolTip(name);
       row.state->Activate(0);
+    }
 
-      if (itemState->activity)
-      {
-        row.activity->SetColor(ACTIVITY_COLOR);
-        row.activity->Activate(ACTIVITY_TIMEOUT_MS);
-      }
+    if (itemState->activity)
+    {
+      row.activity->SetColor(ACTIVITY_COLOR);
+      row.activity->Activate(ACTIVITY_TIMEOUT_MS);
     }
   }
 }
@@ -1747,6 +1783,7 @@ void RoutingWidget::AddRow(size_t id, bool remove, const QString& label, const R
 
   row.inProtocol = new ProtocolComboBox(id, route.src.protocol, m_Cols->widget(col));
   connect(row.inProtocol, &ProtocolComboBox::protocolChanged, this, &RoutingWidget::onInProtocolChanged);
+  connect(row.inProtocol, &ProtocolComboBox::protocolChanged, this, &RoutingWidget::refreshTcpBadges);
   AddCol(col++, row.inProtocol, /*fixed*/ true);
 
   row.inIP = new LineEdit(m_Cols->widget(col));
@@ -1754,10 +1791,12 @@ void RoutingWidget::AddRow(size_t id, bool remove, const QString& label, const R
     row.inIP->setText(route.src.addr.ip);
   else
     row.inIP->setText(route.src.addr.ip + QLatin1Char(',') + route.src.multicastInterfaceIP);
+  connect(row.inIP, &LineEdit::editingFinished, this, &RoutingWidget::refreshTcpBadges);
   AddCol(col++, row.inIP);
 
   row.inPort = new LineEdit(m_Cols->widget(col));
   row.inPort->setText(ValidPort(route.src.protocol, route.src.addr.port) ? QString::number(route.src.addr.port) : QString());
+  connect(row.inPort, &LineEdit::editingFinished, this, &RoutingWidget::refreshTcpBadges);
   AddCol(col++, row.inPort);
 
   row.inPath = new LineEdit(m_Cols->widget(col));
@@ -1807,6 +1846,7 @@ void RoutingWidget::AddRow(size_t id, bool remove, const QString& label, const R
 
   row.outProtocol = new ProtocolComboBox(id, route.dst.protocol, m_Cols->widget(col));
   connect(row.outProtocol, &ProtocolComboBox::protocolChanged, this, &RoutingWidget::onOutProtocolChanged);
+  connect(row.outProtocol, &ProtocolComboBox::protocolChanged, this, &RoutingWidget::refreshTcpBadges);
   AddCol(col++, row.outProtocol, /*fixed*/ true);
 
   row.outIP = new LineEdit(m_Cols->widget(col));
@@ -1814,10 +1854,12 @@ void RoutingWidget::AddRow(size_t id, bool remove, const QString& label, const R
     row.outIP->setText(route.dst.addr.ip);
   else
     row.outIP->setText(route.dst.addr.ip + QLatin1Char(',') + route.dst.multicastInterfaceIP);
+  connect(row.outIP, &LineEdit::editingFinished, this, &RoutingWidget::refreshTcpBadges);
   AddCol(col++, row.outIP);
 
   row.outPort = new LineEdit(m_Cols->widget(col));
   row.outPort->setText(ValidPort(route.dst.protocol, route.dst.addr.port) ? QString::number(route.dst.addr.port) : QString());
+  connect(row.outPort, &LineEdit::editingFinished, this, &RoutingWidget::refreshTcpBadges);
   AddCol(col++, row.outPort);
 
   row.outPath = new LineEdit(m_Cols->widget(col));
@@ -2095,18 +2137,24 @@ void RoutingWidget::SaveRoutes(Router::ROUTES& routes, ItemStateTable& itemState
   }
 }
 
-void RoutingWidget::UpdateItemState(const ItemStateTable& itemStateTable)
+void RoutingWidget::UpdateItemState(const ItemStateTable& itemStateTable, bool tcpBadge /*= false*/)
 {
   for (size_t i = 0; i < m_Rows.size(); ++i)
   {
     Row& row = m_Rows[i];
-    UpdateItemState(itemStateTable.GetItemState(row.inItemStateTableId), *row.inState, *row.inActivity);
-    UpdateItemState(itemStateTable.GetItemState(row.outItemStateTableId), *row.outState, *row.outActivity);
+    UpdateItemState(itemStateTable.GetItemState(row.inItemStateTableId), *row.inState, *row.inActivity, tcpBadge);
+    UpdateItemState(itemStateTable.GetItemState(row.outItemStateTableId), *row.outState, *row.outActivity, tcpBadge);
   }
 }
 
-void RoutingWidget::UpdateItemState(const ItemState* itemState, Indicator& stateIndicator, Indicator& activityIndicator)
+void RoutingWidget::UpdateItemState(const ItemState* itemState, Indicator& stateIndicator, Indicator& activityIndicator, bool tcpBadge)
 {
+  if (tcpBadge)
+  {
+    stateIndicator.SetTcpBadge(itemState && itemState->state == ItemState::STATE_CONNECTED);
+    return;
+  }
+
   if (!(itemState && itemState->dirty))
     return;
 
@@ -2127,12 +2175,12 @@ void RoutingWidget::UpdateItemState(const ItemState* itemState, Indicator& state
     ItemState::GetStateName(itemState->state, name);
     stateIndicator.setToolTip(name);
     stateIndicator.Activate(0);
+  }
 
-    if (itemState->activity)
-    {
-      activityIndicator.SetColor(ACTIVITY_COLOR);
-      activityIndicator.Activate(ACTIVITY_TIMEOUT_MS);
-    }
+  if (itemState->activity)
+  {
+    activityIndicator.SetColor(ACTIVITY_COLOR);
+    activityIndicator.Activate(ACTIVITY_TIMEOUT_MS);
   }
 }
 
@@ -3020,6 +3068,7 @@ MainWindow::MainWindow(EosPlatform* platform, QWidget* parent /*=0*/, Qt::Window
   m_RoutingWidget = new RoutingWidget(tabs);
   connect(m_RoutingWidget, &RoutingWidget::muteToggled, this, &MainWindow::onMuteToggled);
   connect(m_RoutingWidget, &RoutingWidget::muteRouteToggled, this, &MainWindow::onMuteRouteToggled);
+  connect(m_RoutingWidget, &RoutingWidget::refreshTcpBadges, this, &MainWindow::refreshTcpBadges);
   tabs->addTab(m_RoutingWidget, tr("Routes"));
 
   m_TcpWidget = new TcpWidget(tabs);
@@ -3076,6 +3125,8 @@ MainWindow::MainWindow(EosPlatform* platform, QWidget* parent /*=0*/, Qt::Window
   m_RoutingWidget->LoadRoutes(Router::ROUTES(), ItemStateTable());
   m_TcpWidget->LoadConnections(Router::CONNECTIONS());
   m_SettingsWidget->LoadSettings(Router::Settings());
+
+  refreshTcpBadges();
 
   RestoreLastFile();
   UpdateWindowTitle();
@@ -3258,6 +3309,7 @@ bool MainWindow::Load(const QString& path)
   m_SettingsWidget->Load(lines);
   m_RoutingWidget->Load(lines);
   m_TcpWidget->Load(lines);
+  refreshTcpBadges();
 
   SaveToBuffer(m_FileContents);
   SetUnsaved(false);
@@ -3381,6 +3433,9 @@ void MainWindow::onNewFile()
   m_RoutingWidget->LoadRoutes(Router::ROUTES(), ItemStateTable());
   m_TcpWidget->LoadConnections(Router::CONNECTIONS());
   m_SettingsWidget->LoadSettings(Router::Settings());
+
+  refreshTcpBadges();
+
   m_FilePath.clear();
   m_Settings.setValue(SETTING_LAST_FILE, m_FilePath);
   QString path;
@@ -3620,6 +3675,8 @@ void MainWindow::onStartClicked(bool /*checked*/)
   m_SettingsWidget->SaveSettings(settings);
   m_SettingsWidget->LoadSettings(settings);
 
+  refreshTcpBadges();
+
   UpdateUnsaved();
 
   QTimer::singleShot(1, this, &MainWindow::buildRoutes);
@@ -3644,6 +3701,49 @@ void MainWindow::onMuteRouteToggled(size_t id, bool checked)
 {
   m_ItemStateTable.Mute(id, checked);
   UpdateUnsaved();
+}
+
+void MainWindow::refreshTcpBadges()
+{
+  Router::ROUTES routes;
+  ItemStateTable tcpBadges;
+  m_RoutingWidget->SaveRoutes(routes, tcpBadges);
+
+  Router::CONNECTIONS connections;
+  m_TcpWidget->SaveConnections(connections, /*itemStateTable*/ nullptr);
+
+  for (const Router::sRoute& route : routes)
+  {
+    if (route.src.protocol == Protocol::kOSC)
+    {
+      for (const Router::sConnection& connection : connections)
+      {
+        if (connection.addr == route.src.addr)
+        {
+          ItemState badgeState;
+          badgeState.state = ItemState::STATE_CONNECTED;
+          tcpBadges.Update(route.srcItemStateTableId, badgeState);
+          break;
+        }
+      }
+    }
+
+    if (route.dst.protocol == Protocol::kOSC)
+    {
+      for (const Router::sConnection& connection : connections)
+      {
+        if (connection.addr == route.dst.addr)
+        {
+          ItemState badgeState;
+          badgeState.state = ItemState::STATE_CONNECTED;
+          tcpBadges.Update(route.dstItemStateTableId, badgeState);
+          break;
+        }
+      }
+    }
+  }
+
+  m_RoutingWidget->UpdateItemState(tcpBadges, /*tcpBadge*/ true);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
