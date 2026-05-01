@@ -428,8 +428,6 @@ void EosUdpInThread::run()
         }
 
         UpdateLog();
-
-        msleep(1);
       }
     }
 
