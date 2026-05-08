@@ -503,6 +503,7 @@ private:
     kOutScript,
     kOutMin,
     kOutMax,
+    kMaxRateHz,
 
     kButton,
 
@@ -542,6 +543,7 @@ private:
     RoutingCheckBox* outScript = nullptr;
     LineEdit* outMin = nullptr;
     LineEdit* outMax = nullptr;
+    LineEdit* maxRateHz = nullptr;
     RoutingButton* addRemove = nullptr;
   };
 
