@@ -457,6 +457,10 @@ protected:
     Protocol pendingSrcProtocol = Protocol::kDefault;
     QString pendingSrcPath;
     EosAddr pendingDstAddr;
+
+    // Send-on-change runtime state.
+    bool hasLastSent = false;
+    EosPacket lastSentPacket;
   };
 
   typedef std::vector<sRouteDst> ROUTE_DESTINATIONS;

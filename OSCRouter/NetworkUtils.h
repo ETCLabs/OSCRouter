@@ -179,6 +179,10 @@ struct EosRouteDst
   // recently received message for this destination. OSC outputs only;
   // ignored for sACN/ArtNet/MIDI/OTP/PSN.
   float maxRateHz = 0.0f;
+
+  // Send-on-change: when true, suppress sends that are byte-identical to
+  // the previous send to this destination. OSC outputs only.
+  bool onlyChanges = false;
 };
 
 ////////////////////////////////////////////////////////////////////////////////

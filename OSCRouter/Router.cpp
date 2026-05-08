@@ -36,6 +36,7 @@
 
 #include <sstream>
 #include <iomanip>
+#include <cstring>
 
 // must be last include
 #include "LeakWatcher.h"
@@ -56,6 +57,12 @@ inline bool IsOSCOutput(Protocol p)
 inline qint64 RateLimitIntervalMs(float hz)
 {
   return (hz > 0.0f) ? static_cast<qint64>(1000.0f / hz + 0.5f) : 0;
+}
+
+// Byte-for-byte equality check on built packets, used by the send-on-change gate.
+inline bool PacketsEqual(const EosPacket &a, const EosPacket &b)
+{
+  return a.GetSize() == b.GetSize() && (a.GetSize() == 0 || std::memcmp(a.GetDataConst(), b.GetDataConst(), static_cast<size_t>(a.GetSize())) == 0);
 }
 
 }  // namespace
@@ -2054,6 +2061,12 @@ bool RouterThread::MakeOSCPacket(ArtNet &artnet, const EosAddr &addr, Protocol p
 bool RouterThread::DispatchBuiltPacket(sACN &sacn, ArtNet &artnet, MIDI &midi, OTPI &otpi, UDP_OUT_THREADS &udpOutThreads, EosTcpClientThread *tcpClient, const EosAddr &srcAddr, Protocol srcProtocol,
                                        sRouteDst &routeDst, EosPacket &builtPacket, const EosAddr &dstAddr)
 {
+  // Send-on-change gate (OSC outputs). Suppress sends whose built bytes match the
+  // previous send to this destination.
+  const bool onlyChangesApplies = routeDst.dst.onlyChanges && IsOSCOutput(routeDst.dst.protocol);
+  if (onlyChangesApplies && routeDst.hasLastSent && PacketsEqual(builtPacket, routeDst.lastSentPacket))
+    return false;
+
   bool sent = false;
 
   if (tcpClient)
@@ -2114,6 +2127,12 @@ bool RouterThread::DispatchBuiltPacket(sACN &sacn, ArtNet &artnet, MIDI &midi, O
       SetItemActivity(routeDst.dstItemStateTableId);
       sent = true;
     }
+  }
+
+  if (sent && onlyChangesApplies)
+  {
+    routeDst.lastSentPacket = builtPacket;
+    routeDst.hasLastSent = true;
   }
 
   return sent;

@@ -1716,6 +1716,8 @@ QString RoutingWidget::HeaderForCol(Col col)
     case Col::kOutScript: return tr("JS");
 
     case Col::kMaxRateHz: return tr("Max Rate (Hz)");
+
+    case Col::kOnlyChanges: return tr("Only Changes");
   }
 
   return QString();
@@ -1906,6 +1908,12 @@ void RoutingWidget::AddRow(size_t id, bool remove, const QString& label, const R
     row.maxRateHz->setText(QString::number(route.dst.maxRateHz));
   AddCol(col++, row.maxRateHz);
 
+  row.onlyChanges = new RoutingCheckBox(id, m_Cols->widget(col));
+  row.onlyChanges->setToolTip(tr("Suppress outgoing OSC messages that are byte-identical to the previous send to this destination.\n\nApplies to OSC outputs only."));
+  row.onlyChanges->setFixedHeight(fh);
+  row.onlyChanges->setChecked(route.dst.onlyChanges);
+  AddCol(col++, row.onlyChanges, /*fixed*/ true);
+
   row.addRemove = new RoutingButton(remove ? QLatin1String("-") : QLatin1String("+"), id, m_Cols->widget(col));
   row.addRemove->setToolTip(remove ? tr("Remove this route") : tr("Add this route"));
   connect(row.addRemove, &RoutingButton::clickedWithId, this, &RoutingWidget::onAddRemoveClicked);
@@ -2018,6 +2026,9 @@ void RoutingWidget::LoadLine(const QString& line, Router::ROUTES& routes, ItemSt
     if (items.size() > 18)
       route.dst.maxRateHz = items[18].toFloat();
 
+    if (items.size() > 19)
+      route.dst.onlyChanges = (items[19].toInt() != 0);
+
     routes.push_back(route);
   }
   else if (items.size() == 3 && items[0].compare(QLatin1String("Mute"), Qt::CaseInsensitive) == 0)
@@ -2067,6 +2078,7 @@ void RoutingWidget::Save(QTextStream& stream)
     stream << QStringLiteral(",%1").arg(route.mute ? 0 : 1);
     stream << QStringLiteral(",%1").arg(FileUtils::QuotedString(route.dst.multicastInterfaceIP));
     stream << QStringLiteral(",%1").arg(route.dst.maxRateHz, 0, 'f');
+    stream << QStringLiteral(",%1").arg(route.dst.onlyChanges ? 1 : 0);
     stream << QLatin1Char('\n');
   }
 }
@@ -2136,6 +2148,7 @@ void RoutingWidget::SaveRoutes(Router::ROUTES& routes, ItemStateTable& itemState
       const float rate = rateText.toFloat(&ok);
       route.dst.maxRateHz = (ok && rate > 0.0f) ? rate : 0.0f;
     }
+    route.dst.onlyChanges = row.onlyChanges->isChecked();
 
     if (HasRoute(routes, route.src, route.dst))
       continue;
@@ -2350,6 +2363,7 @@ void RoutingWidget::UpdateEnableState()
     row.outMin->setEnabled(e);
     row.outMax->setEnabled(e);
     row.maxRateHz->setEnabled(e);
+    row.onlyChanges->setEnabled(e && i != lastRow);
   }
 }
 
