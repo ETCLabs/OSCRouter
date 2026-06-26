@@ -97,7 +97,6 @@ void PacketLogger::PrintPacket(OSCParser &oscParser, const char *packet, size_t 
 EosUdpInThread::EosUdpInThread()
   : m_Run(false)
   , m_Mutex()
-  , m_ItemStateTableId(ItemStateTable::sm_Invalid_Id)
   , m_State(ItemState::STATE_UNINITIALIZED)
   , m_ReconnectDelay(0)
   , m_Mute(false)
@@ -124,7 +123,7 @@ void EosUdpInThread::Start(const EosAddr &addr, QString multicastInterfaceIP, Pr
   if (m_MulticastInterfaceIP.isEmpty() && QHostAddress(m_Addr.ip).isMulticast())
     m_MulticastInterfaceIP = QLatin1String("0.0.0.0");
   m_Protocol = protocol;
-  m_ItemStateTableId = itemStateTableId;
+  AddItemStateTableId(itemStateTableId);
   m_ReconnectDelay = reconnectDelayMS;
   m_Mute = mute;
   m_Run = true;
@@ -1161,6 +1160,9 @@ void RouterThread::BuildRoutes(ROUTES_BY_PORT &routesByPort, ROUTES_BY_PORT &rou
       thread->Start(tcpConnection.addr, tcpConnection.itemStateTableId, tcpConnection.frameMode, m_ReconnectDelay, mute);
     }
   }
+  
+  // create list of global UDP input ports, so we don't bind to indivi
+  std::unordered_set<unsigned short> globalUDPInPorts;
 
   QHostAddress localHost(QHostAddress::LocalHost);
   for (Router::ROUTES::const_iterator i = m_Routes.begin(); i != m_Routes.end(); i++)
@@ -1193,11 +1195,17 @@ void RouterThread::BuildRoutes(ROUTES_BY_PORT &routesByPort, ROUTES_BY_PORT &rou
     {
       routes = &routesByOTP;
     }
-    else if (udpInThreads.find(route.src.addr) == udpInThreads.end())
+    else
     {
-      EosUdpInThread *thread = new EosUdpInThread();
-      udpInThreads[route.src.addr] = thread;
-      thread->Start(route.src.addr, route.src.multicastInterfaceIP, route.src.protocol, route.srcItemStateTableId, m_ReconnectDelay, mute);
+      UDP_IN_THREADS::iterator threadIter = udpInThreads.find(route.src.addr.port);
+      if (threadIter == udpInThreads.end())
+      {
+        EosUdpInThread *thread = new EosUdpInThread();
+        udpInThreads[route.src.addr.port] = thread;
+        thread->Start(route.src.addr, route.src.multicastInterfaceIP, route.src.protocol, route.srcItemStateTableId, m_ReconnectDelay, mute);
+      }
+      else
+        threadIter->second->AddItemStateTableId(route.srcItemStateTableId);
     }
 
     // create udp out thread if known dst, and not an explicit tcp client
@@ -3297,7 +3305,11 @@ void RouterThread::MainLoop()
       m_PrivateLog.AddQ(tempLogQ);
       tempLogQ.clear();
 
-      SetItemState(thread->GetItemStateTableId(), thread->GetState());
+      ItemState::EnumState state = thread->GetState();
+      const EosUdpInThread::STATE_TABLE_IDS& ids = thread->GetItemStateTableIds();
+      for (EosUdpInThread::STATE_TABLE_IDS::const_iterator idIter = ids.begin(); idIter != ids.end(); ++idIter)
+        SetItemState(*idIter, state);
+      
       ProcessRecvQ(muteAll.outgoing, sacn, artnet, midi, otpi, oscBundleParser, routesByPort, routingDestinationList, udpOutThreads, tcpServerThreads, tcpClientThreads, thread->GetAddr(), recvQ);
 
       if (!running)

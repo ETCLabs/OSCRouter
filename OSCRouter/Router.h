@@ -234,6 +234,8 @@ public:
     sRecvPacket p;
   };
   typedef std::vector<sRecvPortPacket> RECV_PORT_Q;
+  
+  typedef std::unordered_set<ItemStateTable::ID> STATE_TABLE_IDS;
 
   EosUdpInThread();
   virtual ~EosUdpInThread();
@@ -242,7 +244,8 @@ public:
   virtual void Stop();
   const EosAddr &GetAddr() const { return m_Addr; }
   Protocol GetProtocol() const { return m_Protocol; }
-  ItemStateTable::ID GetItemStateTableId() const { return m_ItemStateTableId; }
+  const STATE_TABLE_IDS& GetItemStateTableIds() const { return m_ItemStateTableIds; }
+  void AddItemStateTableId(ItemStateTable::ID id) { m_ItemStateTableIds.insert(id); }
   ItemState::EnumState GetState();
   virtual void Flush(EosLog::LOG_Q &logQ, RECV_Q &recvQ);
   virtual void Mute(bool b) { m_Mute = b; }
@@ -251,7 +254,7 @@ protected:
   EosAddr m_Addr;
   QString m_MulticastInterfaceIP;
   Protocol m_Protocol = Protocol::kDefault;
-  ItemStateTable::ID m_ItemStateTableId;
+  STATE_TABLE_IDS m_ItemStateTableIds;
   ItemState::EnumState m_State;
   unsigned int m_ReconnectDelay;
   bool m_Run;
@@ -467,7 +470,7 @@ protected:
   typedef std::map<unsigned short, ROUTES_BY_IP> ROUTES_BY_PORT;
   typedef std::pair<unsigned short, ROUTES_BY_IP> ROUTES_BY_PORT_PAIR;
 
-  typedef std::map<EosAddr, EosUdpInThread *> UDP_IN_THREADS;
+  typedef std::map<unsigned short, EosUdpInThread *> UDP_IN_THREADS;
   typedef std::map<EosAddr, EosUdpOutThread *> UDP_OUT_THREADS;
 
   typedef std::map<EosAddr, EosTcpClientThread *> TCP_CLIENT_THREADS;
