@@ -451,6 +451,15 @@ protected:
     EosRouteDst dst;
     ItemStateTable::ID srcItemStateTableId;
     ItemStateTable::ID dstItemStateTableId;
+
+    // Rate limit runtime state (router thread only — no mutex).
+    qint64 lastSendTimeMs = 0;
+    bool hasPending = false;
+    EosPacket pendingPacket;
+    EosAddr pendingSrcAddr;
+    Protocol pendingSrcProtocol = Protocol::kDefault;
+    QString pendingSrcPath;
+    EosAddr pendingDstAddr;
   };
 
   typedef std::vector<sRouteDst> ROUTE_DESTINATIONS;
@@ -626,6 +635,10 @@ protected:
                                  UDP_OUT_THREADS &udpOutThreads, TCP_SERVER_THREADS &tcpServerThreads, TCP_CLIENT_THREADS &tcpClientThreads, const EosAddr &addr, Protocol protocol,
                                  EosUdpInThread::sRecvPacket &recvPacket);
   virtual bool MakeOSCPacket(ArtNet &artnet, const EosAddr &addr, Protocol protocol, const QString &srcPath, const sRouteDst &route, OSCArgument *args, size_t argsCount, EosPacket &packet);
+  virtual bool DispatchBuiltPacket(sACN &sacn, ArtNet &artnet, MIDI &midi, OTPI &otpi, UDP_OUT_THREADS &udpOutThreads, EosTcpClientThread *tcpClient, const EosAddr &srcAddr, Protocol srcProtocol,
+                                   sRouteDst &routeDst, EosPacket &builtPacket, const EosAddr &dstAddr);
+  virtual void FlushPendingRateLimited(ROUTES_BY_PORT &routes, qint64 nowMs, sACN &sacn, ArtNet &artnet, MIDI &midi, OTPI &otpi, UDP_OUT_THREADS &udpOutThreads,
+                                       TCP_CLIENT_THREADS &tcpClientThreads);
   virtual bool MakePSNPacket(EosPacket &osc, EosPacket &psn);
   virtual bool SendsACN(sACN &sacn, ArtNet &artnet, const EosAddr &addr, Protocol protocol, const sRouteDst &routeDst, EosPacket &osc);
   virtual bool SendArtNet(ArtNet &artnet, const EosAddr &addr, Protocol protocol, const EosRouteDst &dst, EosPacket &osc);

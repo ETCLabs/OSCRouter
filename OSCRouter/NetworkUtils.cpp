@@ -293,7 +293,7 @@ bool EosRouteSrc::operator<(const EosRouteSrc &other) const
 bool EosRouteDst::operator==(const EosRouteDst &other) const
 {
   return (addr == other.addr && multicastInterfaceIP == other.multicastInterfaceIP && protocol == other.protocol && path == other.path && script == other.script && scriptText == other.scriptText &&
-          inMin == other.inMin && inMax == other.inMax && outMin == other.outMin && outMax == other.outMax);
+          inMin == other.inMin && inMax == other.inMax && outMin == other.outMin && outMax == other.outMax && maxRateHz == other.maxRateHz);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

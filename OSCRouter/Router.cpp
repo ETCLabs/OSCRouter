@@ -42,6 +42,26 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 
+namespace
+{
+
+// True for protocols whose outbound dispatch sends OSC bytes on the wire.
+// Used to scope the per-route rate limit to OSC outputs.
+inline bool IsOSCOutput(Protocol p)
+{
+  return p != Protocol::ksACN && p != Protocol::kArtNet && p != Protocol::kMIDI && p != Protocol::kOTP && p != Protocol::kPSN;
+}
+
+// Convert a max-rate Hz value to its inter-send interval in milliseconds.
+inline qint64 RateLimitIntervalMs(float hz)
+{
+  return (hz > 0.0f) ? static_cast<qint64>(1000.0f / hz + 0.5f) : 0;
+}
+
+}  // namespace
+
+////////////////////////////////////////////////////////////////////////////////
+
 #define EPSILLON 0.00001f
 
 uint16_t Router::GetDefaultPSNPort()
@@ -1824,7 +1844,7 @@ void RouterThread::ProcessRecvPacket(bool muteAllOutgoing, sACN &sacn, ArtNet &a
       const ROUTE_DESTINATIONS &destinations = **i;
       for (ROUTE_DESTINATIONS::const_iterator j = destinations.begin(); j != destinations.end(); j++)
       {
-        const sRouteDst &routeDst = *j;
+        sRouteDst &routeDst = const_cast<sRouteDst &>(*j);
         SetItemActivity(routeDst.srcItemStateTableId);
 
         if (muteAllOutgoing || IsRouteMuted(routeDst.dstItemStateTableId))
@@ -1849,18 +1869,44 @@ void RouterThread::ProcessRecvPacket(bool muteAllOutgoing, sACN &sacn, ArtNet &a
             tcp = true;
         }
 
+        // Rate limit gate (OSC outputs, with src that yields a built OSC packet).
+        // Coalesce semantics: when the period hasn't elapsed, stash the latest built packet as
+        // pending and skip the immediate send. The deferred flush in MainLoop emits it once the
+        // period passes.
+        const bool srcCanBuildOSC =
+            (protocol == Protocol::kOSC || protocol == Protocol::ksACN || protocol == Protocol::kArtNet || protocol == Protocol::kMIDI || protocol == Protocol::kOTP);
+        const bool rateLimitApplies = (routeDst.dst.maxRateHz > 0.0f) && IsOSCOutput(routeDst.dst.protocol) && srcCanBuildOSC;
+        qint64 nowMs = 0;
+        if (rateLimitApplies)
+        {
+          const qint64 intervalMs = RateLimitIntervalMs(routeDst.dst.maxRateHz);
+          nowMs = QDateTime::currentMSecsSinceEpoch();
+          if ((nowMs - routeDst.lastSendTimeMs) < intervalMs)
+          {
+            EosPacket coalesced;
+            if (MakeOSCPacket(artnet, addr, protocol, path, routeDst, args, argsCount, coalesced))
+            {
+              routeDst.pendingPacket = coalesced;
+              routeDst.pendingSrcAddr = addr;
+              routeDst.pendingSrcProtocol = protocol;
+              routeDst.pendingSrcPath = path;
+              routeDst.pendingDstAddr = dstAddr;
+              routeDst.hasPending = true;
+            }
+            continue;
+          }
+        }
+
+        bool didSend = false;
         if (tcp)
         {
           if (tcpClient)
           {
             if (protocol == Protocol::kOSC)
             {
-              EosPacket packet;
-              if (MakeOSCPacket(artnet, addr, protocol, path, routeDst, args, argsCount, packet) && tcpClient->SendFramed(packet))
-              {
-                SetItemActivity(routeDst.dstItemStateTableId);
-                SetItemActivity(tcpClient->GetItemStateTableId());
-              }
+              EosPacket builtPacket;
+              if (MakeOSCPacket(artnet, addr, protocol, path, routeDst, args, argsCount, builtPacket))
+                didSend = DispatchBuiltPacket(sacn, artnet, midi, otpi, udpOutThreads, tcpClient, addr, protocol, routeDst, builtPacket, dstAddr);
             }
             else if (tcpClient->Send(recvPacket.packet))
             {
@@ -1869,45 +1915,11 @@ void RouterThread::ProcessRecvPacket(bool muteAllOutgoing, sACN &sacn, ArtNet &a
             }
           }
         }
-        else if (protocol == Protocol::kOSC || protocol == Protocol::ksACN || protocol == Protocol::kArtNet || protocol == Protocol::kMIDI || protocol == Protocol::kOTP)
+        else if (srcCanBuildOSC)
         {
-          EosPacket oscPacket;
-          MakeOSCPacket(artnet, addr, protocol, path, routeDst, args, argsCount, oscPacket);
-
-          if (routeDst.dst.protocol == Protocol::kPSN)
-          {
-            EosPacket psnPacket;
-            if (MakePSNPacket(oscPacket, psnPacket))
-            {
-              EosUdpOutThread *thread = CreateUdpOutThread(dstAddr, routeDst.dst.multicastInterfaceIP, routeDst.dstItemStateTableId, udpOutThreads);
-              if (thread && thread->Send(psnPacket))
-                SetItemActivity(routeDst.dstItemStateTableId);
-            }
-          }
-          else if (routeDst.dst.protocol == Protocol::ksACN)
-          {
-            if (SendsACN(sacn, artnet, addr, protocol, routeDst, oscPacket))
-              SetItemActivity(routeDst.dstItemStateTableId);
-          }
-          else if (routeDst.dst.protocol == Protocol::kArtNet)
-          {
-            if (SendArtNet(artnet, addr, protocol, routeDst.dst, oscPacket))
-              SetItemActivity(routeDst.dstItemStateTableId);
-          }
-          else if (routeDst.dst.protocol == Protocol::kMIDI)
-          {
-            SendMIDI(midi, routeDst, oscPacket);
-          }
-          else if (routeDst.dst.protocol == Protocol::kOTP)
-          {
-            SendOTP(otpi, routeDst, oscPacket);
-          }
-          else if (oscPacket.GetDataConst() && oscPacket.GetSize() > 0)
-          {
-            EosUdpOutThread *thread = CreateUdpOutThread(dstAddr, routeDst.dst.multicastInterfaceIP, routeDst.dstItemStateTableId, udpOutThreads);
-            if (thread && thread->Send(oscPacket))
-              SetItemActivity(routeDst.dstItemStateTableId);
-          }
+          EosPacket builtPacket;
+          MakeOSCPacket(artnet, addr, protocol, path, routeDst, args, argsCount, builtPacket);
+          didSend = DispatchBuiltPacket(sacn, artnet, midi, otpi, udpOutThreads, /*tcpClient*/ nullptr, addr, protocol, routeDst, builtPacket, dstAddr);
         }
         else
         {
@@ -1915,6 +1927,9 @@ void RouterThread::ProcessRecvPacket(bool muteAllOutgoing, sACN &sacn, ArtNet &a
           if (thread && thread->Send(recvPacket.packet))
             SetItemActivity(routeDst.dstItemStateTableId);
         }
+
+        if (rateLimitApplies && didSend)
+          routeDst.lastSendTimeMs = nowMs;
       }
     }
 
@@ -2040,6 +2055,127 @@ bool RouterThread::MakeOSCPacket(ArtNet &artnet, const EosAddr &addr, Protocol p
   }
 
   return false;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+bool RouterThread::DispatchBuiltPacket(sACN &sacn, ArtNet &artnet, MIDI &midi, OTPI &otpi, UDP_OUT_THREADS &udpOutThreads, EosTcpClientThread *tcpClient, const EosAddr &srcAddr, Protocol srcProtocol,
+                                       sRouteDst &routeDst, EosPacket &builtPacket, const EosAddr &dstAddr)
+{
+  bool sent = false;
+
+  if (tcpClient)
+  {
+    // TCP framed dispatch: only for OSC dst when a tcp client thread is bound.
+    if (tcpClient->SendFramed(builtPacket))
+    {
+      SetItemActivity(routeDst.dstItemStateTableId);
+      SetItemActivity(tcpClient->GetItemStateTableId());
+      sent = true;
+    }
+  }
+  else if (routeDst.dst.protocol == Protocol::kPSN)
+  {
+    EosPacket psnPacket;
+    if (MakePSNPacket(builtPacket, psnPacket))
+    {
+      EosUdpOutThread *thread = CreateUdpOutThread(dstAddr, routeDst.dst.multicastInterfaceIP, routeDst.dstItemStateTableId, udpOutThreads);
+      if (thread && thread->Send(psnPacket))
+      {
+        SetItemActivity(routeDst.dstItemStateTableId);
+        sent = true;
+      }
+    }
+  }
+  else if (routeDst.dst.protocol == Protocol::ksACN)
+  {
+    if (SendsACN(sacn, artnet, srcAddr, srcProtocol, routeDst, builtPacket))
+    {
+      SetItemActivity(routeDst.dstItemStateTableId);
+      sent = true;
+    }
+  }
+  else if (routeDst.dst.protocol == Protocol::kArtNet)
+  {
+    if (SendArtNet(artnet, srcAddr, srcProtocol, routeDst.dst, builtPacket))
+    {
+      SetItemActivity(routeDst.dstItemStateTableId);
+      sent = true;
+    }
+  }
+  else if (routeDst.dst.protocol == Protocol::kMIDI)
+  {
+    SendMIDI(midi, routeDst, builtPacket);
+    sent = true;
+  }
+  else if (routeDst.dst.protocol == Protocol::kOTP)
+  {
+    SendOTP(otpi, routeDst, builtPacket);
+    sent = true;
+  }
+  else if (builtPacket.GetDataConst() && builtPacket.GetSize() > 0)
+  {
+    // Default: OSC over UDP
+    EosUdpOutThread *thread = CreateUdpOutThread(dstAddr, routeDst.dst.multicastInterfaceIP, routeDst.dstItemStateTableId, udpOutThreads);
+    if (thread && thread->Send(builtPacket))
+    {
+      SetItemActivity(routeDst.dstItemStateTableId);
+      sent = true;
+    }
+  }
+
+  return sent;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+void RouterThread::FlushPendingRateLimited(ROUTES_BY_PORT &routes, qint64 nowMs, sACN &sacn, ArtNet &artnet, MIDI &midi, OTPI &otpi, UDP_OUT_THREADS &udpOutThreads,
+                                           TCP_CLIENT_THREADS &tcpClientThreads)
+{
+  for (ROUTES_BY_PORT::iterator portIter = routes.begin(); portIter != routes.end(); ++portIter)
+  {
+    ROUTES_BY_IP &routesByIp = portIter->second;
+    for (ROUTES_BY_IP::iterator ipIter = routesByIp.begin(); ipIter != routesByIp.end(); ++ipIter)
+    {
+      sRoutesByIp &group = ipIter->second;
+      ROUTES_BY_PATH *pathMaps[2] = {&group.routesByPath, &group.routesByWildcardPath};
+      for (int m = 0; m < 2; ++m)
+      {
+        for (ROUTES_BY_PATH::iterator pathIter = pathMaps[m]->begin(); pathIter != pathMaps[m]->end(); ++pathIter)
+        {
+          ROUTE_DESTINATIONS &destinations = pathIter->second;
+          for (ROUTE_DESTINATIONS::iterator d = destinations.begin(); d != destinations.end(); ++d)
+          {
+            sRouteDst &routeDst = *d;
+            if (!routeDst.hasPending)
+              continue;
+            if (routeDst.dst.maxRateHz <= 0.0f)
+            {
+              routeDst.hasPending = false;
+              continue;
+            }
+            const qint64 intervalMs = RateLimitIntervalMs(routeDst.dst.maxRateHz);
+            if ((nowMs - routeDst.lastSendTimeMs) < intervalMs)
+              continue;
+
+            EosTcpClientThread *tcpClient = nullptr;
+            if (routeDst.dst.protocol == Protocol::kOSC)
+            {
+              TCP_CLIENT_THREADS::const_iterator k = tcpClientThreads.find(routeDst.pendingDstAddr);
+              if (k != tcpClientThreads.end())
+                tcpClient = k->second;
+            }
+
+            const bool sent =
+                DispatchBuiltPacket(sacn, artnet, midi, otpi, udpOutThreads, tcpClient, routeDst.pendingSrcAddr, routeDst.pendingSrcProtocol, routeDst, routeDst.pendingPacket, routeDst.pendingDstAddr);
+            if (sent)
+              routeDst.lastSendTimeMs = nowMs;
+            routeDst.hasPending = false;
+          }
+        }
+      }
+    }
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -3367,6 +3503,12 @@ void RouterThread::MainLoop()
       }
       else
         i++;
+    }
+
+    // Flush any pending coalesced packets whose rate-limit period has elapsed.
+    {
+      const qint64 flushNowMs = QDateTime::currentMSecsSinceEpoch();
+      FlushPendingRateLimited(routesByPort, flushNowMs, sacn, artnet, midi, otpi, udpOutThreads, tcpClientThreads);
     }
 
     // UDP output
