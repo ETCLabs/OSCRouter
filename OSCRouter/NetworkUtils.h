@@ -173,6 +173,16 @@ struct EosRouteDst
   sTransform inMax;
   sTransform outMin;
   sTransform outMax;
+
+  // Rate limit (0 = unlimited; otherwise max sends per second).
+  // Coalesce semantics: at most N sends per second, emitting the most
+  // recently received message for this destination. OSC outputs only;
+  // ignored for sACN/ArtNet/MIDI/OTP/PSN.
+  float maxRateHz = 0.0f;
+
+  // Send-on-change: when true, suppress sends that are byte-identical to
+  // the previous send to this destination. OSC outputs only.
+  bool onlyChanges = false;
 };
 
 ////////////////////////////////////////////////////////////////////////////////

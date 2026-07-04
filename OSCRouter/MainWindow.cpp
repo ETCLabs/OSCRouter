@@ -1714,6 +1714,10 @@ QString RoutingWidget::HeaderForCol(Col col)
     case Col::kOutMax: return tr("Max");
 
     case Col::kOutScript: return tr("JS");
+
+    case Col::kMaxRateHz: return tr("Max Rate (Hz)");
+
+    case Col::kOnlyChanges: return tr("Only Changes");
   }
 
   return QString();
@@ -1898,6 +1902,18 @@ void RoutingWidget::AddRow(size_t id, bool remove, const QString& label, const R
   row.outMax->setText(transformStr);
   AddCol(col++, row.outMax);
 
+  row.maxRateHz = new LineEdit(m_Cols->widget(col));
+  row.maxRateHz->setToolTip(tr("Cap outgoing OSC rate to this destination (Hz)\n\nBlank or 0 = unlimited.\nApplies to OSC outputs only."));
+  if (route.dst.maxRateHz > 0.0f)
+    row.maxRateHz->setText(QString::number(route.dst.maxRateHz));
+  AddCol(col++, row.maxRateHz);
+
+  row.onlyChanges = new RoutingCheckBox(id, m_Cols->widget(col));
+  row.onlyChanges->setToolTip(tr("Suppress outgoing OSC messages that are byte-identical to the previous send to this destination.\n\nApplies to OSC outputs only."));
+  row.onlyChanges->setFixedHeight(fh);
+  row.onlyChanges->setChecked(route.dst.onlyChanges);
+  AddCol(col++, row.onlyChanges, /*fixed*/ true);
+
   row.addRemove = new RoutingButton(remove ? QLatin1String("-") : QLatin1String("+"), id, m_Cols->widget(col));
   row.addRemove->setToolTip(remove ? tr("Remove this route") : tr("Add this route"));
   connect(row.addRemove, &RoutingButton::clickedWithId, this, &RoutingWidget::onAddRemoveClicked);
@@ -2007,6 +2023,12 @@ void RoutingWidget::LoadLine(const QString& line, Router::ROUTES& routes, ItemSt
     if (items.size() > 17)
       route.dst.multicastInterfaceIP = items[17];
 
+    if (items.size() > 18)
+      route.dst.maxRateHz = items[18].toFloat();
+
+    if (items.size() > 19)
+      route.dst.onlyChanges = (items[19].toInt() != 0);
+
     routes.push_back(route);
   }
   else if (items.size() == 3 && items[0].compare(QLatin1String("Mute"), Qt::CaseInsensitive) == 0)
@@ -2055,6 +2077,8 @@ void RoutingWidget::Save(QTextStream& stream)
     stream << QStringLiteral(",%1").arg(route.enable ? 1 : 0);
     stream << QStringLiteral(",%1").arg(route.mute ? 0 : 1);
     stream << QStringLiteral(",%1").arg(FileUtils::QuotedString(route.dst.multicastInterfaceIP));
+    stream << QStringLiteral(",%1").arg(route.dst.maxRateHz, 0, 'f');
+    stream << QStringLiteral(",%1").arg(route.dst.onlyChanges ? 1 : 0);
     stream << QLatin1Char('\n');
   }
 }
@@ -2117,6 +2141,14 @@ void RoutingWidget::SaveRoutes(Router::ROUTES& routes, ItemStateTable& itemState
     StringToTransform(row.inMax->text(), route.dst.inMax);
     StringToTransform(row.outMin->text(), route.dst.outMin);
     StringToTransform(row.outMax->text(), route.dst.outMax);
+
+    {
+      const QString rateText = row.maxRateHz->text().trimmed();
+      bool ok = false;
+      const float rate = rateText.toFloat(&ok);
+      route.dst.maxRateHz = (ok && rate > 0.0f) ? rate : 0.0f;
+    }
+    route.dst.onlyChanges = row.onlyChanges->isChecked();
 
     if (HasRoute(routes, route.src, route.dst))
       continue;
@@ -2330,6 +2362,8 @@ void RoutingWidget::UpdateEnableState()
     row.outScript->setEnabled(e);
     row.outMin->setEnabled(e);
     row.outMax->setEnabled(e);
+    row.maxRateHz->setEnabled(e);
+    row.onlyChanges->setEnabled(e && i != lastRow);
   }
 }
 
@@ -2364,6 +2398,7 @@ void RoutingWidget::UpdateMuteState()
     SetMuted(row.outPath, mute);
     SetMuted(row.outMin, mute);
     SetMuted(row.outMax, mute);
+    SetMuted(row.maxRateHz, mute);
   }
 }
 
