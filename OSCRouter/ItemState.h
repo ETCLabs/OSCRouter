@@ -49,8 +49,8 @@ public:
   bool mute = false;
   bool dirty = false;
 
-  static void GetStateName(EnumState state, QString &name);
-  static void GetStateColor(EnumState state, QColor &color);
+  static void GetStateName(EnumState state, QString& name);
+  static void GetStateColor(EnumState state, QColor& color);
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -66,17 +66,17 @@ public:
   virtual void Clear();
   virtual void Reset();
   virtual void Deactivate();
-  virtual void Sync(ItemStateTable &other);
+  virtual void Sync(ItemStateTable& other);
   virtual bool GetDirty() const { return m_Dirty; }
   virtual ID Register(bool mute);
-  virtual void Update(ID id, const ItemState &other);
+  virtual void Update(ID id, const ItemState& other);
   virtual bool GetMuteAllIncoming() const { return m_MuteAllIncoming; }
   virtual void SetMuteAllIncoming(bool b) { m_MuteAllIncoming = b; }
   virtual bool GetMuteAllOutgoing() const { return m_MuteAllOutgoing; }
   virtual void SetMuteAllOutgoing(bool b) { m_MuteAllOutgoing = b; }
   virtual void Mute(ID id, bool b);
-  virtual const ItemState *GetItemState(ID id) const;
-  virtual const LIST &GetList() const { return m_List; }
+  virtual const ItemState* GetItemState(ID id) const;
+  virtual const LIST& GetList() const { return m_List; }
 
   static const ID sm_Invalid_Id;
 

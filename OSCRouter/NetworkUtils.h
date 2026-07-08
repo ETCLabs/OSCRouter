@@ -37,12 +37,12 @@ public:
   typedef std::vector<EosPacket> Q;
 
   EosPacket();
-  EosPacket(const EosPacket &other);
-  EosPacket(const char *data, int size);
-  EosPacket &operator=(const EosPacket &other);
+  EosPacket(const EosPacket& other);
+  EosPacket(const char* data, int size);
+  EosPacket& operator=(const EosPacket& other);
   virtual ~EosPacket();
-  char *GetData() { return m_Data; }
-  const char *GetDataConst() const { return m_Data; }
+  char* GetData() { return m_Data; }
+  const char* GetDataConst() const { return m_Data; }
   int GetSize() const { return m_Size; }
   void Release()
   {
@@ -51,7 +51,7 @@ public:
   }
 
 private:
-  char *m_Data;
+  char* m_Data;
   int m_Size;
 };
 
@@ -63,15 +63,15 @@ struct EosAddr
     : port(0)
   {
   }
-  EosAddr(const QString &Ip, unsigned short Port);
-  bool operator==(const EosAddr &other) const;
-  bool operator!=(const EosAddr &other) const;
-  bool operator<(const EosAddr &other) const;
+  EosAddr(const QString& Ip, unsigned short Port);
+  bool operator==(const EosAddr& other) const;
+  bool operator!=(const EosAddr& other) const;
+  bool operator<(const EosAddr& other) const;
   unsigned int toUInt() const;
   void fromUInt(unsigned int n);
 
-  static unsigned int IPToUInt(const QString &ip);
-  static void UIntToIP(unsigned int n, QString &ip);
+  static unsigned int IPToUInt(const QString& ip);
+  static void UIntToIP(unsigned int n, QString& ip);
 
   QString ip;
   unsigned short port;
@@ -124,17 +124,17 @@ unsigned char MSCCmdValue(MSCCmd cmd);
 MSCCmd ValueMSCCmd(unsigned char value);
 QString MSCCmdName(MSCCmd cmd);
 bool MSCCmdStrings(MSCCmd cmd);
-std::optional<MSCCmd> MSCCmdForName(const QString &name);
+std::optional<MSCCmd> MSCCmdForName(const QString& name);
 
 ////////////////////////////////////////////////////////////////////////////////
 
 struct EosRouteSrc
 {
   EosRouteSrc() {}
-  EosRouteSrc(const EosAddr &Addr, Protocol Protocol, const QString &Path);
-  bool operator==(const EosRouteSrc &other) const;
-  bool operator!=(const EosRouteSrc &other) const;
-  bool operator<(const EosRouteSrc &other) const;
+  EosRouteSrc(const EosAddr& Addr, Protocol Protocol, const QString& Path);
+  bool operator==(const EosRouteSrc& other) const;
+  bool operator!=(const EosRouteSrc& other) const;
+  bool operator<(const EosRouteSrc& other) const;
   EosAddr addr;
   QString multicastInterfaceIP;
   Protocol protocol = Protocol::kDefault;
@@ -152,16 +152,16 @@ struct EosRouteDst
       , value(0)
     {
     }
-    bool operator==(const sTransform &other) const { return (enabled == other.enabled && value == other.value); }
-    bool operator!=(const sTransform &other) const { return (enabled != other.enabled || value != other.value); }
-    bool operator<(const sTransform &other) const { return ((enabled == other.enabled) ? (value < other.value) : (enabled < other.enabled)); }
+    bool operator==(const sTransform& other) const { return (enabled == other.enabled && value == other.value); }
+    bool operator!=(const sTransform& other) const { return (enabled != other.enabled || value != other.value); }
+    bool operator<(const sTransform& other) const { return ((enabled == other.enabled) ? (value < other.value) : (enabled < other.enabled)); }
     bool enabled;
     float value;
   };
 
   bool hasAnyTransforms() const { return (inMin.enabled || inMax.enabled || outMin.enabled || outMax.enabled); }
-  bool operator==(const EosRouteDst &other) const;
-  bool operator!=(const EosRouteDst &other) const { return !((*this) == other); }
+  bool operator==(const EosRouteDst& other) const;
+  bool operator!=(const EosRouteDst& other) const { return !((*this) == other); }
 
   EosAddr addr;
   QString multicastInterfaceIP;

@@ -31,7 +31,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
 #ifdef WIN32
 #ifdef _DEBUG
@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
 
   EosTimer::Init();
 
-  EosPlatform *platform = EosPlatform::Create();
+  EosPlatform* platform = EosPlatform::Create();
   if (platform)
   {
     std::string error;
@@ -82,7 +82,7 @@ int main(int argc, char *argv[])
   pal.setColor(QPalette::Disabled, QPalette::ButtonText, MUTED_COLOR);
   app.setPalette(pal);
 
-  MainWindow *mainWindow = new MainWindow(platform);
+  MainWindow* mainWindow = new MainWindow(platform);
   mainWindow->show();
   int result = app.exec();
   delete mainWindow;

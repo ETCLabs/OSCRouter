@@ -34,7 +34,7 @@ EosPacket::EosPacket()
 
 ////////////////////////////////////////////////////////////////////////////////
 
-EosPacket::EosPacket(const EosPacket &other)
+EosPacket::EosPacket(const EosPacket& other)
   : m_Data(0)
   , m_Size(0)
 {
@@ -48,7 +48,7 @@ EosPacket::EosPacket(const EosPacket &other)
 
 ////////////////////////////////////////////////////////////////////////////////
 
-EosPacket::EosPacket(const char *data, int size)
+EosPacket::EosPacket(const char* data, int size)
   : m_Data(0)
   , m_Size(0)
 {
@@ -62,7 +62,7 @@ EosPacket::EosPacket(const char *data, int size)
 
 ////////////////////////////////////////////////////////////////////////////////
 
-EosPacket &EosPacket::operator=(const EosPacket &other)
+EosPacket& EosPacket::operator=(const EosPacket& other)
 {
   if (&other != this)
   {
@@ -98,7 +98,7 @@ EosPacket::~EosPacket()
 
 ////////////////////////////////////////////////////////////////////////////////
 
-EosAddr::EosAddr(const QString &Ip, unsigned short Port)
+EosAddr::EosAddr(const QString& Ip, unsigned short Port)
   : ip(Ip.toLower().trimmed())
   , port(Port)
 {
@@ -106,21 +106,21 @@ EosAddr::EosAddr(const QString &Ip, unsigned short Port)
 
 ////////////////////////////////////////////////////////////////////////////////
 
-bool EosAddr::operator==(const EosAddr &other) const
+bool EosAddr::operator==(const EosAddr& other) const
 {
   return (ip == other.ip && port == other.port);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
-bool EosAddr::operator!=(const EosAddr &other) const
+bool EosAddr::operator!=(const EosAddr& other) const
 {
   return (ip != other.ip || port != other.port);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
-bool EosAddr::operator<(const EosAddr &other) const
+bool EosAddr::operator<(const EosAddr& other) const
 {
   if (ip == other.ip)
     return (port < other.port);
@@ -143,14 +143,14 @@ void EosAddr::fromUInt(unsigned int n)
 
 ////////////////////////////////////////////////////////////////////////////////
 
-unsigned int EosAddr::IPToUInt(const QString &ip)
+unsigned int EosAddr::IPToUInt(const QString& ip)
 {
   return static_cast<unsigned int>(QHostAddress(ip).toIPv4Address());
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void EosAddr::UIntToIP(unsigned int n, QString &ip)
+void EosAddr::UIntToIP(unsigned int n, QString& ip)
 {
   ip = QHostAddress(static_cast<quint32>(n)).toString();
 }
@@ -238,7 +238,7 @@ bool MSCCmdStrings(MSCCmd cmd)
   return false;
 }
 
-std::optional<MSCCmd> MSCCmdForName(const QString &name)
+std::optional<MSCCmd> MSCCmdForName(const QString& name)
 {
   if (name.isEmpty())
     return std::nullopt;
@@ -254,7 +254,7 @@ std::optional<MSCCmd> MSCCmdForName(const QString &name)
 
 ////////////////////////////////////////////////////////////////////////////////
 
-EosRouteSrc::EosRouteSrc(const EosAddr &Addr, Protocol Protocol, const QString &Path)
+EosRouteSrc::EosRouteSrc(const EosAddr& Addr, Protocol Protocol, const QString& Path)
   : addr(Addr)
   , protocol(Protocol)
   , path(Path)
@@ -263,21 +263,21 @@ EosRouteSrc::EosRouteSrc(const EosAddr &Addr, Protocol Protocol, const QString &
 
 ////////////////////////////////////////////////////////////////////////////////
 
-bool EosRouteSrc::operator==(const EosRouteSrc &other) const
+bool EosRouteSrc::operator==(const EosRouteSrc& other) const
 {
   return (addr == other.addr && multicastInterfaceIP == other.multicastInterfaceIP && protocol == other.protocol && path == other.path);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
-bool EosRouteSrc::operator!=(const EosRouteSrc &other) const
+bool EosRouteSrc::operator!=(const EosRouteSrc& other) const
 {
   return (addr != other.addr || multicastInterfaceIP != other.multicastInterfaceIP || protocol != other.protocol || path != other.path);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
-bool EosRouteSrc::operator<(const EosRouteSrc &other) const
+bool EosRouteSrc::operator<(const EosRouteSrc& other) const
 {
   if (addr != other.addr)
     return (addr < other.addr);
@@ -290,7 +290,7 @@ bool EosRouteSrc::operator<(const EosRouteSrc &other) const
 
 ////////////////////////////////////////////////////////////////////////////////
 
-bool EosRouteDst::operator==(const EosRouteDst &other) const
+bool EosRouteDst::operator==(const EosRouteDst& other) const
 {
   return (addr == other.addr && multicastInterfaceIP == other.multicastInterfaceIP && protocol == other.protocol && path == other.path && script == other.script && scriptText == other.scriptText &&
           inMin == other.inMin && inMax == other.inMax && outMin == other.outMin && outMax == other.outMax);

@@ -28,7 +28,7 @@ const ItemStateTable::ID ItemStateTable::sm_Invalid_Id = static_cast<ItemStateTa
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void ItemState::GetStateName(EnumState state, QString &name)
+void ItemState::GetStateName(EnumState state, QString& name)
 {
   switch (state)
   {
@@ -41,7 +41,7 @@ void ItemState::GetStateName(EnumState state, QString &name)
   name = QString();
 }
 
-void ItemState::GetStateColor(EnumState state, QColor &color)
+void ItemState::GetStateColor(EnumState state, QColor& color)
 {
   switch (state)
   {
@@ -75,7 +75,7 @@ void ItemStateTable::Deactivate()
     Update(i, deactivated);
 }
 
-void ItemStateTable::Sync(ItemStateTable &other)
+void ItemStateTable::Sync(ItemStateTable& other)
 {
   size_t count = qMin(m_List.size(), other.m_List.size());
 
@@ -84,7 +84,7 @@ void ItemStateTable::Sync(ItemStateTable &other)
   {
     for (size_t i = 0; i < count; i++)
     {
-      ItemState &otherItemState = other.m_List[i];
+      ItemState& otherItemState = other.m_List[i];
       Update(i, otherItemState);
       otherItemState.dirty = false;
       otherItemState.activity = false;
@@ -114,12 +114,12 @@ ItemStateTable::ID ItemStateTable::Register(bool mute)
   return (m_List.size() - 1);
 }
 
-void ItemStateTable::Update(ID id, const ItemState &other)
+void ItemStateTable::Update(ID id, const ItemState& other)
 {
   if (id >= m_List.size())
     return;
 
-  ItemState &itemState = m_List[id];
+  ItemState& itemState = m_List[id];
   if (itemState.state == other.state && itemState.activity == other.activity)
     return;
 
@@ -134,7 +134,7 @@ void ItemStateTable::Mute(ID id, bool b)
   if (id >= m_List.size())
     return;
 
-  ItemState &itemState = m_List[id];
+  ItemState& itemState = m_List[id];
   if (itemState.mute == b)
     return;
 
@@ -142,7 +142,7 @@ void ItemStateTable::Mute(ID id, bool b)
   m_MuteDirty = true;
 }
 
-const ItemState *ItemStateTable::GetItemState(ID id) const
+const ItemState* ItemStateTable::GetItemState(ID id) const
 {
   return ((id < m_List.size()) ? (&(m_List[id])) : 0);
 }

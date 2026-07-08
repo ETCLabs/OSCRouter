@@ -27,7 +27,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 
-LogWidget::LogWidget(size_t maxLineCount, QWidget *parent)
+LogWidget::LogWidget(size_t maxLineCount, QWidget* parent)
   : QWidget(parent)
   , m_LineHeight(0)
   , m_LineWidth(0)
@@ -72,7 +72,7 @@ void LogWidget::clear()
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void LogWidget::Log(EosLog::LOG_Q &logQ)
+void LogWidget::Log(EosLog::LOG_Q& logQ)
 {
   if (logQ.empty() || m_Lines.empty())
     return;
@@ -81,9 +81,9 @@ void LogWidget::Log(EosLog::LOG_Q &logQ)
 
   for (EosLog::LOG_Q::const_iterator i = logQ.begin(); i != logQ.end(); i++)
   {
-    const EosLog::sLogMsg &msg = *i;
+    const EosLog::sLogMsg& msg = *i;
 
-    sLine &line = m_Lines[m_Index.tail];
+    sLine& line = m_Lines[m_Index.tail];
 
     if (msg.text.c_str())
     {
@@ -132,7 +132,7 @@ size_t LogWidget::GetNumLines() const
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void LogWidget::GetContentsRect(QRect &r) const
+void LogWidget::GetContentsRect(QRect& r) const
 {
   r = rect().adjusted(0, 0, -m_VScrollBar->width(), -m_HScrollBar->height());
 }
@@ -195,7 +195,7 @@ void LogWidget::UpdateHScrollBar()
 
 ////////////////////////////////////////////////////////////////////////////////
 
-bool LogWidget::event(QEvent *event)
+bool LogWidget::event(QEvent* event)
 {
   switch (event->type())
   {
@@ -207,7 +207,7 @@ bool LogWidget::event(QEvent *event)
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void LogWidget::resizeEvent(QResizeEvent * /*event*/)
+void LogWidget::resizeEvent(QResizeEvent* /*event*/)
 {
   QSize vsh(m_VScrollBar->sizeHint());
   QSize hsh(m_HScrollBar->sizeHint());
@@ -219,7 +219,7 @@ void LogWidget::resizeEvent(QResizeEvent * /*event*/)
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void LogWidget::paintEvent(QPaintEvent * /*event*/)
+void LogWidget::paintEvent(QPaintEvent* /*event*/)
 {
   QPainter painter(this);
   painter.fillRect(QRect(0, 0, width(), height()), palette().color(QPalette::Base));
@@ -257,7 +257,7 @@ void LogWidget::paintEvent(QPaintEvent * /*event*/)
 
   while (index != m_Index.tail)
   {
-    const sLine &line = m_Lines[index];
+    const sLine& line = m_Lines[index];
     QRect textRect(x, y, width() - x, m_LineHeight);
     if (y > bottom)
       break;
@@ -282,7 +282,7 @@ void LogWidget::paintEvent(QPaintEvent * /*event*/)
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void LogWidget::wheelEvent(QWheelEvent *event)
+void LogWidget::wheelEvent(QWheelEvent* event)
 {
   if (!m_ForwardingWheelEvent && m_VScrollBar->isEnabled())
   {
@@ -296,12 +296,12 @@ void LogWidget::wheelEvent(QWheelEvent *event)
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void LogWidget::contextMenuEvent(QContextMenuEvent *event)
+void LogWidget::contextMenuEvent(QContextMenuEvent* event)
 {
   QMenu menu(this);
   menu.addAction(tr("Clear Log"), this, &LogWidget::clear);
-  QAction *topAction = menu.addAction(tr("Scroll to Top"), this, &LogWidget::scrollToTop);
-  QAction *bottomAction = menu.addAction(tr("Scroll to Bottom"), this, &LogWidget::scrollToBottom);
+  QAction* topAction = menu.addAction(tr("Scroll to Top"), this, &LogWidget::scrollToTop);
+  QAction* bottomAction = menu.addAction(tr("Scroll to Bottom"), this, &LogWidget::scrollToBottom);
 
   if (!m_VScrollBar->isEnabled() || m_VScrollBar->value() == m_VScrollBar->minimum())
     topAction->setEnabled(false);

@@ -131,9 +131,9 @@ class ScriptEngine
 public:
   ScriptEngine() = default;
 
-  QJSEngine &js() { return m_JS; }
-  QString evaluate(const QString &script, EosLog *log = nullptr, const QString &label = QString(), const QString &path = QString(), const OSCArgument *args = nullptr, size_t argsCount = 0,
-                   const uint8_t *universe = nullptr, size_t universeCount = 0, EosPacket *packet = nullptr);
+  QJSEngine& js() { return m_JS; }
+  QString evaluate(const QString& script, EosLog* log = nullptr, const QString& label = QString(), const QString& path = QString(), const OSCArgument* args = nullptr, size_t argsCount = 0,
+                   const uint8_t* universe = nullptr, size_t universeCount = 0, EosPacket* packet = nullptr);
 
 private:
   QJSEngine m_JS;
@@ -188,20 +188,20 @@ public:
 class PacketLogger : public OSCParserClient
 {
 public:
-  PacketLogger(EosLog::EnumLogMsgType logType, EosLog &log)
+  PacketLogger(EosLog::EnumLogMsgType logType, EosLog& log)
     : m_LogType(logType)
     , m_pLog(&log)
   {
   }
 
-  virtual void SetPrefix(const std::string &prefix) { m_Prefix = prefix; }
-  virtual void OSCParserClient_Log(const std::string &message);
-  virtual void OSCParserClient_Send(const char *, size_t) {}
-  virtual void PrintPacket(OSCParser &oscParser, const char *packet, size_t size);
+  virtual void SetPrefix(const std::string& prefix) { m_Prefix = prefix; }
+  virtual void OSCParserClient_Log(const std::string& message);
+  virtual void OSCParserClient_Send(const char*, size_t) {}
+  virtual void PrintPacket(OSCParser& oscParser, const char* packet, size_t size);
 
 protected:
   EosLog::EnumLogMsgType m_LogType;
-  EosLog *m_pLog;
+  EosLog* m_pLog;
   std::string m_Prefix;
   std::string m_LogMsg;
 };
@@ -213,7 +213,7 @@ class EosUdpInThread : public QThread
 public:
   struct sRecvPacket
   {
-    sRecvPacket(const char *data, int size, unsigned int Ip)
+    sRecvPacket(const char* data, int size, unsigned int Ip)
       : packet(data, size)
       , ip(Ip)
     {
@@ -225,7 +225,7 @@ public:
 
   struct sRecvPortPacket
   {
-    sRecvPortPacket(uint16_t Port, const char *data, int size, unsigned int Ip)
+    sRecvPortPacket(uint16_t Port, const char* data, int size, unsigned int Ip)
       : port(Port)
       , p(data, size, Ip)
     {
@@ -234,20 +234,20 @@ public:
     sRecvPacket p;
   };
   typedef std::vector<sRecvPortPacket> RECV_PORT_Q;
-  
+
   typedef std::unordered_set<ItemStateTable::ID> STATE_TABLE_IDS;
 
   EosUdpInThread();
   virtual ~EosUdpInThread();
 
-  virtual void Start(const EosAddr &addr, QString multicastInterfaceIP, Protocol protocol, ItemStateTable::ID itemStateTableId, unsigned int reconnectDelayMS, bool mute);
+  virtual void Start(const EosAddr& addr, QString multicastInterfaceIP, Protocol protocol, ItemStateTable::ID itemStateTableId, unsigned int reconnectDelayMS, bool mute);
   virtual void Stop();
-  const EosAddr &GetAddr() const { return m_Addr; }
+  const EosAddr& GetAddr() const { return m_Addr; }
   Protocol GetProtocol() const { return m_Protocol; }
   const STATE_TABLE_IDS& GetItemStateTableIds() const { return m_ItemStateTableIds; }
   void AddItemStateTableId(ItemStateTable::ID id) { m_ItemStateTableIds.insert(id); }
   ItemState::EnumState GetState();
-  virtual void Flush(EosLog::LOG_Q &logQ, RECV_Q &recvQ);
+  virtual void Flush(EosLog::LOG_Q& logQ, RECV_Q& recvQ);
   virtual void Mute(bool b) { m_Mute = b; }
 
 protected:
@@ -262,16 +262,16 @@ protected:
   EosLog m_PrivateLog;
   RECV_Q m_Q;
   QRecursiveMutex m_Mutex;
-  psn::psn_decoder *m_PSNDecoder = nullptr;
+  psn::psn_decoder* m_PSNDecoder = nullptr;
   std::optional<uint8_t> m_PSNFrame;
   bool m_Mute;
 
   virtual void run();
   virtual void UpdateLog();
   virtual void SetState(ItemState::EnumState state);
-  virtual void RecvPacket(const QHostAddress &host, const char *data, int len, OSCParser &logParser, PacketLogger &packetLogger);
-  virtual void RecvPacketPSN(const QHostAddress &host, const char *data, int len, OSCParser &logParser, PacketLogger &packetLogger);
-  virtual void QueuePacket(const QHostAddress &host, const char *data, int len, OSCParser &logParser, PacketLogger &packetLogger);
+  virtual void RecvPacket(const QHostAddress& host, const char* data, int len, OSCParser& logParser, PacketLogger& packetLogger);
+  virtual void RecvPacketPSN(const QHostAddress& host, const char* data, int len, OSCParser& logParser, PacketLogger& packetLogger);
+  virtual void QueuePacket(const QHostAddress& host, const char* data, int len, OSCParser& logParser, PacketLogger& packetLogger);
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -282,13 +282,13 @@ public:
   EosUdpOutThread();
   virtual ~EosUdpOutThread();
 
-  virtual void Start(const EosAddr &addr, QString multicastInterfaceIP, ItemStateTable::ID itemStateTableId, unsigned int reconnectDelayMS);
+  virtual void Start(const EosAddr& addr, QString multicastInterfaceIP, ItemStateTable::ID itemStateTableId, unsigned int reconnectDelayMS);
   virtual void Stop();
-  const EosAddr &GetAddr() const { return m_Addr; }
+  const EosAddr& GetAddr() const { return m_Addr; }
   ItemStateTable::ID GetItemStateTableId() const { return m_ItemStateTableId; }
   ItemState::EnumState GetState();
-  virtual bool Send(const EosPacket &packet);
-  virtual void Flush(EosLog::LOG_Q &logQ);
+  virtual bool Send(const EosPacket& packet);
+  virtual void Flush(EosLog::LOG_Q& logQ);
 
 protected:
   EosAddr m_Addr;
@@ -316,19 +316,19 @@ public:
   EosTcpClientThread();
   virtual ~EosTcpClientThread();
 
-  virtual void Start(const EosAddr &addr, ItemStateTable::ID itemStateTableId, OSCStream::EnumFrameMode frameMode, unsigned int reconnectDelayMS, bool mute);
-  virtual void Start(EosTcp *tcp, const EosAddr &addr, ItemStateTable::ID itemStateTableId, OSCStream::EnumFrameMode frameMode, unsigned int reconnectDelayMS, bool mute);
+  virtual void Start(const EosAddr& addr, ItemStateTable::ID itemStateTableId, OSCStream::EnumFrameMode frameMode, unsigned int reconnectDelayMS, bool mute);
+  virtual void Start(EosTcp* tcp, const EosAddr& addr, ItemStateTable::ID itemStateTableId, OSCStream::EnumFrameMode frameMode, unsigned int reconnectDelayMS, bool mute);
   virtual void Stop();
-  const EosAddr &GetAddr() const { return m_Addr; }
+  const EosAddr& GetAddr() const { return m_Addr; }
   ItemStateTable::ID GetItemStateTableId() const { return m_ItemStateTableId; }
   ItemState::EnumState GetState();
-  virtual bool Send(const EosPacket &packet);
-  virtual bool SendFramed(const EosPacket &packet);
-  virtual void Flush(EosLog::LOG_Q &logQ, EosUdpInThread::RECV_Q &recvQ);
+  virtual bool Send(const EosPacket& packet);
+  virtual bool SendFramed(const EosPacket& packet);
+  virtual void Flush(EosLog::LOG_Q& logQ, EosUdpInThread::RECV_Q& recvQ);
   virtual void Mute(bool b) { m_Mute = b; }
 
 protected:
-  EosTcp *m_AcceptedTcp;
+  EosTcp* m_AcceptedTcp;
   EosAddr m_Addr;
   ItemStateTable::ID m_ItemStateTableId;
   ItemState::EnumState m_State;
@@ -358,7 +358,7 @@ public:
       : tcp(0)
     {
     }
-    EosTcp *tcp;
+    EosTcp* tcp;
     EosAddr addr;
   };
   typedef std::vector<sConnection> CONNECTION_Q;
@@ -366,13 +366,13 @@ public:
   EosTcpServerThread();
   virtual ~EosTcpServerThread();
 
-  virtual void Start(const EosAddr &addr, ItemStateTable::ID itemStateTableId, OSCStream::EnumFrameMode frameMode, unsigned int reconnectDelayMS);
+  virtual void Start(const EosAddr& addr, ItemStateTable::ID itemStateTableId, OSCStream::EnumFrameMode frameMode, unsigned int reconnectDelayMS);
   virtual void Stop();
-  const EosAddr &GetAddr() const { return m_Addr; }
+  const EosAddr& GetAddr() const { return m_Addr; }
   ItemStateTable::ID GetItemStateTableId() const { return m_ItemStateTableId; }
   ItemState::EnumState GetState();
   OSCStream::EnumFrameMode GetFrameMode() const { return m_FrameMode; }
-  virtual void Flush(EosLog::LOG_Q &logQ, CONNECTION_Q &connectionQ);
+  virtual void Flush(EosLog::LOG_Q& logQ, CONNECTION_Q& connectionQ);
 
 protected:
   EosAddr m_Addr;
@@ -397,8 +397,8 @@ class OSCBundleMethod : public OSCMethod
 {
 public:
   virtual void SetIP(unsigned int ip) { m_IP = ip; }
-  virtual bool ProcessPacket(OSCParserClient &client, char *buf, size_t size);
-  virtual void Flush(EosUdpInThread::RECV_Q &q);
+  virtual bool ProcessPacket(OSCParserClient& client, char* buf, size_t size);
+  virtual void Flush(EosUdpInThread::RECV_Q& q);
 
 private:
   unsigned int m_IP = 0u;
@@ -438,11 +438,11 @@ public:
     ARTNET_DIRTY_LIST dirty;
   };
 
-  RouterThread(const Router::ROUTES &routes, const Router::CONNECTIONS &tcpConnections, const Router::Settings &settings, const ItemStateTable &itemStateTable, unsigned int reconnectDelayMS);
+  RouterThread(const Router::ROUTES& routes, const Router::CONNECTIONS& tcpConnections, const Router::Settings& settings, const ItemStateTable& itemStateTable, unsigned int reconnectDelayMS);
   virtual ~RouterThread();
 
   virtual void Stop();
-  virtual void Sync(EosLog::LOG_Q &logQ, ItemStateTable &itemStateTable);
+  virtual void Sync(EosLog::LOG_Q& logQ, ItemStateTable& itemStateTable);
 
 protected:
   struct sRouteDst
@@ -470,13 +470,13 @@ protected:
   typedef std::map<unsigned short, ROUTES_BY_IP> ROUTES_BY_PORT;
   typedef std::pair<unsigned short, ROUTES_BY_IP> ROUTES_BY_PORT_PAIR;
 
-  typedef std::map<unsigned short, EosUdpInThread *> UDP_IN_THREADS;
-  typedef std::map<EosAddr, EosUdpOutThread *> UDP_OUT_THREADS;
+  typedef std::map<unsigned short, EosUdpInThread*> UDP_IN_THREADS;
+  typedef std::map<EosAddr, EosUdpOutThread*> UDP_OUT_THREADS;
 
-  typedef std::map<EosAddr, EosTcpClientThread *> TCP_CLIENT_THREADS;
-  typedef std::map<EosAddr, EosTcpServerThread *> TCP_SERVER_THREADS;
+  typedef std::map<EosAddr, EosTcpClientThread*> TCP_CLIENT_THREADS;
+  typedef std::map<EosAddr, EosTcpServerThread*> TCP_SERVER_THREADS;
 
-  typedef std::vector<const ROUTE_DESTINATIONS *> DESTINATIONS_LIST;
+  typedef std::vector<const ROUTE_DESTINATIONS*> DESTINATIONS_LIST;
 
   enum EnumConstants
   {
@@ -525,7 +525,7 @@ protected:
   struct SendUniverseData
   {
     uint handle = 0;
-    uint1 *channels = nullptr;
+    uint1* channels = nullptr;
   };
 
   struct SendUniverse
@@ -540,15 +540,15 @@ protected:
 
   struct sACN
   {
-    IPlatformAsyncSocketServ *net = nullptr;
-    IPlatformStreamACNCli *client = nullptr;
-    IPlatformStreamACNSrv *server = nullptr;
+    IPlatformAsyncSocketServ* net = nullptr;
+    IPlatformStreamACNCli* client = nullptr;
+    IPlatformStreamACNSrv* server = nullptr;
     SEND_UNIVERSE_LIST output;
     QElapsedTimer recvTimer;
     QElapsedTimer sendTimer;
     std::vector<netintid> ifaces;
 
-    netintid *GetNetIFList() { return ifaces.empty() ? nullptr : ifaces.data(); }
+    netintid* GetNetIFList() { return ifaces.empty() ? nullptr : ifaces.data(); }
     int GetNetIFListSize() { return static_cast<int>(ifaces.size()); }
   };
 
@@ -594,84 +594,84 @@ protected:
   EosLog m_PrivateLog;
   ItemStateTable m_ItemStateTable;
   QRecursiveMutex m_Mutex;
-  ScriptEngine *m_ScriptEngine = nullptr;
-  psn::psn_encoder *m_PSNEncoder = nullptr;
+  ScriptEngine* m_ScriptEngine = nullptr;
+  psn::psn_encoder* m_PSNEncoder = nullptr;
   QElapsedTimer m_PSNEncoderTimer;
   sACNRecv m_sACNRecv;
   otp::Data m_OTPRecv;
 
   virtual void run();
   virtual void MainLoop();
-  virtual void RecvsACN(sACN &sacn, EosUdpInThread::RECV_PORT_Q &recvPortQ);
-  virtual void RecvArtNet(ArtNet &artnet, EosUdpInThread::RECV_PORT_Q &recvPortQ);
-  virtual void RecvMIDI(OSCParser &oscParser, PacketLogger &packetLogger, bool muteAllIncoming, bool muteAllOutgoing, sACN &sacn, ArtNet &artnet, MIDI &midi, OTPI &otpi, ROUTES_BY_PORT &routesByPort,
-                        DESTINATIONS_LIST &routingDestinationList, UDP_OUT_THREADS &udpOutThreads, TCP_SERVER_THREADS &tcpServerThreads, TCP_CLIENT_THREADS &tcpClientThreads);
-  virtual void RecvOTP(OSCParser &oscParser, PacketLogger &packetLogger, bool muteAllIncoming, bool muteAllOutgoing, sACN &sacn, ArtNet &artnet, MIDI &midi, OTPI &otpi, ROUTES_BY_PORT &routesByPort,
-                       DESTINATIONS_LIST &routingDestinationList, UDP_OUT_THREADS &udpOutThreads, TCP_SERVER_THREADS &tcpServerThreads, TCP_CLIENT_THREADS &tcpClientThreads);
-  virtual void BuildRoutes(ROUTES_BY_PORT &routesByPort, ROUTES_BY_PORT &routesBysACNUniverse, ROUTES_BY_PORT &routesByArtNetUniverse, ROUTES_BY_PORT &routesByMIDI, ROUTES_BY_PORT &routesByOTP,
-                           UDP_IN_THREADS &udpInThreads, UDP_OUT_THREADS &udpOutThreads, TCP_CLIENT_THREADS &tcpClientThreads, TCP_SERVER_THREADS &tcpServerThreads);
-  virtual void BuildsACN(ROUTES_BY_PORT &routesByPort, ROUTES_BY_PORT &routesBysACNUniverse, ROUTES_BY_PORT &routesByArtNetUniverse, ROUTES_BY_PORT &routesByMIDI, ROUTES_BY_PORT &routesByOTP,
-                         sACN &sacn);
-  virtual void BuildArtNet(ROUTES_BY_PORT &routesByPort, ROUTES_BY_PORT &routesBysACNUniverse, ROUTES_BY_PORT &routesByArtNetUniverse, ROUTES_BY_PORT &routesByMIDI, ROUTES_BY_PORT &routesByOTP,
-                           ArtNet &artnet);
-  virtual void BuildMIDI(ROUTES_BY_PORT &routesByMIDI, MIDI &midi);
-  virtual void BuildOTP(ROUTES_BY_PORT &routesByPort, ROUTES_BY_PORT &routesBysACNUniverse, ROUTES_BY_PORT &routesByArtNetUniverse, ROUTES_BY_PORT &routesByMIDI, ROUTES_BY_PORT &routesByOTP,
-                        OTPI &otpi);
-  virtual EosUdpOutThread *CreateUdpOutThread(const EosAddr &addr, QString multicastInterfaceIP, ItemStateTable::ID itemStateTableId, UDP_OUT_THREADS &udpOutThreads);
-  virtual void AddRoutingDestinations(bool isOSC, const QString &path, const sRoutesByIp &routesByIp, DESTINATIONS_LIST &destinations);
-  virtual void ProcessRecvQ(bool muteAllOutgoing, sACN &sacn, ArtNet &artnet, MIDI &midi, OTPI &otpi, OSCParser &oscBundleParser, ROUTES_BY_PORT &routesByPort,
-                            DESTINATIONS_LIST &routingDestinationList, UDP_OUT_THREADS &udpOutThreads, TCP_SERVER_THREADS &tcpServerThreads, TCP_CLIENT_THREADS &tcpClientThreads, const EosAddr &addr,
-                            EosUdpInThread::RECV_Q &recvQ);
-  virtual void ProcessRecvPacket(bool muteAllOutgoing, sACN &sacn, ArtNet &artnet, MIDI &midi, OTPI &otpi, ROUTES_BY_PORT &routesByPort, DESTINATIONS_LIST &routingDestinationList,
-                                 UDP_OUT_THREADS &udpOutThreads, TCP_SERVER_THREADS &tcpServerThreads, TCP_CLIENT_THREADS &tcpClientThreads, const EosAddr &addr, Protocol protocol,
-                                 EosUdpInThread::sRecvPacket &recvPacket);
-  virtual bool MakeOSCPacket(ArtNet &artnet, const EosAddr &addr, Protocol protocol, const QString &srcPath, const sRouteDst &route, OSCArgument *args, size_t argsCount, EosPacket &packet);
-  virtual bool MakePSNPacket(EosPacket &osc, EosPacket &psn);
-  virtual bool SendsACN(sACN &sacn, ArtNet &artnet, const EosAddr &addr, Protocol protocol, const sRouteDst &routeDst, EosPacket &osc);
-  virtual bool SendArtNet(ArtNet &artnet, const EosAddr &addr, Protocol protocol, const EosRouteDst &dst, EosPacket &osc);
-  virtual void FlushArtNet(ArtNet &artnet);
-  virtual void SendMIDI(MIDI &midi, const sRouteDst &routeDst, EosPacket &oscPacket);
-  virtual void SendOTP(OTPI &otpi, const sRouteDst &routeDst, EosPacket &oscPacket);
-  virtual void ProcessTcpConnectionQ(TCP_CLIENT_THREADS &tcpClientThreads, EosTcpServerThread &tcpServer, EosTcpServerThread::CONNECTION_Q &tcpConnectionQ, bool mute);
-  virtual bool ApplyTransform(OSCArgument &arg, const EosRouteDst &dst, OSCPacketWriter &packet);
-  virtual void MakeSendPath(ArtNet &artnet, const EosAddr &addr, Protocol protocol, const QString &srcPath, const QString &dstPath, const OSCArgument *args, size_t argsCount, QString &sendPath);
+  virtual void RecvsACN(sACN& sacn, EosUdpInThread::RECV_PORT_Q& recvPortQ);
+  virtual void RecvArtNet(ArtNet& artnet, EosUdpInThread::RECV_PORT_Q& recvPortQ);
+  virtual void RecvMIDI(OSCParser& oscParser, PacketLogger& packetLogger, bool muteAllIncoming, bool muteAllOutgoing, sACN& sacn, ArtNet& artnet, MIDI& midi, OTPI& otpi, ROUTES_BY_PORT& routesByPort,
+                        DESTINATIONS_LIST& routingDestinationList, UDP_OUT_THREADS& udpOutThreads, TCP_SERVER_THREADS& tcpServerThreads, TCP_CLIENT_THREADS& tcpClientThreads);
+  virtual void RecvOTP(OSCParser& oscParser, PacketLogger& packetLogger, bool muteAllIncoming, bool muteAllOutgoing, sACN& sacn, ArtNet& artnet, MIDI& midi, OTPI& otpi, ROUTES_BY_PORT& routesByPort,
+                       DESTINATIONS_LIST& routingDestinationList, UDP_OUT_THREADS& udpOutThreads, TCP_SERVER_THREADS& tcpServerThreads, TCP_CLIENT_THREADS& tcpClientThreads);
+  virtual void BuildRoutes(ROUTES_BY_PORT& routesByPort, ROUTES_BY_PORT& routesBysACNUniverse, ROUTES_BY_PORT& routesByArtNetUniverse, ROUTES_BY_PORT& routesByMIDI, ROUTES_BY_PORT& routesByOTP,
+                           UDP_IN_THREADS& udpInThreads, UDP_OUT_THREADS& udpOutThreads, TCP_CLIENT_THREADS& tcpClientThreads, TCP_SERVER_THREADS& tcpServerThreads);
+  virtual void BuildsACN(ROUTES_BY_PORT& routesByPort, ROUTES_BY_PORT& routesBysACNUniverse, ROUTES_BY_PORT& routesByArtNetUniverse, ROUTES_BY_PORT& routesByMIDI, ROUTES_BY_PORT& routesByOTP,
+                         sACN& sacn);
+  virtual void BuildArtNet(ROUTES_BY_PORT& routesByPort, ROUTES_BY_PORT& routesBysACNUniverse, ROUTES_BY_PORT& routesByArtNetUniverse, ROUTES_BY_PORT& routesByMIDI, ROUTES_BY_PORT& routesByOTP,
+                           ArtNet& artnet);
+  virtual void BuildMIDI(ROUTES_BY_PORT& routesByMIDI, MIDI& midi);
+  virtual void BuildOTP(ROUTES_BY_PORT& routesByPort, ROUTES_BY_PORT& routesBysACNUniverse, ROUTES_BY_PORT& routesByArtNetUniverse, ROUTES_BY_PORT& routesByMIDI, ROUTES_BY_PORT& routesByOTP,
+                        OTPI& otpi);
+  virtual EosUdpOutThread* CreateUdpOutThread(const EosAddr& addr, QString multicastInterfaceIP, ItemStateTable::ID itemStateTableId, UDP_OUT_THREADS& udpOutThreads);
+  virtual void AddRoutingDestinations(bool isOSC, const QString& path, const sRoutesByIp& routesByIp, DESTINATIONS_LIST& destinations);
+  virtual void ProcessRecvQ(bool muteAllOutgoing, sACN& sacn, ArtNet& artnet, MIDI& midi, OTPI& otpi, OSCParser& oscBundleParser, ROUTES_BY_PORT& routesByPort,
+                            DESTINATIONS_LIST& routingDestinationList, UDP_OUT_THREADS& udpOutThreads, TCP_SERVER_THREADS& tcpServerThreads, TCP_CLIENT_THREADS& tcpClientThreads, const EosAddr& addr,
+                            EosUdpInThread::RECV_Q& recvQ);
+  virtual void ProcessRecvPacket(bool muteAllOutgoing, sACN& sacn, ArtNet& artnet, MIDI& midi, OTPI& otpi, ROUTES_BY_PORT& routesByPort, DESTINATIONS_LIST& routingDestinationList,
+                                 UDP_OUT_THREADS& udpOutThreads, TCP_SERVER_THREADS& tcpServerThreads, TCP_CLIENT_THREADS& tcpClientThreads, const EosAddr& addr, Protocol protocol,
+                                 EosUdpInThread::sRecvPacket& recvPacket);
+  virtual bool MakeOSCPacket(ArtNet& artnet, const EosAddr& addr, Protocol protocol, const QString& srcPath, const sRouteDst& route, OSCArgument* args, size_t argsCount, EosPacket& packet);
+  virtual bool MakePSNPacket(EosPacket& osc, EosPacket& psn);
+  virtual bool SendsACN(sACN& sacn, ArtNet& artnet, const EosAddr& addr, Protocol protocol, const sRouteDst& routeDst, EosPacket& osc);
+  virtual bool SendArtNet(ArtNet& artnet, const EosAddr& addr, Protocol protocol, const EosRouteDst& dst, EosPacket& osc);
+  virtual void FlushArtNet(ArtNet& artnet);
+  virtual void SendMIDI(MIDI& midi, const sRouteDst& routeDst, EosPacket& oscPacket);
+  virtual void SendOTP(OTPI& otpi, const sRouteDst& routeDst, EosPacket& oscPacket);
+  virtual void ProcessTcpConnectionQ(TCP_CLIENT_THREADS& tcpClientThreads, EosTcpServerThread& tcpServer, EosTcpServerThread::CONNECTION_Q& tcpConnectionQ, bool mute);
+  virtual bool ApplyTransform(OSCArgument& arg, const EosRouteDst& dst, OSCPacketWriter& packet);
+  virtual void MakeSendPath(ArtNet& artnet, const EosAddr& addr, Protocol protocol, const QString& srcPath, const QString& dstPath, const OSCArgument* args, size_t argsCount, QString& sendPath);
   virtual void UpdateLog();
   virtual MuteAll GetMuteAll();
   virtual bool IsRouteMuted(ItemStateTable::ID id);
   virtual void SetItemState(ItemStateTable::ID id, ItemState::EnumState state);
-  virtual void SetItemState(const ROUTES_BY_PORT &routesByPort, Protocol dstProtocol, ItemState::EnumState state);
-  virtual void SetItemState(const ROUTES_BY_IP &routesByIp, Protocol dstProtocol, ItemState::EnumState state);
-  virtual void SetItemState(const ROUTES_BY_PATH &routesByPath, Protocol dstProtocol, ItemState::EnumState state);
+  virtual void SetItemState(const ROUTES_BY_PORT& routesByPort, Protocol dstProtocol, ItemState::EnumState state);
+  virtual void SetItemState(const ROUTES_BY_IP& routesByIp, Protocol dstProtocol, ItemState::EnumState state);
+  virtual void SetItemState(const ROUTES_BY_PATH& routesByPath, Protocol dstProtocol, ItemState::EnumState state);
   virtual void SetItemActivity(ItemStateTable::ID id);
-  virtual void DestroysACN(sACN &sacn);
-  virtual void DestroyArtNet(ArtNet &artnet);
-  virtual void LogMIDI(bool send, const std::string &name, const std::vector<unsigned char> &message);
-  virtual void LogOTP(const std::string &name, const otp::LogMsg &msg);
+  virtual void DestroysACN(sACN& sacn);
+  virtual void DestroyArtNet(ArtNet& artnet);
+  virtual void LogMIDI(bool send, const std::string& name, const std::vector<unsigned char>& message);
+  virtual void LogOTP(const std::string& name, const otp::LogMsg& msg);
 
   // OSCParserClient
-  virtual void OSCParserClient_Log(const std::string &message);
-  virtual void OSCParserClient_Send(const char *buf, size_t size);
+  virtual void OSCParserClient_Log(const std::string& message);
+  virtual void OSCParserClient_Send(const char* buf, size_t size);
 
   // IStreamACNCliNotify
-  void SourceDisappeared(const CID &source, uint2 universe) override;
-  void SourcePCPExpired(const CID &source, uint2 universe) override;
+  void SourceDisappeared(const CID& source, uint2 universe) override;
+  void SourcePCPExpired(const CID& source, uint2 universe) override;
   void SamplingStarted(uint2 /*universe*/) override {}
   void SamplingEnded(uint2 /*universe*/) override {}
-  void UniverseData(const CID &source, const char *source_name, const CIPAddr &source_ip, uint2 universe, uint2 reserved, uint1 sequence, uint1 options, uint1 priority, uint1 start_code,
-                    uint2 slot_count, uint1 *pdata) override;
+  void UniverseData(const CID& source, const char* source_name, const CIPAddr& source_ip, uint2 universe, uint2 reserved, uint1 sequence, uint1 options, uint1 priority, uint1 start_code,
+                    uint2 slot_count, uint1* pdata) override;
   void UniverseBad(uint2 /*universe*/, netintid /*iface*/) override {}
 
   // OTP Consumer Callbacks
-  void ConsumerCallback_ProducerChanged(otp::EndpointChange change, const QUuid &cid, const otp::Endpoint &producer) override;
-  void ConsumerCallback_PointChanged(otp::PointChange change, const otp::Frame &frame, const otp::Point &point) override;
-  void ConsumerCallback_Log(const otp::LogMsg &msg) override;
+  void ConsumerCallback_ProducerChanged(otp::EndpointChange change, const QUuid& cid, const otp::Endpoint& producer) override;
+  void ConsumerCallback_PointChanged(otp::PointChange change, const otp::Frame& frame, const otp::Point& point) override;
+  void ConsumerCallback_Log(const otp::LogMsg& msg) override;
 
   // OTP Producer Callbacks
-  void ProducerCallback_ConsumerChanged(otp::EndpointChange change, const QUuid &cid, const otp::Endpoint &consumer) override;
-  void ProducerCallback_Log(const otp::LogMsg &msg) override;
+  void ProducerCallback_ConsumerChanged(otp::EndpointChange change, const QUuid& cid, const otp::Endpoint& consumer) override;
+  void ProducerCallback_Log(const otp::LogMsg& msg) override;
 
-  static bool HasProtocolOutput(const ROUTES_BY_PORT &routesByPort, Protocol protocol);
-  static bool HasProtocolOutput(const ROUTES_BY_PATH &routesByPath, Protocol protocol);
+  static bool HasProtocolOutput(const ROUTES_BY_PORT& routesByPort, Protocol protocol);
+  static bool HasProtocolOutput(const ROUTES_BY_PATH& routesByPath, Protocol protocol);
 };
 
 ////////////////////////////////////////////////////////////////////////////////

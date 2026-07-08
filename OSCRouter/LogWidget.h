@@ -37,9 +37,9 @@ class LogWidget : public QWidget
   Q_OBJECT
 
 public:
-  LogWidget(size_t maxLineCount, QWidget *parent);
+  LogWidget(size_t maxLineCount, QWidget* parent);
 
-  virtual void Log(EosLog::LOG_Q &logQ);
+  virtual void Log(EosLog::LOG_Q& logQ);
   virtual QSize sizeHint() const { return QSize(400, 150); }
 
 public slots:
@@ -52,7 +52,7 @@ private slots:
   void scrollToBottom();
 
 protected:
-  void contextMenuEvent(QContextMenuEvent *event) override;
+  void contextMenuEvent(QContextMenuEvent* event) override;
 
   struct sLine
   {
@@ -79,20 +79,20 @@ protected:
   sRingBufferIndex m_Index;
   int m_LineHeight;
   int m_LineWidth;
-  QScrollBar *m_VScrollBar;
-  QScrollBar *m_HScrollBar;
+  QScrollBar* m_VScrollBar;
+  QScrollBar* m_HScrollBar;
   bool m_ForwardingWheelEvent;
   bool m_AutoScroll;
 
   virtual size_t GetNumLines() const;
-  virtual void GetContentsRect(QRect &r) const;
+  virtual void GetContentsRect(QRect& r) const;
   virtual void UpdateFont();
   virtual void UpdateVScrollBar();
   virtual void UpdateHScrollBar();
-  virtual bool event(QEvent *event);
-  virtual void resizeEvent(QResizeEvent *event);
-  virtual void paintEvent(QPaintEvent *event);
-  virtual void wheelEvent(QWheelEvent *event);
+  virtual bool event(QEvent* event);
+  virtual void resizeEvent(QResizeEvent* event);
+  virtual void paintEvent(QPaintEvent* event);
+  virtual void wheelEvent(QWheelEvent* event);
 };
 
 ////////////////////////////////////////////////////////////////////////////////
