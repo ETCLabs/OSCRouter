@@ -12,6 +12,8 @@
 #error "#include error: OSXStreamClient.h requires StreamClient.h"
 #endif
 
+#include <unordered_set>
+
 class COSXStreamClient : public IOSXStreamACNCli, public CStreamClient
 {
 public:
@@ -58,6 +60,7 @@ protected:
 	bool m_lockinitted;
 	pthread_mutex_t m_lock;  //The simple binary lock
 	IAsyncSocketServ* m_psocklib;
+	std::unordered_set<pthread_t> m_threads;
 };
 
 #endif

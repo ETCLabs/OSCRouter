@@ -1293,6 +1293,7 @@ void RouterThread::DestroysACN(sACN& sacn)
 {
   if (sacn.server)
   {
+    sacn.server->Shutdown();
     IPlatformStreamACNSrv::DestroyInstance(sacn.server);
     sacn.server = nullptr;
     m_PrivateLog.AddInfo(QLatin1String("sACN server destroyed").toUtf8().constData());
@@ -1300,6 +1301,7 @@ void RouterThread::DestroysACN(sACN& sacn)
 
   if (sacn.client)
   {
+    sacn.client->Shutdown();
     IPlatformStreamACNCli::DestroyInstance(sacn.client);
     sacn.client = nullptr;
     m_PrivateLog.AddInfo(QLatin1String("sACN client destroyed").toUtf8().constData());
@@ -1307,6 +1309,7 @@ void RouterThread::DestroysACN(sACN& sacn)
 
   if (sacn.net)
   {
+    sacn.net->Shutdown();
     IPlatformAsyncSocketServ::DestroyInstance(sacn.net);
     sacn.net = nullptr;
     m_PrivateLog.AddInfo(QLatin1String("sACN networking destroyed").toUtf8().constData());

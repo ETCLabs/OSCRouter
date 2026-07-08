@@ -55,9 +55,15 @@ bool CWinStreamClient::Startup(IAsyncSocketServ* psocket, IStreamACNCliNotify* p
 //Call this to de-init the library before destruction
 void CWinStreamClient::Shutdown()
 {
-	//Calling internal shutdown should close the sockets -- The threads die because the socket gets
-	//invalidated and the threads clean themselves up.
+	//Calling internal shutdown should close the sockets
 	InternalShutdown();
+
+	// wait for all threads to finish
+	for (uintptr_t th : m_threads)
+	{
+		WaitForSingleObject((HANDLE)th, INFINITE);
+		CloseHandle((HANDLE)th);
+	}
 
 	DeleteCriticalSection(&m_lock);
 }
@@ -130,11 +136,12 @@ bool CWinStreamClient::SpawnSocketThread(sockid id)
 	pread->psocklib = m_psocklib;
 
 	unsigned tmpid;
-	HANDLE th = (HANDLE) _beginthreadex(NULL, 0, &ReadThread, pread, CREATE_SUSPENDED, &tmpid);
+	uintptr_t th = _beginthreadex(NULL, 0, &ReadThread, pread, CREATE_SUSPENDED, &tmpid);
 	if(!th)
 		return false;
-	SetThreadPriority(th, m_threadpriority);
-	ResumeThread(th);
+	SetThreadPriority((HANDLE)th, m_threadpriority);
+	ResumeThread((HANDLE)th);
+	m_threads.insert(th);
 	return true;
 }
 

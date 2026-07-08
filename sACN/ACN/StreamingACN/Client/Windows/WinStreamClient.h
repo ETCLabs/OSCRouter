@@ -12,6 +12,8 @@
 #error "#include error: WinStreamClient.h requires StreamClient.h"
 #endif
 
+#include <unordered_set>
+
 class CWinStreamClient : public IWinStreamACNCli, public CStreamClient
 {
 public:
@@ -58,6 +60,7 @@ protected:
 	CRITICAL_SECTION m_lock;  
 	IAsyncSocketServ* m_psocklib;
 	int m_threadpriority;  //The priority to use with the read threads.
+	std::unordered_set<uintptr_t> m_threads;
 };
 
 #endif

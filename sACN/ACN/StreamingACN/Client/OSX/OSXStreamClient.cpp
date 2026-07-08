@@ -61,8 +61,12 @@ bool COSXStreamClient::Startup(IAsyncSocketServ* psocket, IStreamACNCliNotify* p
 //Call this to de-init the library before destruction
 void COSXStreamClient::Shutdown()
 {
-	//Calling internal shutdown should close the sockets and kill the threads
+	//Calling internal shutdown should close the sockets
 	InternalShutdown();
+
+	// wait for all threads to finish
+	for (pthread_t th : m_threads)
+		pthread_join(th, nullptr);
 
 	if(m_lockinitted)
 	{
@@ -108,8 +112,6 @@ struct readinfo
 
 void* StreamClient_ReadThread(void* p)
 {
-	pthread_detach(pthread_self());  //Because nothing is joining to us
-	
 	struct readinfo* pinfo = reinterpret_cast<struct readinfo*>(p);
 
 	uint1 buffer [1500];
@@ -134,7 +136,7 @@ void* StreamClient_ReadThread(void* p)
 //will clean up.
 bool COSXStreamClient::SpawnSocketThread(sockid id)
 {
-	pthread_t tmp;
+	pthread_t th;
 	struct readinfo* p = new struct readinfo;
 	if(!p)
 		return false;
@@ -142,6 +144,10 @@ bool COSXStreamClient::SpawnSocketThread(sockid id)
 	p->pclient = this;
 	p->psocklib = m_psocklib;
 	
-	return 0 == pthread_create(&tmp, NULL, StreamClient_ReadThread, p);
+	if (pthread_create(&th, NULL, StreamClient_ReadThread, p) != 0)
+		return false;
+
+	m_threads.insert(th);
+	return true;
 }
 
